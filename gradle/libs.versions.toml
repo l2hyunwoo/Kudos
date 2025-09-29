@@ -13,6 +13,9 @@ composeMultiplatform = "1.9.0"
 junit = "4.13.2"
 kotlin = "2.2.20"
 
+metro = "0.6.8"
+soil = "1.0.0-alpha14"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -25,9 +28,19 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 
+# Soil Query
+soil-query = { module = "com.soil-kt.soil:query-core", version.ref = "soil" }
+soil-query-compose = { module = "com.soil-kt.soil:query-compose", version.ref = "soil" }
+soil-query-receivers-ktor = { module = "com.soil-kt.soil:query-receivers-ktor", version.ref = "soil" }
+soil-query-test = { module = "com.soil-kt.soil:query-test", version.ref = "soil" }
+
+# Soil Form
+soil-space = { module = "com.soil-kt.soil:space", version.ref = "soil" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
