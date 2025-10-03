@@ -31,7 +31,7 @@ class KudosFeaturePlugin : Plugin<Project> {
             sourceSets.apply {
                 commonMain {
                     dependencies {
-                        implementation(project(":core:designsystem"))
+                        implementation(project(":core:design"))
                         // implementation(project(":core:navigation"))
                         implementation(libs.library("androidx-navigation-compose"))
                         implementation(libs.library("androidx-lifecycle-runtimeCompose"))

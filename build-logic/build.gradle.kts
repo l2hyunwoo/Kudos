@@ -33,10 +33,10 @@ gradlePlugin {
             implementationClass =
                 "io.github.l2hyunwoo.kudos.convention.ComposeMultiPlatformConventionPlugin"
         }
-        register("droidknightsFeature") {
+        register("kudosFeature") {
             id = "kudos.feature"
             implementationClass =
-                "io.github.l2hyunwoo.kudos.convention.DroidKnightsFeaturePlugin"
+                "io.github.l2hyunwoo.kudos.convention.KudosFeaturePlugin"
         }
     }
 }
