@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
+    id("kudos.kotlin.multiplatform")
+    id("kudos.compose.multiplatform")
     alias(libs.plugins.metro)
 }
 
@@ -14,16 +14,17 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_17)
         }
     }
-    
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
+
+    targets
+        .filterIsInstance<KotlinNativeTarget>()
+        .forEach { target ->
+            target.binaries {
+                framework {
+                    baseName = "ComposeApp"
+                    isStatic = true
+                }
+            }
         }
-    }
     
     sourceSets {
         androidMain.dependencies {
@@ -64,7 +65,12 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
     compileOptions {
