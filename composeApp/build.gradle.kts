@@ -1,11 +1,23 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
     id("kudos.kotlin.multiplatform")
     id("kudos.compose.multiplatform")
     alias(libs.plugins.metro)
+    alias(libs.plugins.buildConfig)
+}
+
+buildConfig {
+    val fileInputStream = rootProject.file("local.properties").inputStream()
+    val properties = Properties().apply { load(fileInputStream) }
+    val supabaseUrl = properties.getProperty("SUPABASE_URL", "")
+    val supabaseAnonKey = properties.getProperty("SUPABASE_ANON_KEY", "")
+
+    buildConfigField("SUPABASE_URL", supabaseUrl)
+    buildConfigField("SUPABASE_ANON_KEY", supabaseAnonKey)
 }
 
 kotlin {

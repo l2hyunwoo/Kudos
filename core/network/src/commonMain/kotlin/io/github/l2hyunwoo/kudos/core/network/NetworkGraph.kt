@@ -24,13 +24,9 @@ interface NetworkGraph {
 
         @Provides
         @SingleIn(NetworkScope::class)
-        fun provideHttpClient(json: Json): HttpClient = httpClient(json)
-
-        @Provides
-        @SingleIn(NetworkScope::class)
         fun provideKtorfit(
             httpClient: HttpClient
-        ) = Ktorfit.Builder()
+        ): Ktorfit = Ktorfit.Builder()
             .httpClient(httpClient)
             .baseUrl(BuildConfig.SUPABASE_URL)
             .build()
