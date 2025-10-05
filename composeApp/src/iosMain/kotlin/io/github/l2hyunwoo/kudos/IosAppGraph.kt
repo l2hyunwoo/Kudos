@@ -7,8 +7,8 @@ import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
-import io.github.l2hyunwoo.data.tasks.DefaultTasksApiClient
-import io.github.l2hyunwoo.data.tasks.TasksApiClient
+import io.github.l2hyunwoo.data.tasks.api.DefaultTasksApiClient
+import io.github.l2hyunwoo.data.tasks.api.TasksApiClient
 import io.github.l2hyunwoo.kudos.core.network.di.NetworkScope
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin

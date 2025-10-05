@@ -1,4 +1,4 @@
-package io.github.l2hyunwoo.data.tasks
+package io.github.l2hyunwoo.data.tasks.api
 
 import de.jensklingenberg.ktorfit.http.GET
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
