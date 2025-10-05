@@ -45,6 +45,7 @@ kotlin {
         }
         commonMain.dependencies {
             // Core
+            implementation(projects.core.datastore)
             implementation(projects.core.design)
             implementation(projects.core.network)
 
