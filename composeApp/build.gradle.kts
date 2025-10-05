@@ -37,14 +37,19 @@ kotlin {
                 }
             }
         }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
+            // Core
             implementation(projects.core.design)
+            implementation(projects.core.network)
+
+            // Features
+            implementation(projects.feature.tasks)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)

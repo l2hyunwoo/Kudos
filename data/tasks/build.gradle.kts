@@ -6,20 +6,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-        }
-
-        commonTest {
-            dependencies {
-            }
-        }
-
-        androidMain {
-            dependencies {
-            }
-        }
-        iosMain {
-            dependencies {
-            }
+            implementation(projects.core.network)
         }
     }
 }
