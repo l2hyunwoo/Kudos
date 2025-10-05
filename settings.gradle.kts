@@ -30,5 +30,9 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
-include(":core:design")
+include(
+    ":core:design",
+    ":core:network"
+)
+include(":data:tasks")
 include(":feature:tasks")
