@@ -9,7 +9,9 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 class KtorPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         with(pluginManager) {
+            apply(libs.findPlugin("ksp").get().get().pluginId)
             apply(libs.findPlugin("kotlinxSerialization").get().get().pluginId)
+            apply(libs.findPlugin("ktorfit").get().get().pluginId)
         }
 
         extensions.configure<KotlinMultiplatformExtension> {
@@ -21,6 +23,7 @@ class KtorPlugin : Plugin<Project> {
                         implementation(libs.findLibrary("ktor-client-content-negotiation").get())
                         implementation(libs.findLibrary("ktor-serialization-kotlinx-json").get())
                         implementation(libs.findLibrary("ktor-logging").get())
+                        implementation(libs.findLibrary("ktorfit").get())
                     }
                 }
 

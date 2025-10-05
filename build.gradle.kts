@@ -10,4 +10,7 @@ plugins {
     alias(libs.plugins.metro) apply false
     alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
     alias(libs.plugins.androidLint) apply false
+    alias(libs.plugins.buildConfig) apply false
+    alias(libs.plugins.ktorfit) apply false
+    alias(libs.plugins.ksp) apply false
 }
