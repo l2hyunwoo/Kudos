@@ -48,6 +48,9 @@ kotlin {
             implementation(projects.core.design)
             implementation(projects.core.network)
 
+            // Data
+            implementation(projects.data.tasks)
+
             // Features
             implementation(projects.feature.tasks)
             implementation(compose.runtime)
