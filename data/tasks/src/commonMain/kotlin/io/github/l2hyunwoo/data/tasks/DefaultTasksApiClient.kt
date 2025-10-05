@@ -9,7 +9,9 @@ import io.github.l2hyunwoo.kudos.core.network.di.NetworkScope
 @ContributesBinding(NetworkScope::class)
 @Inject
 class DefaultTasksApiClient internal constructor(ktorfit: Ktorfit) : TasksApiClient {
+    val tasksApi = ktorfit.createTasksApi()
+
     override suspend fun getTasks(): TasksResponse {
-        TODO("Not yet implemented")
+        return tasksApi.getTasks()
     }
 }

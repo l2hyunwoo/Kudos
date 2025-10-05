@@ -3,9 +3,13 @@ package io.github.l2hyunwoo.kudos
 import Kudos.composeApp.BuildConfig
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
+import io.github.l2hyunwoo.data.tasks.DefaultTasksApiClient
+import io.github.l2hyunwoo.data.tasks.TasksApiClient
+import io.github.l2hyunwoo.kudos.core.network.di.NetworkScope
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -27,9 +31,13 @@ import kotlinx.serialization.json.Json
 @ExportObjCClass
 @DependencyGraph(
     scope = AppScope::class,
-    additionalScopes = [],
+    additionalScopes = [NetworkScope::class],
 )
 interface IosAppGraph : AppGraph {
+
+    @Binds
+    val DefaultTasksApiClient.bind: TasksApiClient
+
     @Provides
     @SingleIn(AppScope::class)
     fun provideJson(): Json = Json {
