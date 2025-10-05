@@ -5,19 +5,24 @@ plugins {
 dependencies {
     implementation(libs.android.gradlePlugin)
     implementation(libs.kotlin.gradlePlugin)
+    implementation(libs.buildConfig.gradlePlugin)
     compileOnly(libs.compose.compiler.gradlePlugin)
     compileOnly(libs.compose.gradlePlugin)
 }
 
 gradlePlugin {
     plugins {
-        register("kmpIos") {
-            id = "kudos.kmp.ios"
-            implementationClass = "io.github.l2hyunwoo.kudos.primitive.KotlinMultiPlatformiOSPlugin"
+        register("ktor") {
+            id = "kudos.ktor"
+            implementationClass = "io.github.l2hyunwoo.kudos.primitive.KtorPlugin"
         }
         register("kmpAndroid") {
             id = "kudos.kmp.android"
             implementationClass = "io.github.l2hyunwoo.kudos.primitive.KotlinMultiPlatformAndroidPlugin"
+        }
+        register("kmpIos") {
+            id = "kudos.kmp.ios"
+            implementationClass = "io.github.l2hyunwoo.kudos.primitive.KotlinMultiPlatformiOSPlugin"
         }
         register("kmpPrimitive") {
             id = "kudos.kmp"
