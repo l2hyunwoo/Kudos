@@ -31,3 +31,4 @@ dependencyResolutionManagement {
 
 include(":composeApp")
 include(":core:design")
+include(":feature:tasks")
