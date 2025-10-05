@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.androidLibrary)
-    id("kudos.kotlin.multiplatform")
+    id("kudos.feature")
     id("kudos.ktor")
 }
 
