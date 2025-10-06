@@ -23,9 +23,11 @@
     <string name="create">Create</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
+    <string name="undo">Undo</string>
 
     <!-- Messages -->
     <string name="no_projects_yet">No projects yet</string>
     <string name="delete_category_confirmation">Are you sure you want to delete this category? This will also delete all projects in this category.</string>
     <string name="error_occurred">An error occurred</string>
+    <string name="project_deleted">%s deleted</string>
 </resources>
