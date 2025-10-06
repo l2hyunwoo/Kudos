@@ -4,3 +4,6 @@ import dev.zacsweers.metro.Qualifier
 
 @Qualifier
 annotation class TasksDataStore
+
+@Qualifier
+annotation class CategoriesDataStore

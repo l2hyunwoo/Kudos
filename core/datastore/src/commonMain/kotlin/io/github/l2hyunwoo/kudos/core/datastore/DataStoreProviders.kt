@@ -9,6 +9,7 @@ import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import io.github.l2hyunwoo.kudos.core.common.DataScope
+import io.github.l2hyunwoo.kudos.core.datastore.annotation.CategoriesDataStore
 import io.github.l2hyunwoo.kudos.core.datastore.annotation.IoDispatchers
 import io.github.l2hyunwoo.kudos.core.datastore.annotation.TasksDataStore
 import kotlinx.coroutines.CoroutineDispatcher
@@ -35,7 +36,25 @@ interface DataStoreProviders {
         )
     }
 
+    @SingleIn(DataScope::class)
+    @CategoriesDataStore
+    @Provides
+    fun provideCategoriesDataStore(
+        dataStorePathProducer: DataStorePathProducer,
+        @IoDispatchers ioDispatcher: CoroutineDispatcher,
+    ): DataStore<Preferences> {
+        return PreferenceDataStoreFactory.createWithPath(
+            corruptionHandler = ReplaceFileCorruptionHandler({ emptyPreferences() }),
+            migrations = emptyList(),
+            scope = CoroutineScope(ioDispatcher),
+            produceFile = {
+                dataStorePathProducer.producePath(DATA_STORE_CATEGORIES_FILE_NAME).toPath()
+            },
+        )
+    }
+
     companion object {
         const val DATA_STORE_TASKS_FILE_NAME: String = "kudos.tasks.preferences_pb"
+        const val DATA_STORE_CATEGORIES_FILE_NAME: String = "kudos.categories.preferences_pb"
     }
 }
