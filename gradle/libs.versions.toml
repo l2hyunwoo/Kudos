@@ -21,12 +21,17 @@ kotlinx-serialization = "1.9.0"
 kotlinx-datetime = "0.7.1"
 kotlinx-collections-immutable = "0.4.0"
 
+# Material
+material3 = "1.9.0-alpha04"
+material3-adaptive = "1.1.2"
+
 metro = "0.6.8"
 soil = "1.0.0-alpha14"
 coil = "3.3.0"
 ktor = "3.3.0"
 buildConfig = "5.6.8"
 ktorfit = "2.6.4"
+rin = "0.4.0"
 
 [libraries]
 # Kotlin
@@ -38,7 +43,10 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx-collections-immutable" }
 
+# Testing
 junit = { module = "junit:junit", version.ref = "junit" }
+
+# AndroidX
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-testExt" }
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-espresso" }
@@ -48,6 +56,11 @@ androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecyc
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "androidx-navigation" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidx-datastore" }
+
+# Material
+material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
+material3-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "material3-adaptive" }
+material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version = "1.7.3" }
 
 # Gradle Plugin
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -61,6 +74,7 @@ soil-query = { module = "com.soil-kt.soil:query-core", version.ref = "soil" }
 soil-query-compose = { module = "com.soil-kt.soil:query-compose", version.ref = "soil" }
 soil-query-receivers-ktor = { module = "com.soil-kt.soil:query-receivers-ktor", version.ref = "soil" }
 soil-query-test = { module = "com.soil-kt.soil:query-test", version.ref = "soil" }
+soil-reacty = { module = "com.soil-kt.soil:reacty", version.ref = "soil" }
 
 # Soil Form
 soil-space = { module = "com.soil-kt.soil:space", version.ref = "soil" }
@@ -80,6 +94,9 @@ ktor-logging = {module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 
 # Ktorfit
 ktorfit = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "ktorfit" }
+
+# Rin
+rin = { module = "io.github.takahirom.rin:rin", version.ref = "rin" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

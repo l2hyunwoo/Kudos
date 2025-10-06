@@ -34,7 +34,8 @@ include(
     ":core:common",
     ":core:datastore",
     ":core:design",
-    ":core:network"
+    ":core:network",
+    ":core:soil",
 )
 include(":data:tasks")
 include(":feature:tasks")
