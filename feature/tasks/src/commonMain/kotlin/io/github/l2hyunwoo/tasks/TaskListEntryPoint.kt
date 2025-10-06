@@ -14,7 +14,9 @@ import soil.query.compose.rememberQuery
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 context(context: TasksContext)
-fun TaskListEntryPoint() {
+fun TaskListEntryPoint(
+    onNavigateToCategories: () -> Unit = {}
+) {
     SoilBoundary(
         state = rememberQuery(context.tasksQuery),
         fallback = SoilFallbackDefaults.appBar(
@@ -32,7 +34,8 @@ fun TaskListEntryPoint() {
         ),
     ) { categories ->
         TaskListScreen(
-            categories = categories.toImmutableList()
+            categories = categories.toImmutableList(),
+            onEditCategoriesClick = onNavigateToCategories
         )
     }
 }
