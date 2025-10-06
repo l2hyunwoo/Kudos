@@ -5,7 +5,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -27,7 +31,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(
-    categories: ImmutableList<TasksResponse.CategoryWithTasks>
+    categories: ImmutableList<TasksResponse.CategoryWithTasks>,
+    onEditCategoriesClick: () -> Unit = {}
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
@@ -35,6 +40,14 @@ fun TaskListScreen(
             AnimatedTextTopAppBar(
                 title = stringResource(Res.string.tasks),
                 scrollBehavior = scrollBehavior,
+                actions = {
+                    IconButton(onClick = onEditCategoriesClick) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit categories"
+                        )
+                    }
+                }
             )
         },
     ) {
