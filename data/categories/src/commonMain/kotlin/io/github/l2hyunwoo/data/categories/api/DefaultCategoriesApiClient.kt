@@ -19,15 +19,15 @@ class DefaultCategoriesApiClient internal constructor(
         return categoriesApi.getCategories()
     }
 
-    override suspend fun createCategory(request: CreateCategoryRequest) {
-        categoriesApi.createCategory(request)
+    override suspend fun createCategory(request: CreateCategoryRequest): CategoriesResponse {
+        return categoriesApi.createCategory(request)
     }
 
-    override suspend fun deleteCategory(id: String) {
-        categoriesApi.deleteCategory(id)
+    override suspend fun deleteCategory(id: String): CategoriesResponse {
+        return categoriesApi.deleteCategory(id)
     }
 
-    override suspend fun createProject(categoryId: String, request: CreateProjectRequest) {
-        categoriesApi.createProject(categoryId, request)
+    override suspend fun createProject(categoryId: String, request: CreateProjectRequest): CategoriesResponse {
+        return categoriesApi.createProject(categoryId, request)
     }
 }

@@ -14,14 +14,14 @@ interface CategoriesApi {
     suspend fun getCategories(): CategoriesResponse
 
     @POST("functions/v1/categories-api/categories")
-    suspend fun createCategory(@Body request: CreateCategoryRequest)
+    suspend fun createCategory(@Body request: CreateCategoryRequest): CategoriesResponse
 
     @DELETE("functions/v1/categories-api/categories/{id}")
-    suspend fun deleteCategory(@Path("id") id: String)
+    suspend fun deleteCategory(@Path("id") id: String): CategoriesResponse
 
     @POST("functions/v1/categories-api/categories/{id}/projects")
     suspend fun createProject(
         @Path("id") categoryId: String,
         @Body request: CreateProjectRequest
-    )
+    ): CategoriesResponse
 }
