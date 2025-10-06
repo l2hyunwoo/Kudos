@@ -66,6 +66,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.androidx.navigation.compose)
             implementation(libs.soil.query)
+            implementation(libs.soil.query.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
