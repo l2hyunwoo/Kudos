@@ -10,4 +10,8 @@ sealed interface CategoryListEvent {
         val categoryId: String,
         val request: CreateProjectRequest
     ) : CategoryListEvent
+    data class DeleteProject(
+        val categoryId: String,
+        val projectId: String
+    ) : CategoryListEvent
 }

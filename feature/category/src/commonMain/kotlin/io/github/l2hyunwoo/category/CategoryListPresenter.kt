@@ -3,6 +3,7 @@ package io.github.l2hyunwoo.category
 import androidx.compose.runtime.Composable
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.CreateProjectParams
+import io.github.l2hyunwoo.data.categories.model.DeleteProjectParams
 import io.github.l2hyunwoo.kudos.core.common.compose.EventEffect
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
 import kotlinx.collections.immutable.toImmutableList
@@ -17,6 +18,7 @@ fun categoryListPresenter(
     val createCategoryMutation = rememberMutation(context.createCategoryMutation)
     val deleteCategoryMutation = rememberMutation(context.deleteCategoryMutation)
     val createProjectMutation = rememberMutation(context.createProjectMutation)
+    val deleteProjectMutation = rememberMutation(context.deleteProjectMutation)
 
     EventEffect(eventFlow) { event ->
         when (event) {
@@ -31,6 +33,11 @@ fun categoryListPresenter(
                     CreateProjectParams(event.categoryId, event.request)
                 )
             }
+            is CategoryListEvent.DeleteProject -> {
+                deleteProjectMutation.mutate(
+                    DeleteProjectParams(event.categoryId, event.projectId)
+                )
+            }
         }
     }
 
@@ -38,9 +45,11 @@ fun categoryListPresenter(
         categories = categories.toImmutableList(),
         isLoading = createCategoryMutation.isPending
             || deleteCategoryMutation.isPending
-            || createProjectMutation.isPending,
+            || createProjectMutation.isPending
+            || deleteProjectMutation.isPending,
         error = createCategoryMutation.error
             ?: deleteCategoryMutation.error
             ?: createProjectMutation.error
+            ?: deleteProjectMutation.error
     )
 }

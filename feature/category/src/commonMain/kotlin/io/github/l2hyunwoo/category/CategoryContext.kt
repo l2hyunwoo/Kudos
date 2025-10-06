@@ -8,6 +8,7 @@ import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.CreateCategoryMutationKey
 import io.github.l2hyunwoo.data.categories.model.CreateProjectMutationKey
 import io.github.l2hyunwoo.data.categories.model.DeleteCategoryMutationKey
+import io.github.l2hyunwoo.data.categories.model.DeleteProjectMutationKey
 import io.github.l2hyunwoo.kudos.core.common.ScreenContext
 import soil.query.QueryKey
 
@@ -19,6 +20,7 @@ interface CategoryContext: ScreenContext {
     val createCategoryMutation: CreateCategoryMutationKey
     val deleteCategoryMutation: DeleteCategoryMutationKey
     val createProjectMutation: CreateProjectMutationKey
+    val deleteProjectMutation: DeleteProjectMutationKey
 
     @ContributesTo(AppScope::class)
     @GraphExtension.Factory
