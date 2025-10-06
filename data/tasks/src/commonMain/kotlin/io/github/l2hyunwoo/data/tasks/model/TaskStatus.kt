@@ -6,14 +6,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class TaskStatus(val text: String) {
     @SerialName("todo")
-    TODO("To Do"),
+    TODO("\uD83C\uDF13"),
 
     @SerialName("in_progress")
-    IN_PROGRESS("In Progress"),
+    IN_PROGRESS("\uD83C\uDF14"),
 
     @SerialName("done")
-    DONE("Done"),
+    DONE("\uD83C\uDF15"),
 
     @SerialName("backlog")
-    BACKLOG("Backlog"),
+    BACKLOG("\uD83C\uDF11"),
 }

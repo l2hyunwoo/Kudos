@@ -19,7 +19,6 @@ import io.github.l2hyunwoo.kudos.core.soil.appbar.AnimatedTextTopAppBar
 import io.github.l2hyunwoo.tasks.component.TaskRow
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
