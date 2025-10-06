@@ -1,38 +1,29 @@
 package io.github.l2hyunwoo.category
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import io.github.l2hyunwoo.kudos.core.soil.SoilBoundary
-import io.github.l2hyunwoo.kudos.core.soil.SoilFallbackDefaults
-import kotlinx.collections.immutable.toImmutableList
+import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
+import soil.query.annotation.ExperimentalSoilQueryApi
 import soil.query.compose.rememberQuery
+import soil.query.compose.rememberSubscription
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalSoilQueryApi::class)
 @Composable
 context(context: CategoryContext)
 fun CategoryListEntryPoint() {
-    SoilBoundary(
-        state = rememberQuery(context.categoriesQuery),
-        fallback = SoilFallbackDefaults.appBar(
-            title = "Categories",
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { /* TODO: Add category */ },
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "Add Category",
-                    )
-                }
-            }
-        ),
-    ) { categories ->
-        CategoryListScreen(
-            categories = categories.toImmutableList()
-        )
-    }
+    val eventFlow = rememberEventFlow<CategoryListEvent>()
+
+    val categoriesQuery = rememberQuery(context.categoriesQuery)
+    val categoriesSubscription = rememberSubscription(context.categoriesSubscription)
+
+    val categories = categoriesSubscription.data ?: categoriesQuery.data ?: emptyList()
+
+    val uiState = categoryListPresenter(
+        eventFlow = eventFlow,
+        categories = categories
+    )
+
+    CategoryListScreen(
+        uiState = uiState,
+        eventFlow = eventFlow
+    )
 }
