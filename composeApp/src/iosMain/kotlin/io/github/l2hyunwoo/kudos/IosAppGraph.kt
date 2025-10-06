@@ -44,6 +44,8 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -117,6 +119,7 @@ interface IosAppGraph : AppGraph {
         }
         defaultRequest {
             header("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
         }
     }
 
