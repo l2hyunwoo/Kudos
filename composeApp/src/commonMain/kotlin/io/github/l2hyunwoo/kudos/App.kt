@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.kudos.core.common.navigation.TaskList
 import io.github.l2hyunwoo.kudos.navigation.taskListGraph
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import soil.query.SwrCachePlus
@@ -30,7 +31,7 @@ fun App() {
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = "main",
+                    startDestination = TaskList,
                     modifier = Modifier
                         .fillMaxSize()
                         .imePadding()

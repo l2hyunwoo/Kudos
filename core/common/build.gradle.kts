@@ -7,3 +7,11 @@ plugins {
 }
 
 android.namespace = "io.github.l2hyunwoo.kudos.core.common"
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.kotlinx.serialization.json)
+        }
+    }
+}
