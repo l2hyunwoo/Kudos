@@ -14,8 +14,16 @@ import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import io.github.l2hyunwoo.data.categories.api.CategoriesApiClient
 import io.github.l2hyunwoo.data.categories.api.DefaultCategoriesApiClient
+import io.github.l2hyunwoo.data.categories.model.CategoriesSubscriptionKey
 import io.github.l2hyunwoo.data.categories.model.Category
+import io.github.l2hyunwoo.data.categories.model.CreateCategoryMutationKey
+import io.github.l2hyunwoo.data.categories.model.CreateProjectMutationKey
+import io.github.l2hyunwoo.data.categories.model.DeleteCategoryMutationKey
+import io.github.l2hyunwoo.data.categories.mutation.DefaultCreateCategoryMutationKey
+import io.github.l2hyunwoo.data.categories.mutation.DefaultCreateProjectMutationKey
+import io.github.l2hyunwoo.data.categories.mutation.DefaultDeleteCategoryMutationKey
 import io.github.l2hyunwoo.data.categories.query.DefaultCategoriesQueryKey
+import io.github.l2hyunwoo.data.categories.subscription.DefaultCategoriesSubscriptionKey
 import io.github.l2hyunwoo.data.tasks.api.DefaultTasksApiClient
 import io.github.l2hyunwoo.data.tasks.api.TasksApiClient
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
@@ -69,6 +77,18 @@ interface IosAppGraph : AppGraph {
 
     @Binds
     val DefaultCategoriesQueryKey.bind: QueryKey<List<Category>>
+
+    @Binds
+    val DefaultCategoriesSubscriptionKey.bind: CategoriesSubscriptionKey
+
+    @Binds
+    val DefaultCreateCategoryMutationKey.bind: CreateCategoryMutationKey
+
+    @Binds
+    val DefaultDeleteCategoryMutationKey.bind: DeleteCategoryMutationKey
+
+    @Binds
+    val DefaultCreateProjectMutationKey.bind: CreateProjectMutationKey
 
     @Binds
     val DefaultTasksApiClient.bind: TasksApiClient
