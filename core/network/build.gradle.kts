@@ -20,7 +20,11 @@ buildConfig {
 }
 
 kotlin {
-    sourceSets {}
+    sourceSets {
+        commonMain.dependencies {
+            implementation(projects.core.common)
+        }
+    }
 }
 
 android.namespace = "io.github.l2hyunwoo.kudos.core.network"

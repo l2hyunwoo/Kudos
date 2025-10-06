@@ -5,16 +5,16 @@ import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
-import io.github.l2hyunwoo.kudos.core.network.di.NetworkScope
+import io.github.l2hyunwoo.kudos.core.common.DataScope
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 
-@ContributesTo(NetworkScope::class)
+@ContributesTo(DataScope::class)
 interface NetworkGraph {
 
     companion object {
         @Provides
-        @SingleIn(NetworkScope::class)
+        @SingleIn(DataScope::class)
         fun provideJson(): Json = Json {
             isLenient = true
             ignoreUnknownKeys = true
@@ -23,7 +23,7 @@ interface NetworkGraph {
         }
 
         @Provides
-        @SingleIn(NetworkScope::class)
+        @SingleIn(DataScope::class)
         fun provideKtorfit(
             httpClient: HttpClient
         ): Ktorfit = Ktorfit.Builder()

@@ -1,3 +1,5 @@
 package io.github.l2hyunwoo.kudos
 
-interface AppGraph
+import io.github.l2hyunwoo.tasks.TasksContext
+
+interface AppGraph : TasksContext.Factory

@@ -1,11 +1,11 @@
 package io.github.l2hyunwoo.kudos.core.datastore
 
 import android.content.Context
-import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
+import io.github.l2hyunwoo.kudos.core.common.DataScope
 
-@ContributesTo(AppScope::class)
+@ContributesTo(DataScope::class)
 interface AndroidDataStoreGraph {
     @Provides
     fun provideDataStorePathProducer(context: Context): DataStorePathProducer {

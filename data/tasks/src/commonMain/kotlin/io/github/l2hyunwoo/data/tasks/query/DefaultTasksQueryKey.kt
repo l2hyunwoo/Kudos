@@ -5,13 +5,13 @@ import dev.zacsweers.metro.Inject
 import io.github.l2hyunwoo.data.tasks.api.TasksApiClient
 import io.github.l2hyunwoo.data.tasks.cache.TasksCacheDataStore
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
-import io.github.l2hyunwoo.kudos.core.network.di.NetworkScope
+import io.github.l2hyunwoo.kudos.core.common.DataScope
 import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.QueryPreloadData
 import soil.query.buildQueryKey
 
-@ContributesBinding(NetworkScope::class)
+@ContributesBinding(DataScope::class)
 @Inject
 class DefaultTasksQueryKey(
     private val apiClient: TasksApiClient,
