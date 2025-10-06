@@ -12,5 +12,5 @@ fun TaskListScreen() {
 @Preview
 @Composable
 private fun TaskListScreenPreview() {
-    KudosTheme { TaskListScreenPreview() }
+    KudosTheme { TaskListScreen() }
 }

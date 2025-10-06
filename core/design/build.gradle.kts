@@ -13,15 +13,11 @@ kotlin {
             implementation(libs.coil)
             implementation(libs.coil.network)
         }
-        appleMain {
-            dependencies {
-                implementation(libs.ktor.client.darwin)
-            }
+        appleMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
-        androidMain {
-            dependencies {
-                implementation(libs.ktor.client.okhttp)
-            }
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
         }
     }
 }
