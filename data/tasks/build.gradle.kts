@@ -7,7 +7,11 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.core.datastore)
             implementation(projects.core.network)
+
+            implementation(libs.soil.query)
+            implementation(libs.androidx.datastore.preferences)
         }
     }
 }
