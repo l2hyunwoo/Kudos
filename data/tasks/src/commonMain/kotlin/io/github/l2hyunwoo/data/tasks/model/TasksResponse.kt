@@ -27,4 +27,14 @@ data class TasksResponse(
     )
 }
 
+val TasksResponse.CategoryWithTasks.Companion.fixture
+    get() = TasksResponse.CategoryWithTasks(
+        id = "category-1",
+        prefix = "CAT1",
+        color = "#FF5733",
+        title = "Sample Category",
+        createdAt = "2024-01-01T00:00:00Z",
+        updatedAt = "2024-01-02T00:00:00Z",
+        tasks = listOf(Task.fixture)
+    )
 

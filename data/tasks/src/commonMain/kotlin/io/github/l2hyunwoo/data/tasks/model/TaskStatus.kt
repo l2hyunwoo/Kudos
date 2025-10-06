@@ -4,16 +4,16 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class TaskStatus {
+enum class TaskStatus(val text: String) {
     @SerialName("todo")
-    TODO,
+    TODO("To Do"),
 
     @SerialName("in_progress")
-    IN_PROGRESS,
+    IN_PROGRESS("In Progress"),
 
     @SerialName("done")
-    DONE,
+    DONE("Done"),
 
     @SerialName("backlog")
-    BACKLOG
+    BACKLOG("Backlog"),
 }

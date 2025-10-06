@@ -4,16 +4,18 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class TaskPriority {
+enum class TaskPriority(
+    val text: String
+) {
     @SerialName("urgent")
-    URGENT,
+    URGENT("Urgent"),
 
     @SerialName("high")
-    HIGH,
+    HIGH("High"),
 
     @SerialName("medium")
-    MEDIUM,
+    MEDIUM("Medium"),
 
     @SerialName("low")
-    LOW
+    LOW("Low"),
 }

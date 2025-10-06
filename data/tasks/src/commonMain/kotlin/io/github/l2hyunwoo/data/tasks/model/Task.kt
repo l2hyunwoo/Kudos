@@ -34,3 +34,21 @@ data class Task(
     @SerialName("updated_at")
     val updatedAt: String
 )
+
+val Task.Companion.fixture
+    get() = Task(
+        id = "1",
+        taskId = "task-1",
+        taskNumber = 1,
+        title = "Sample Task",
+        description = "This is a sample task description.",
+        status = TaskStatus.TODO,
+        priority = TaskPriority.MEDIUM,
+        dueDate = "2024-12-31",
+        projectId = "project-1",
+        projectTitle = "Sample Project",
+        parentTaskId = null,
+        displayOrder = 1,
+        createdAt = "2024-01-01T00:00:00Z",
+        updatedAt = "2024-01-02T00:00:00Z"
+    )
