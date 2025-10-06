@@ -24,6 +24,11 @@ class DefaultDeleteCategoryMutationKey(
         cacheDataStore.save(optimisticList)
 
         try {
+            // If it's a temporary ID (from optimistic create), skip API call
+            if (categoryId.startsWith("temp-")) {
+                return@buildMutationKey optimisticList
+            }
+
             // API call → returns updated list
             val updatedCategories = apiClient.deleteCategory(categoryId)
             cacheDataStore.save(updatedCategories)
