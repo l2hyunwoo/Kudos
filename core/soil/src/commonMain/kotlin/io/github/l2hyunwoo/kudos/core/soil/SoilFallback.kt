@@ -32,6 +32,7 @@ object SoilFallbackDefaults {
         // Allowing WindowInsets to be overridden to prevent layout jump/glitches
         // when navigating between screens with and without a bottom navigation bar.
         windowInsets: WindowInsets = WindowInsets.safeDrawingWithBottomNavBar,
+        floatingActionButton: @Composable () -> Unit = {},
         contentBackground: (@Composable (innerPadding: PaddingValues) -> Unit)? = null,
     ): SoilFallback = AppBar(
         title = title,
@@ -39,6 +40,7 @@ object SoilFallbackDefaults {
         onBackClick = onBackClick,
         size = appBarSize,
         windowInsets = windowInsets,
+        floatingActionButton = floatingActionButton,
         contentBackground = contentBackground,
     )
 
@@ -72,6 +74,7 @@ private class AppBar(
     val onBackClick: (() -> Unit)?,
     val size: AppBarSize,
     val windowInsets: WindowInsets,
+    val floatingActionButton: @Composable () -> Unit,
     val contentBackground: (@Composable (innerPadding: PaddingValues) -> Unit)?,
 ) : SoilFallback {
     override val suspenseFallback: @Composable context(SuspenseContext) BoxScope.() -> Unit = {
@@ -81,6 +84,7 @@ private class AppBar(
             appBarSize = size,
             appBarColors = colors,
             windowInsets = windowInsets,
+            floatingActionButton = floatingActionButton,
         ) { innerPadding ->
             contentBackground?.invoke(innerPadding)
             KudosSuspenseFallbackContents(
@@ -96,6 +100,7 @@ private class AppBar(
             appBarSize = size,
             appBarColors = colors,
             windowInsets = windowInsets,
+            floatingActionButton = floatingActionButton,
         ) { innerPadding ->
             contentBackground?.invoke(innerPadding)
             KudosErrorFallbackContents(

@@ -22,6 +22,7 @@ fun AppBarFallbackScaffold(
         scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
     ),
     windowInsets: WindowInsets = WindowInsets.safeDrawingWithBottomNavBar,
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (innerPadding: PaddingValues) -> Unit,
 ) {
     Scaffold(
@@ -44,6 +45,7 @@ fun AppBarFallbackScaffold(
                 }
             }
         },
+        floatingActionButton = floatingActionButton,
         contentWindowInsets = windowInsets,
         content = content,
     )
