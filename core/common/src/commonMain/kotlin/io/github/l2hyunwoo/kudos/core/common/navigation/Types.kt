@@ -4,3 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data object TaskList
+
+@Serializable
+data object CategoryList
