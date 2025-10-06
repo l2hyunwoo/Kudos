@@ -30,6 +30,7 @@ class KtorPlugin : Plugin<Project> {
                 androidMain {
                     dependencies {
                         implementation(libs.findLibrary("ktor-client-okhttp").get())
+                        implementation("org.slf4j:slf4j-android:1.7.36")
                     }
                 }
 

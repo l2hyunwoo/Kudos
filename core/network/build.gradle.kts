@@ -24,6 +24,9 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.core.common)
         }
+        androidMain.dependencies {
+            implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
+        }
     }
 }
 
