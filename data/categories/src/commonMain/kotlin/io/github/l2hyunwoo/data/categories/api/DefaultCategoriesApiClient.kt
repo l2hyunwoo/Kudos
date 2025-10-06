@@ -30,4 +30,8 @@ class DefaultCategoriesApiClient internal constructor(
     override suspend fun createProject(categoryId: String, request: CreateProjectRequest): CategoriesResponse {
         return categoriesApi.createProject(categoryId, request)
     }
+
+    override suspend fun deleteProject(categoryId: String, projectId: String): CategoriesResponse {
+        return categoriesApi.deleteProject(categoryId, projectId)
+    }
 }

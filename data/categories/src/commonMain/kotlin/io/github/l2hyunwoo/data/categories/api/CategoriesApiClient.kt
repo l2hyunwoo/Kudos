@@ -12,4 +12,6 @@ interface CategoriesApiClient {
     suspend fun deleteCategory(id: String): CategoriesResponse
 
     suspend fun createProject(categoryId: String, request: CreateProjectRequest): CategoriesResponse
+
+    suspend fun deleteProject(categoryId: String, projectId: String): CategoriesResponse
 }

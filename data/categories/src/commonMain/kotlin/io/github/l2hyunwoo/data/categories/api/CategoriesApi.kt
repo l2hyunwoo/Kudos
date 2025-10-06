@@ -24,4 +24,10 @@ interface CategoriesApi {
         @Path("id") categoryId: String,
         @Body request: CreateProjectRequest
     ): CategoriesResponse
+
+    @DELETE("functions/v1/categories-api/categories/{categoryId}/projects/{projectId}")
+    suspend fun deleteProject(
+        @Path("categoryId") categoryId: String,
+        @Path("projectId") projectId: String
+    ): CategoriesResponse
 }
