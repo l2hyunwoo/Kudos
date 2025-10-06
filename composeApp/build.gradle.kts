@@ -51,6 +51,7 @@ kotlin {
             implementation(projects.core.network)
 
             // Data
+            implementation(projects.data.categories)
             implementation(projects.data.tasks)
 
             // Features

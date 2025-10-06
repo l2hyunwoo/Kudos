@@ -37,5 +37,8 @@ include(
     ":core:network",
     ":core:soil",
 )
-include(":data:tasks")
+include(
+    ":data:categories",
+    ":data:tasks"
+)
 include(":feature:tasks")
