@@ -11,6 +11,7 @@ kotlin {
             implementation(projects.core.datastore)
             implementation(projects.core.network)
 
+            implementation(libs.kotlinx.datetime)
             implementation(libs.soil.query)
             implementation(libs.androidx.datastore.preferences)
         }
