@@ -12,13 +12,19 @@ import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
+import io.github.l2hyunwoo.data.categories.api.CategoriesApiClient
+import io.github.l2hyunwoo.data.categories.api.DefaultCategoriesApiClient
+import io.github.l2hyunwoo.data.categories.model.Category
+import io.github.l2hyunwoo.data.categories.query.DefaultCategoriesQueryKey
 import io.github.l2hyunwoo.data.tasks.api.DefaultTasksApiClient
 import io.github.l2hyunwoo.data.tasks.api.TasksApiClient
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
 import io.github.l2hyunwoo.data.tasks.query.DefaultTasksQueryKey
 import io.github.l2hyunwoo.kudos.core.common.DataScope
 import io.github.l2hyunwoo.kudos.core.datastore.DataStorePathProducer
+import io.github.l2hyunwoo.kudos.core.datastore.DataStoreProviders.Companion.DATA_STORE_CATEGORIES_FILE_NAME
 import io.github.l2hyunwoo.kudos.core.datastore.DataStoreProviders.Companion.DATA_STORE_TASKS_FILE_NAME
+import io.github.l2hyunwoo.kudos.core.datastore.annotation.CategoriesDataStore
 import io.github.l2hyunwoo.kudos.core.datastore.annotation.IoDispatchers
 import io.github.l2hyunwoo.kudos.core.datastore.annotation.TasksDataStore
 import io.ktor.client.HttpClient
@@ -57,6 +63,12 @@ import soil.query.QueryKey
     additionalScopes = [DataScope::class],
 )
 interface IosAppGraph : AppGraph {
+
+    @Binds
+    val DefaultCategoriesApiClient.bind: CategoriesApiClient
+
+    @Binds
+    val DefaultCategoriesQueryKey.bind: QueryKey<List<Category>>
 
     @Binds
     val DefaultTasksApiClient.bind: TasksApiClient
@@ -132,6 +144,23 @@ interface IosAppGraph : AppGraph {
             scope = CoroutineScope(ioDispatcher),
             produceFile = {
                 dataStorePathProducer.producePath(DATA_STORE_TASKS_FILE_NAME).toPath()
+            },
+        )
+    }
+
+    @SingleIn(DataScope::class)
+    @CategoriesDataStore
+    @Provides
+    fun provideCategoriesDataStore(
+        dataStorePathProducer: DataStorePathProducer,
+        @IoDispatchers ioDispatcher: CoroutineDispatcher,
+    ): DataStore<Preferences> {
+        return PreferenceDataStoreFactory.createWithPath(
+            corruptionHandler = ReplaceFileCorruptionHandler({ emptyPreferences() }),
+            migrations = emptyList(),
+            scope = CoroutineScope(ioDispatcher),
+            produceFile = {
+                dataStorePathProducer.producePath(DATA_STORE_CATEGORIES_FILE_NAME).toPath()
             },
         )
     }
