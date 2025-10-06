@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.data.categories.model.Category
+import io.github.l2hyunwoo.data.categories.model.Project
 import kudos.feature.category.generated.resources.Res
 import kudos.feature.category.generated.resources.add_project
 import kudos.feature.category.generated.resources.cancel
@@ -43,7 +45,7 @@ fun CategorySection(
     category: Category,
     onAddProjectClick: () -> Unit,
     onDeleteCategoryClick: () -> Unit,
-    onDeleteProjectClick: (String) -> Unit,
+    onDeleteProjectClick: (Project) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -112,11 +114,13 @@ fun CategorySection(
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 category.projects.forEach { project ->
-                    ProjectRow(
-                        project = project,
-                        categoryColor = category.color,
-                        onDelete = { onDeleteProjectClick(project.id) }
-                    )
+                    key(project.id) {
+                        ProjectRow(
+                            project = project,
+                            categoryColor = category.color,
+                            onDelete = { onDeleteProjectClick(project) }
+                        )
+                    }
                 }
             }
         }

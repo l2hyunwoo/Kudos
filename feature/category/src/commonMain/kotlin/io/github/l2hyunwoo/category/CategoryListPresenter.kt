@@ -40,16 +40,8 @@ fun categoryListPresenter(
                 )
             }
             is CategoryListEvent.DeleteProject -> {
-                // Find the project to be deleted and store it for potential undo
-                val project = categories
-                    .find { it.id == event.categoryId }
-                    ?.projects
-                    ?.find { it.id == event.projectId }
-
-                project?.let {
-                    // Just store the deleted project info, don't call mutation yet
-                    deletedProject = DeletedProjectInfo(event.categoryId, it)
-                }
+                // Use the project directly from the event (no need to search)
+                deletedProject = DeletedProjectInfo(event.categoryId, event.project)
             }
             is CategoryListEvent.UndoDeleteProject -> {
                 // Clear the deletedProject state (cancel deletion)

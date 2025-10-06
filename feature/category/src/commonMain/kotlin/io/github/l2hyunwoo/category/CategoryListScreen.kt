@@ -154,11 +154,11 @@ fun CategoryListScreen(
                             onDeleteCategoryClick = {
                                 eventFlow.tryEmit(CategoryListEvent.DeleteCategory(category.id))
                             },
-                            onDeleteProjectClick = { projectId ->
+                            onDeleteProjectClick = { project ->
                                 eventFlow.tryEmit(
                                     CategoryListEvent.DeleteProject(
                                         category.id,
-                                        projectId
+                                        project
                                     )
                                 )
                             }

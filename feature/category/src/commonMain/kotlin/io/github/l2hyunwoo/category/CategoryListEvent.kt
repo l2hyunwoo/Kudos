@@ -14,7 +14,7 @@ sealed interface CategoryListEvent {
 
     data class DeleteProject(
         val categoryId: String,
-        val projectId: String
+        val project: Project
     ) : CategoryListEvent
 
     data class UndoDeleteProject(
