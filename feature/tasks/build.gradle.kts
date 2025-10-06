@@ -7,7 +7,10 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.data.tasks)
 
+            implementation(libs.material3)
             implementation(libs.soil.query)
+            implementation(libs.soil.query.compose)
+            implementation(libs.rin)
         }
 
         commonTest {
