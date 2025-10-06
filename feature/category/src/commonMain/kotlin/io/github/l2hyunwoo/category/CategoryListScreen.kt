@@ -13,9 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.category.component.CategorySection
+import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.data.categories.model.Category
+import io.github.l2hyunwoo.data.categories.model.Project
 import io.github.l2hyunwoo.kudos.core.soil.appbar.AnimatedTextTopAppBar
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,5 +59,49 @@ fun CategoryListScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CategoryListScreenPreview() {
+    KudosTheme {
+        CategoryListScreen(
+            categories = persistentListOf(
+                Category(
+                    id = "1",
+                    prefix = "WORK",
+                    title = "Work Projects",
+                    color = "#FF6B6B",
+                    createdAt = "2024-01-01T00:00:00Z",
+                    updatedAt = "2024-01-01T00:00:00Z",
+                    projects = listOf(
+                        Project(
+                            id = "p1",
+                            title = "Mobile App Development",
+                            description = "Build a new mobile application",
+                            createdAt = "2024-01-01T00:00:00Z",
+                            updatedAt = "2024-01-01T00:00:00Z"
+                        ),
+                        Project(
+                            id = "p2",
+                            title = "API Integration",
+                            description = null,
+                            createdAt = "2024-01-02T00:00:00Z",
+                            updatedAt = "2024-01-02T00:00:00Z"
+                        )
+                    )
+                ),
+                Category(
+                    id = "2",
+                    prefix = "PERS",
+                    title = "Personal",
+                    color = "#4ECDC4",
+                    createdAt = "2024-01-01T00:00:00Z",
+                    updatedAt = "2024-01-01T00:00:00Z",
+                    projects = emptyList()
+                )
+            )
+        )
     }
 }
