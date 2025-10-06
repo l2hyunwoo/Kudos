@@ -65,7 +65,7 @@ fun CategorySection(
                     color = Color.White,
                     modifier = Modifier
                         .background(
-                            color = Color(android.graphics.Color.parseColor(category.color)),
+                            color = Color(category.color.removePrefix("#").toLong(16) or 0xFF000000),
                             shape = RoundedCornerShape(4.dp)
                         )
                         .clip(RoundedCornerShape(4.dp))
