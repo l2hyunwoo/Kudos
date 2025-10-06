@@ -27,8 +27,6 @@ data class Task(
     val projectTitle: String? = null,
     @SerialName("parent_task_id")
     val parentTaskId: String? = null,
-    @SerialName("display_order")
-    val displayOrder: Int,
     @SerialName("created_at")
     val createdAt: String,
     @SerialName("updated_at")
@@ -48,7 +46,6 @@ val Task.Companion.fixture
         projectId = "project-1",
         projectTitle = "Sample Project",
         parentTaskId = null,
-        displayOrder = 1,
         createdAt = "2024-01-01T00:00:00Z",
         updatedAt = "2024-01-02T00:00:00Z"
     )
