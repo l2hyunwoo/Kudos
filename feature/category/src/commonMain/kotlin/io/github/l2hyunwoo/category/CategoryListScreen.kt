@@ -101,6 +101,9 @@ fun CategoryListScreen(
                             onAddProjectClick = { showCreateProjectDialog = category.id },
                             onDeleteCategoryClick = {
                                 eventFlow.tryEmit(CategoryListEvent.DeleteCategory(category.id))
+                            },
+                            onDeleteProjectClick = { projectId ->
+                                eventFlow.tryEmit(CategoryListEvent.DeleteProject(category.id, projectId))
                             }
                         )
                     }

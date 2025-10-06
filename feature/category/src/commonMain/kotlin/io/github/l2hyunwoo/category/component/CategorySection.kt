@@ -43,6 +43,7 @@ fun CategorySection(
     category: Category,
     onAddProjectClick: () -> Unit,
     onDeleteCategoryClick: () -> Unit,
+    onDeleteProjectClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -111,7 +112,11 @@ fun CategorySection(
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 category.projects.forEach { project ->
-                    ProjectRow(project = project)
+                    ProjectRow(
+                        project = project,
+                        categoryColor = category.color,
+                        onDelete = { onDeleteProjectClick(project.id) }
+                    )
                 }
             }
         }
