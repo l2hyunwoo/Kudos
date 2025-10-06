@@ -14,6 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kudos.core.soil.generated.resources.Res
+import kudos.core.soil.generated.resources.error
+import kudos.core.soil.generated.resources.retry
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -30,7 +34,7 @@ fun KudosErrorFallbackContents(
         verticalArrangement = Arrangement.spacedBy(35.dp, Alignment.CenterVertically),
     ) {
         Text(
-            text = "Error",
+            text = stringResource(Res.string.error),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -39,7 +43,7 @@ fun KudosErrorFallbackContents(
             shapes = ButtonDefaults.shapes(),
         ) {
             Text(
-                text = "Retry",
+                text = stringResource(Res.string.retry),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onPrimary,
             )

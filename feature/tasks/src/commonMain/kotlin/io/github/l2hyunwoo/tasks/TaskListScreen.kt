@@ -19,6 +19,9 @@ import io.github.l2hyunwoo.kudos.core.soil.appbar.AnimatedTextTopAppBar
 import io.github.l2hyunwoo.tasks.component.TaskRow
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kudos.feature.tasks.generated.resources.Res
+import kudos.feature.tasks.generated.resources.tasks
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,7 +33,7 @@ fun TaskListScreen(
     Scaffold(
         topBar = {
             AnimatedTextTopAppBar(
-                title = "Tasks",
+                title = stringResource(Res.string.tasks),
                 scrollBehavior = scrollBehavior,
             )
         },
