@@ -41,4 +41,7 @@ include(
     ":data:categories",
     ":data:tasks"
 )
-include(":feature:tasks")
+include(
+    ":feature:category",
+    ":feature:tasks"
+)
