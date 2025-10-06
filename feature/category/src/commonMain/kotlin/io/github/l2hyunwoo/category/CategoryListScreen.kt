@@ -14,8 +14,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +41,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kudos.feature.category.generated.resources.Res
 import kudos.feature.category.generated.resources.add_category
 import kudos.feature.category.generated.resources.categories
+import kudos.feature.category.generated.resources.project_deleted
+import kudos.feature.category.generated.resources.undo
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -54,12 +58,48 @@ fun CategoryListScreen(
 
     var showCreateCategoryDialog by remember { mutableStateOf(false) }
     var showCreateProjectDialog by remember { mutableStateOf<String?>(null) }
+    val snackbarMessage = uiState.deletedProject?.let {
+        stringResource(Res.string.project_deleted, it.project.title)
+    }.orEmpty()
+    val snackbarActionLabel = stringResource(Res.string.undo)
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
             snackbarHostState.showSnackbar(
                 message = error.message ?: "Unknown error occurred"
             )
+        }
+    }
+
+    LaunchedEffect(uiState.deletedProject?.project?.id) {
+        uiState.deletedProject?.let { deleted ->
+            val result = snackbarHostState.showSnackbar(
+                message = snackbarMessage,
+                actionLabel = snackbarActionLabel,
+                duration = SnackbarDuration.Short
+            )
+
+            when (result) {
+                SnackbarResult.ActionPerformed -> {
+                    // Undo clicked: restore the project
+                    eventFlow.tryEmit(
+                        CategoryListEvent.UndoDeleteProject(
+                            deleted.categoryId,
+                            deleted.project
+                        )
+                    )
+                }
+
+                SnackbarResult.Dismissed -> {
+                    // Snackbar dismissed: confirm deletion
+                    eventFlow.tryEmit(
+                        CategoryListEvent.ConfirmDeleteProject(
+                            deleted.categoryId,
+                            deleted.project.id
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -96,14 +136,31 @@ fun CategoryListScreen(
             ) {
                 uiState.categories.forEachIndexed { categoryIndex, category ->
                     stickyHeader(key = "header_${category.id}") {
+                        // Filter out the deleted project if it belongs to this category
+                        val filteredCategory =
+                            if (uiState.deletedProject?.categoryId == category.id) {
+                                category.copy(
+                                    projects = category.projects.filterNot {
+                                        it.id == uiState.deletedProject.project.id
+                                    }
+                                )
+                            } else {
+                                category
+                            }
+
                         CategorySection(
-                            category = category,
+                            category = filteredCategory,
                             onAddProjectClick = { showCreateProjectDialog = category.id },
                             onDeleteCategoryClick = {
                                 eventFlow.tryEmit(CategoryListEvent.DeleteCategory(category.id))
                             },
                             onDeleteProjectClick = { projectId ->
-                                eventFlow.tryEmit(CategoryListEvent.DeleteProject(category.id, projectId))
+                                eventFlow.tryEmit(
+                                    CategoryListEvent.DeleteProject(
+                                        category.id,
+                                        projectId
+                                    )
+                                )
                             }
                         )
                     }
@@ -188,7 +245,7 @@ private fun CategoryListScreenPreview() {
                 isLoading = false,
                 error = null
             ),
-            eventFlow = MutableSharedFlow<CategoryListEvent>()
+            eventFlow = MutableSharedFlow()
         )
     }
 }

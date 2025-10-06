@@ -1,6 +1,10 @@
 package io.github.l2hyunwoo.category
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.CreateProjectParams
 import io.github.l2hyunwoo.data.categories.model.DeleteProjectParams
@@ -20,6 +24,8 @@ fun categoryListPresenter(
     val createProjectMutation = rememberMutation(context.createProjectMutation)
     val deleteProjectMutation = rememberMutation(context.deleteProjectMutation)
 
+    var deletedProject by remember { mutableStateOf<DeletedProjectInfo?>(null) }
+
     EventEffect(eventFlow) { event ->
         when (event) {
             is CategoryListEvent.CreateCategory -> {
@@ -34,9 +40,27 @@ fun categoryListPresenter(
                 )
             }
             is CategoryListEvent.DeleteProject -> {
+                // Find the project to be deleted and store it for potential undo
+                val project = categories
+                    .find { it.id == event.categoryId }
+                    ?.projects
+                    ?.find { it.id == event.projectId }
+
+                project?.let {
+                    // Just store the deleted project info, don't call mutation yet
+                    deletedProject = DeletedProjectInfo(event.categoryId, it)
+                }
+            }
+            is CategoryListEvent.UndoDeleteProject -> {
+                // Clear the deletedProject state (cancel deletion)
+                deletedProject = null
+            }
+            is CategoryListEvent.ConfirmDeleteProject -> {
+                // Actually delete via API
                 deleteProjectMutation.mutate(
                     DeleteProjectParams(event.categoryId, event.projectId)
                 )
+                deletedProject = null
             }
         }
     }
@@ -50,6 +74,7 @@ fun categoryListPresenter(
         error = createCategoryMutation.error
             ?: deleteCategoryMutation.error
             ?: createProjectMutation.error
-            ?: deleteProjectMutation.error
+            ?: deleteProjectMutation.error,
+        deletedProject = deletedProject
     )
 }
