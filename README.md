@@ -20,7 +20,9 @@ A modern Todo Application built with Compose Multiplatform, showcasing the lates
 - **Kotlinx Coroutines** - Asynchronous programming
 - **DataStore** - Type-safe data storage
 - **Material 3** - Modern Material Design components
-- **Coil** - Image loading library
+- **Navigation Compose** - Type-safe navigation
+- **Coil** - Image loading library with network support
+- **[Rin](https://github.com/takahirom/Rin)** - State retention library with `rememberRetained` for ViewModel-like functionality
 
 ## 🏗️ Project Structure
 
@@ -34,8 +36,10 @@ Kudos/
 │   ├── network/         # Network configuration and Ktorfit setup
 │   └── soil/            # Soil query setup and fallback components
 ├── data/
+│   ├── categories/      # Category data layer (API, cache, repository)
 │   └── tasks/           # Task data layer (API, cache, repository)
 ├── feature/
+│   ├── category/        # Category management UI
 │   └── tasks/           # Task feature UI
 └── build-logic/         # Gradle convention plugins
 ```

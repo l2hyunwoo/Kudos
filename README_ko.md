@@ -20,7 +20,9 @@ Compose Multiplatform으로 구축된 최신 Todo 애플리케이션으로, 크�
 - **Kotlinx Coroutines** - 비동기 프로그래밍
 - **DataStore** - 타입 안전 데이터 저장소
 - **Material 3** - 최신 Material Design 컴포넌트
-- **Coil** - 이미지 로딩 라이브러리
+- **Navigation Compose** - 타입 안전 내비게이션
+- **Coil** - 네트워크 지원 이미지 로딩 라이브러리
+- **[Rin](https://github.com/takahirom/Rin)** - ViewModel 대용으로 사용하는 상태 보존 라이브러리 (`rememberRetained`)
 
 ## 🏗️ 프로젝트 구조
 
@@ -34,8 +36,10 @@ Kudos/
 │   ├── network/         # 네트워크 설정 및 Ktorfit 구성
 │   └── soil/            # Soil 쿼리 설정 및 폴백 컴포넌트
 ├── data/
+│   ├── categories/      # 카테고리 데이터 레이어 (API, 캐시, 리포지토리)
 │   └── tasks/           # 작업 데이터 레이어 (API, 캐시, 리포지토리)
 ├── feature/
+│   ├── category/        # 카테고리 관리 UI
 │   └── tasks/           # 작업 기능 UI
 └── build-logic/         # Gradle 컨벤션 플러그인
 ```
