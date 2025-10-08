@@ -63,9 +63,9 @@ private fun ColorSwatch(
 ) {
     Box(
         modifier = modifier
-            .size(48.dp)
+            .size(56.dp)
             .clip(CircleShape)
-            .background(Color(android.graphics.Color.parseColor(color.hexCode)))
+            .background(Color(color.hexCode.removePrefix("#").toLong(16) or 0xFF000000))
             .then(
                 if (isSelected) {
                     Modifier.border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)

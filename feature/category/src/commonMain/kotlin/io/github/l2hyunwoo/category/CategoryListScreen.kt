@@ -29,8 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.category.component.CategorySection
-import io.github.l2hyunwoo.category.component.CreateCategoryDialog
-import io.github.l2hyunwoo.category.component.CreateProjectDialog
+import io.github.l2hyunwoo.category.component.CreateCategoryBottomSheet
+import io.github.l2hyunwoo.category.component.CreateProjectBottomSheet
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
@@ -182,7 +182,7 @@ fun CategoryListScreen(
     }
 
     if (showCreateCategoryDialog) {
-        CreateCategoryDialog(
+        CreateCategoryBottomSheet(
             onDismiss = { showCreateCategoryDialog = false },
             onCreate = { request ->
                 eventFlow.tryEmit(CategoryListEvent.CreateCategory(request))
@@ -191,7 +191,7 @@ fun CategoryListScreen(
     }
 
     showCreateProjectDialog?.let { categoryId ->
-        CreateProjectDialog(
+        CreateProjectBottomSheet(
             categoryId = categoryId,
             onDismiss = { showCreateProjectDialog = null },
             onCreate = { catId, request ->
