@@ -6,6 +6,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
+import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
 import io.github.l2hyunwoo.kudos.core.soil.SoilBoundary
 import io.github.l2hyunwoo.kudos.core.soil.SoilFallbackDefaults
 import kotlinx.collections.immutable.toImmutableList
@@ -15,8 +17,11 @@ import soil.query.compose.rememberQuery
 @Composable
 context(context: TasksContext)
 fun TaskListEntryPoint(
+    eventFlow: EventFlow<TaskListEvent>? = null,
     onNavigateToCategories: () -> Unit = {}
 ) {
+    val actualEventFlow = eventFlow ?: rememberEventFlow()
+
     SoilBoundary(
         state = rememberQuery(context.tasksQuery),
         fallback = SoilFallbackDefaults.appBar(
@@ -33,9 +38,13 @@ fun TaskListEntryPoint(
             }
         ),
     ) { categories ->
+        val uiState = taskListPresenter(
+            eventFlow = actualEventFlow,
+            categories = categories
+        )
+
         TaskListScreen(
-            categories = categories.toImmutableList(),
-            onEditCategoriesClick = onNavigateToCategories
+            categories = uiState.categories
         )
     }
 }

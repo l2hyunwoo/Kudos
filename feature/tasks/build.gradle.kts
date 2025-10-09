@@ -5,6 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.data.categories)
             implementation(projects.data.tasks)
 
             implementation(libs.kotlinx.collections.immutable)
