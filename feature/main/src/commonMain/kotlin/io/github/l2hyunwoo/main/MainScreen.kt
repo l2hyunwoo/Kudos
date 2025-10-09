@@ -26,6 +26,7 @@ import io.github.l2hyunwoo.tasks.TaskListEvent
 import io.github.l2hyunwoo.tasks.TasksContext
 import io.github.l2hyunwoo.tasks.component.CreateTaskBottomSheet
 import io.github.l2hyunwoo.tasks.rememberTasksContextRetained
+import kotlinx.collections.immutable.persistentListOf
 import kudos.feature.main.generated.resources.Res
 import kudos.feature.main.generated.resources.add_category
 import kudos.feature.main.generated.resources.add_task
@@ -119,10 +120,10 @@ fun MainScreen(
     if (showCreateTaskSheet) {
         with(categoryContext) {
             val categoriesQuery = rememberQuery(categoriesQuery)
-            val categories = categoriesQuery.data ?: emptyList()
+            val categoriesWithProjects = categoriesQuery.data ?: emptyList()
 
             CreateTaskBottomSheet(
-                categories = kotlinx.collections.immutable.persistentListOf(*categories.toTypedArray()),
+                categories = persistentListOf(*categoriesWithProjects.toTypedArray()),
                 onDismiss = { showCreateTaskSheet = false },
                 onCreate = { request ->
                     tasksEventFlow.tryEmit(TaskListEvent.CreateTask(request))

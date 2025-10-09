@@ -1,6 +1,5 @@
 package io.github.l2hyunwoo.tasks.component
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -23,6 +22,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.data.categories.model.Category
+import io.github.l2hyunwoo.data.categories.model.Project
 import io.github.l2hyunwoo.data.tasks.model.CreateTaskRequest
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
@@ -40,8 +41,11 @@ import kudos.feature.tasks.generated.resources.category
 import kudos.feature.tasks.generated.resources.create
 import kudos.feature.tasks.generated.resources.create_task
 import kudos.feature.tasks.generated.resources.description
+import kudos.feature.tasks.generated.resources.no_project
 import kudos.feature.tasks.generated.resources.priority
+import kudos.feature.tasks.generated.resources.project
 import kudos.feature.tasks.generated.resources.select_category
+import kudos.feature.tasks.generated.resources.select_project
 import kudos.feature.tasks.generated.resources.status
 import kudos.feature.tasks.generated.resources.title
 import org.jetbrains.compose.resources.stringResource
@@ -58,11 +62,25 @@ fun CreateTaskBottomSheet(
         skipPartiallyExpanded = true
     )
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
+    var selectedProject by remember { mutableStateOf<Project?>(null) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedPriority by remember { mutableStateOf(TaskPriority.MEDIUM) }
     var selectedStatus by remember { mutableStateOf(TaskStatus.TODO) }
     var categoryDropdownExpanded by remember { mutableStateOf(false) }
+    var projectDropdownExpanded by remember { mutableStateOf(false) }
+
+    // Filter projects based on selected category
+    val availableProjects = remember(selectedCategory) {
+        selectedCategory?.projects ?: emptyList()
+    }
+
+    // Reset selected project when category changes
+    LaunchedEffect(selectedCategory) {
+        if (selectedProject != null && !availableProjects.contains(selectedProject)) {
+            selectedProject = null
+        }
+    }
 
     val isValid = selectedCategory != null && title.isNotBlank()
 
@@ -110,6 +128,52 @@ fun CreateTaskBottomSheet(
                             onClick = {
                                 selectedCategory = category
                                 categoryDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Project Dropdown
+            ExposedDropdownMenuBox(
+                expanded = projectDropdownExpanded,
+                onExpandedChange = { projectDropdownExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = selectedProject?.title ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text(stringResource(Res.string.project)) },
+                    placeholder = { Text(stringResource(Res.string.select_project)) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = projectDropdownExpanded) },
+                    enabled = selectedCategory != null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = projectDropdownExpanded,
+                    onDismissRequest = { projectDropdownExpanded = false }
+                ) {
+                    // "No project" option
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.no_project)) },
+                        onClick = {
+                            selectedProject = null
+                            projectDropdownExpanded = false
+                        }
+                    )
+
+                    // Available projects from selected category
+                    availableProjects.forEach { project ->
+                        DropdownMenuItem(
+                            text = { Text(project.title) },
+                            onClick = {
+                                selectedProject = project
+                                projectDropdownExpanded = false
                             }
                         )
                     }
@@ -201,6 +265,7 @@ fun CreateTaskBottomSheet(
                                     categoryId = category.id,
                                     title = title,
                                     description = description.takeIf { it.isNotBlank() },
+                                    projectId = selectedProject?.id,
                                     priority = selectedPriority,
                                     status = selectedStatus
                                 )
