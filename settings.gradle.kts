@@ -43,5 +43,6 @@ include(
 )
 include(
     ":feature:category",
+    ":feature:project",
     ":feature:tasks"
 )
