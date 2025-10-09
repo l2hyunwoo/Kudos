@@ -5,7 +5,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Task
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -28,6 +27,7 @@ import io.github.l2hyunwoo.tasks.component.CreateTaskBottomSheet
 import io.github.l2hyunwoo.tasks.rememberTasksContextRetained
 import kotlinx.collections.immutable.persistentListOf
 import kudos.feature.main.generated.resources.Res
+import kudos.feature.main.generated.resources.add
 import kudos.feature.main.generated.resources.add_category
 import kudos.feature.main.generated.resources.add_task
 import kudos.feature.main.generated.resources.categories
@@ -63,35 +63,33 @@ fun MainScreen(
     Scaffold(
         bottomBar = {
             NavigationBar {
+                // Tasks Tab
                 NavigationBarItem(
                     selected = selectedTab == MainTab.TASKS,
                     onClick = { selectedTab = MainTab.TASKS },
                     icon = { Icon(Icons.Default.Task, contentDescription = null) },
                     label = { Text(stringResource(Res.string.tasks)) }
                 )
+
+                // Add Button (Center)
+                NavigationBarItem(
+                    selected = false,
+                    onClick = {
+                        when (selectedTab) {
+                            MainTab.TASKS -> showCreateTaskSheet = true
+                            MainTab.CATEGORIES -> showCreateCategorySheet = true
+                        }
+                    },
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    label = { Text(stringResource(Res.string.add)) }
+                )
+
+                // Categories Tab
                 NavigationBarItem(
                     selected = selectedTab == MainTab.CATEGORIES,
                     onClick = { selectedTab = MainTab.CATEGORIES },
                     icon = { Icon(Icons.Default.Category, contentDescription = null) },
                     label = { Text(stringResource(Res.string.categories)) }
-                )
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    when (selectedTab) {
-                        MainTab.TASKS -> showCreateTaskSheet = true
-                        MainTab.CATEGORIES -> showCreateCategorySheet = true
-                    }
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = when (selectedTab) {
-                        MainTab.TASKS -> stringResource(Res.string.add_task)
-                        MainTab.CATEGORIES -> stringResource(Res.string.add_category)
-                    }
                 )
             }
         }

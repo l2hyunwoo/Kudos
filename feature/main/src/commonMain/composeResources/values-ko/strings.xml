@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tasks">작업</string>
+    <string name="categories">카테고리</string>
+    <string name="add">추가</string>
+    <string name="add_task">작업 추가</string>
+    <string name="add_category">카테고리 추가</string>
+</resources>
