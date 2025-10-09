@@ -45,6 +45,7 @@ fun CategorySection(
     category: Category,
     onAddProjectClick: () -> Unit,
     onDeleteCategoryClick: () -> Unit,
+    onProjectClick: (Project) -> Unit = {},
     onDeleteProjectClick: (Project) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -118,6 +119,7 @@ fun CategorySection(
                         ProjectRow(
                             project = project,
                             categoryColor = category.color,
+                            onClick = { onProjectClick(project) },
                             onDelete = { onDeleteProjectClick(project) }
                         )
                     }

@@ -1,6 +1,7 @@
 package io.github.l2hyunwoo.category.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +32,7 @@ import io.github.l2hyunwoo.data.categories.model.Project
 fun ProjectRow(
     project: Project,
     categoryColor: String,
+    onClick: () -> Unit = {},
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -76,6 +78,7 @@ fun ProjectRow(
                     shape = RoundedCornerShape(12.dp)
                 )
                 .clip(shape = RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick)
                 .padding(16.dp)
         ) {
             Text(

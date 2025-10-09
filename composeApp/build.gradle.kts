@@ -56,6 +56,7 @@ kotlin {
 
             // Features
             implementation(projects.feature.category)
+            implementation(projects.feature.project)
             implementation(projects.feature.tasks)
             implementation(compose.runtime)
             implementation(compose.foundation)

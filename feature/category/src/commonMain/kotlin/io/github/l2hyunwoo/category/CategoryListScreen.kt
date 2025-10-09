@@ -51,6 +51,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun CategoryListScreen(
     uiState: CategoryListUiState,
     eventFlow: EventFlow<CategoryListEvent>,
+    onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -153,6 +154,16 @@ fun CategoryListScreen(
                             onAddProjectClick = { showCreateProjectDialog = category.id },
                             onDeleteCategoryClick = {
                                 eventFlow.tryEmit(CategoryListEvent.DeleteCategory(category.id))
+                            },
+                            onProjectClick = { project ->
+                                onNavigateToProjectDetail(
+                                    project.id,
+                                    category.id,
+                                    project.title,
+                                    project.description,
+                                    category.color,
+                                    category.prefix
+                                )
                             },
                             onDeleteProjectClick = { project ->
                                 eventFlow.tryEmit(

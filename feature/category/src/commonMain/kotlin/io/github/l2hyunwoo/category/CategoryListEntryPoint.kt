@@ -9,7 +9,9 @@ import soil.query.compose.rememberSubscription
 @OptIn(ExperimentalSoilQueryApi::class)
 @Composable
 context(context: CategoryContext)
-fun CategoryListEntryPoint() {
+fun CategoryListEntryPoint(
+    onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> }
+) {
     val eventFlow = rememberEventFlow<CategoryListEvent>()
 
     val categoriesQuery = rememberQuery(context.categoriesQuery)
@@ -24,6 +26,7 @@ fun CategoryListEntryPoint() {
 
     CategoryListScreen(
         uiState = uiState,
-        eventFlow = eventFlow
+        eventFlow = eventFlow,
+        onNavigateToProjectDetail = onNavigateToProjectDetail
     )
 }
