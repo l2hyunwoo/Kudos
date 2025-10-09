@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tasks">Tasks</string>
+    <string name="categories">Categories</string>
+    <string name="add_task">Add Task</string>
+    <string name="add_category">Add Category</string>
+</resources>

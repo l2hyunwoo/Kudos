@@ -10,8 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import io.github.l2hyunwoo.core.design.KudosTheme
-import io.github.l2hyunwoo.kudos.core.common.navigation.TaskList
+import io.github.l2hyunwoo.kudos.core.common.navigation.Main
 import io.github.l2hyunwoo.kudos.navigation.categoryListGraph
+import io.github.l2hyunwoo.kudos.navigation.mainScreenGraph
 import io.github.l2hyunwoo.kudos.navigation.projectDetailGraph
 import io.github.l2hyunwoo.kudos.navigation.taskListGraph
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -33,12 +34,13 @@ fun App() {
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = TaskList,
+                    startDestination = Main,
                     modifier = Modifier
                         .fillMaxSize()
                         .imePadding()
                         .background(MaterialTheme.colorScheme.background)
                 ) {
+                    mainScreenGraph(navController)
                     taskListGraph(navController)
                     categoryListGraph(navController)
                     projectDetailGraph(navController)
