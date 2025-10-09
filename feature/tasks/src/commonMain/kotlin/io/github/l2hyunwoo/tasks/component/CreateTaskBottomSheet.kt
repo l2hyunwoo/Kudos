@@ -6,9 +6,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -91,163 +95,173 @@ fun CreateTaskBottomSheet(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp)
+                .fillMaxSize()
+                .imePadding()
         ) {
-            Text(
-                text = stringResource(Res.string.create_task),
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
-
-            // Category Dropdown
-            ExposedDropdownMenuBox(
-                expanded = categoryDropdownExpanded,
-                onExpandedChange = { categoryDropdownExpanded = it }
+            // Scrollable content area
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
             ) {
-                OutlinedTextField(
-                    value = selectedCategory?.title ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(Res.string.category)) },
-                    placeholder = { Text(stringResource(Res.string.select_category)) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor()
+                Text(
+                    text = stringResource(Res.string.create_task),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                ExposedDropdownMenu(
+                // Category Dropdown
+                ExposedDropdownMenuBox(
                     expanded = categoryDropdownExpanded,
-                    onDismissRequest = { categoryDropdownExpanded = false }
+                    onExpandedChange = { categoryDropdownExpanded = it }
                 ) {
-                    categories.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text("${category.prefix} - ${category.title}") },
-                            onClick = {
-                                selectedCategory = category
-                                categoryDropdownExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Project Dropdown
-            ExposedDropdownMenuBox(
-                expanded = projectDropdownExpanded,
-                onExpandedChange = { projectDropdownExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = selectedProject?.title ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(Res.string.project)) },
-                    placeholder = { Text(stringResource(Res.string.select_project)) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = projectDropdownExpanded) },
-                    enabled = selectedCategory != null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = projectDropdownExpanded,
-                    onDismissRequest = { projectDropdownExpanded = false }
-                ) {
-                    // "No project" option
-                    DropdownMenuItem(
-                        text = { Text(stringResource(Res.string.no_project)) },
-                        onClick = {
-                            selectedProject = null
-                            projectDropdownExpanded = false
-                        }
+                    OutlinedTextField(
+                        value = selectedCategory?.title ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(Res.string.category)) },
+                        placeholder = { Text(stringResource(Res.string.select_category)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
                     )
 
-                    // Available projects from selected category
-                    availableProjects.forEach { project ->
+                    ExposedDropdownMenu(
+                        expanded = categoryDropdownExpanded,
+                        onDismissRequest = { categoryDropdownExpanded = false }
+                    ) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text("${category.prefix} - ${category.title}") },
+                                onClick = {
+                                    selectedCategory = category
+                                    categoryDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Project Dropdown
+                ExposedDropdownMenuBox(
+                    expanded = projectDropdownExpanded,
+                    onExpandedChange = { projectDropdownExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedProject?.title ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(Res.string.project)) },
+                        placeholder = { Text(stringResource(Res.string.select_project)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = projectDropdownExpanded) },
+                        enabled = selectedCategory != null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = projectDropdownExpanded,
+                        onDismissRequest = { projectDropdownExpanded = false }
+                    ) {
+                        // "No project" option
                         DropdownMenuItem(
-                            text = { Text(project.title) },
+                            text = { Text(stringResource(Res.string.no_project)) },
                             onClick = {
-                                selectedProject = project
+                                selectedProject = null
                                 projectDropdownExpanded = false
                             }
                         )
+
+                        // Available projects from selected category
+                        availableProjects.forEach { project ->
+                            DropdownMenuItem(
+                                text = { Text(project.title) },
+                                onClick = {
+                                    selectedProject = project
+                                    projectDropdownExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Title
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text(stringResource(Res.string.title)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+                // Title
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text(stringResource(Res.string.title)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Description
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text(stringResource(Res.string.description)) },
-                minLines = 3,
-                maxLines = 5,
-                modifier = Modifier.fillMaxWidth()
-            )
+                // Description
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text(stringResource(Res.string.description)) },
+                    minLines = 3,
+                    maxLines = 5,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Priority Chips
-            Text(
-                text = stringResource(Res.string.priority),
-                style = MaterialTheme.typography.labelLarge
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                TaskPriority.entries.forEach { priority ->
-                    FilterChip(
-                        selected = selectedPriority == priority,
-                        onClick = { selectedPriority = priority },
-                        label = { Text(priority.text) }
-                    )
+                // Priority Chips
+                Text(
+                    text = stringResource(Res.string.priority),
+                    style = MaterialTheme.typography.labelLarge
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TaskPriority.entries.forEach { priority ->
+                        FilterChip(
+                            selected = selectedPriority == priority,
+                            onClick = { selectedPriority = priority },
+                            label = { Text(priority.text) }
+                        )
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Status Chips
-            Text(
-                text = stringResource(Res.string.status),
-                style = MaterialTheme.typography.labelLarge
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                TaskStatus.entries.forEach { status ->
-                    FilterChip(
-                        selected = selectedStatus == status,
-                        onClick = { selectedStatus = status },
-                        label = { Text("${status.text} ${status.name.lowercase().replace('_', ' ')}") }
-                    )
+                // Status Chips
+                Text(
+                    text = stringResource(Res.string.status),
+                    style = MaterialTheme.typography.labelLarge
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TaskStatus.entries.forEach { status ->
+                        FilterChip(
+                            selected = selectedStatus == status,
+                            onClick = { selectedStatus = status },
+                            label = { Text("${status.text} ${status.name.lowercase().replace('_', ' ')}") }
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Action Buttons
+            // Fixed action buttons at bottom
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp, top = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
