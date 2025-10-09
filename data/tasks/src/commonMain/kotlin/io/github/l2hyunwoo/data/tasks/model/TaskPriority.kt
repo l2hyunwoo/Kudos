@@ -5,17 +5,18 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class TaskPriority(
-    val text: String
+    val text: String,
+    val color: Long
 ) {
     @SerialName("urgent")
-    URGENT("Urgent"),
+    URGENT("Urgent", 0xFFE53E3E),
 
     @SerialName("high")
-    HIGH("High"),
+    HIGH("High", 0xFFFFA500),
 
     @SerialName("medium")
-    MEDIUM("Medium"),
+    MEDIUM("Medium", 0xFFFDD835),
 
     @SerialName("low")
-    LOW("Low"),
+    LOW("Low", 0xFF4CAF50),
 }
