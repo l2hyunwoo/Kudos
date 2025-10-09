@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import io.github.l2hyunwoo.category.CategoryContext
 import io.github.l2hyunwoo.category.CategoryListEntryPoint
@@ -47,7 +48,7 @@ fun MainScreen(
     categoryContextFactory: CategoryContext.Factory,
     onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> }
 ) {
-    var selectedTab by remember { mutableStateOf(MainTab.TASKS) }
+    var selectedTab by rememberSaveable { mutableStateOf(MainTab.TASKS) }
     var showCreateTaskSheet by remember { mutableStateOf(false) }
     var showCreateCategorySheet by remember { mutableStateOf(false) }
 
