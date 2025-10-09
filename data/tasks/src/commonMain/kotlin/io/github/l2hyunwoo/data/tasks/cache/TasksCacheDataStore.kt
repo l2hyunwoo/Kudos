@@ -49,6 +49,12 @@ class TasksCacheDataStore(
         }
     }
 
+    suspend fun clear() {
+        dataStore.edit { preferences ->
+            preferences.remove(DATA_STORE_TASKS_KEY)
+        }
+    }
+
     private companion object {
         private val DATA_STORE_TASKS_KEY = stringPreferencesKey("DATA_STORE_TASKS_KEY")
     }
