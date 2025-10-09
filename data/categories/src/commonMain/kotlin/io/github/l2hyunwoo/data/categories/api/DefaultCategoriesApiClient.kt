@@ -6,6 +6,7 @@ import dev.zacsweers.metro.Inject
 import io.github.l2hyunwoo.data.categories.model.CategoriesResponse
 import io.github.l2hyunwoo.data.categories.model.CreateCategoryRequest
 import io.github.l2hyunwoo.data.categories.model.CreateProjectRequest
+import io.github.l2hyunwoo.data.categories.model.UpdateProjectRequest
 import io.github.l2hyunwoo.kudos.core.common.DataScope
 
 @ContributesBinding(DataScope::class)
@@ -29,6 +30,10 @@ class DefaultCategoriesApiClient internal constructor(
 
     override suspend fun createProject(categoryId: String, request: CreateProjectRequest): CategoriesResponse {
         return categoriesApi.createProject(categoryId, request)
+    }
+
+    override suspend fun updateProject(categoryId: String, projectId: String, request: UpdateProjectRequest): CategoriesResponse {
+        return categoriesApi.updateProject(categoryId, projectId, request)
     }
 
     override suspend fun deleteProject(categoryId: String, projectId: String): CategoriesResponse {

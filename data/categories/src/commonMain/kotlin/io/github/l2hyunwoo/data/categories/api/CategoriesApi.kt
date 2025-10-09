@@ -3,11 +3,13 @@ package io.github.l2hyunwoo.data.categories.api
 import de.jensklingenberg.ktorfit.http.Body
 import de.jensklingenberg.ktorfit.http.DELETE
 import de.jensklingenberg.ktorfit.http.GET
+import de.jensklingenberg.ktorfit.http.PATCH
 import de.jensklingenberg.ktorfit.http.POST
 import de.jensklingenberg.ktorfit.http.Path
 import io.github.l2hyunwoo.data.categories.model.CategoriesResponse
 import io.github.l2hyunwoo.data.categories.model.CreateCategoryRequest
 import io.github.l2hyunwoo.data.categories.model.CreateProjectRequest
+import io.github.l2hyunwoo.data.categories.model.UpdateProjectRequest
 
 interface CategoriesApi {
     @GET("functions/v1/categories-api/categories")
@@ -23,6 +25,13 @@ interface CategoriesApi {
     suspend fun createProject(
         @Path("id") categoryId: String,
         @Body request: CreateProjectRequest
+    ): CategoriesResponse
+
+    @PATCH("functions/v1/categories-api/categories/{categoryId}/projects/{projectId}")
+    suspend fun updateProject(
+        @Path("categoryId") categoryId: String,
+        @Path("projectId") projectId: String,
+        @Body request: UpdateProjectRequest
     ): CategoriesResponse
 
     @DELETE("functions/v1/categories-api/categories/{categoryId}/projects/{projectId}")
