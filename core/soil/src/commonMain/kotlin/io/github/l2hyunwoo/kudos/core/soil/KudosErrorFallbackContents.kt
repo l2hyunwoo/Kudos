@@ -7,7 +7,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +19,6 @@ import kudos.core.soil.generated.resources.retry
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 context(errorContext: ErrorContext)
 fun KudosErrorFallbackContents(
@@ -40,7 +38,7 @@ fun KudosErrorFallbackContents(
         )
         Button(
             onClick = { errorContext.errorBoundaryContext.reset?.invoke() },
-            shapes = ButtonDefaults.shapes(),
+            shape = ButtonDefaults.shape,
         ) {
             Text(
                 text = stringResource(Res.string.retry),

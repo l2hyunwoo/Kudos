@@ -18,4 +18,8 @@ kotlin {
     }
 }
 
+ktorfit {
+    compilerPluginVersion.set("2.3.3")
+}
+
 android.namespace = "io.github.l2hyunwoo.data.categories"
