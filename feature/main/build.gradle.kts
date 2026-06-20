@@ -3,6 +3,9 @@ plugins {
 }
 
 kotlin {
+    android {
+        namespace = "io.github.l2hyunwoo.main"
+    }
     sourceSets {
         commonMain.dependencies {
             implementation(projects.feature.tasks)
@@ -33,5 +36,3 @@ kotlin {
         }
     }
 }
-
-android.namespace = "io.github.l2hyunwoo.main"

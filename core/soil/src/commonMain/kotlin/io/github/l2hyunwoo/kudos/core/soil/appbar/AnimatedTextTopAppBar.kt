@@ -39,7 +39,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,12 +63,15 @@ fun AnimatedTextTopAppBar(
     var navigationIconWidthDp by remember { mutableStateOf(0f) }
     val currentTextColor = if (transitionFraction > 0f) scrolledTextColor else textColor
 
-    val widthSizeClass = currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass
+    // Medium width or wider (>= 600dp) uses the background tint; compact keeps surfaceContainer.
+    val isAtLeastMediumWidth = currentWindowAdaptiveInfo().windowSizeClass
+        .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     val resolvedColors: TopAppBarColors =
         colors ?: TopAppBarDefaults.topAppBarColors(
-            scrolledContainerColor = when (widthSizeClass) {
-                WindowWidthSizeClass.MEDIUM, WindowWidthSizeClass.EXPANDED -> MaterialTheme.colorScheme.background
-                else -> MaterialTheme.colorScheme.surfaceContainer
+            scrolledContainerColor = if (isAtLeastMediumWidth) {
+                MaterialTheme.colorScheme.background
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer
             },
         )
 

@@ -44,7 +44,7 @@ import kudos.feature.category.generated.resources.categories
 import kudos.feature.category.generated.resources.project_deleted
 import kudos.feature.category.generated.resources.undo
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

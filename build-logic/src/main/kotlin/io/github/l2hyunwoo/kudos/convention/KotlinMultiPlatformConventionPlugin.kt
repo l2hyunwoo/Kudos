@@ -14,6 +14,7 @@ class KotlinMultiPlatformConventionPlugin : Plugin<Project> {
             apply(libs.findPlugin("kotlinMultiplatform").get().get().pluginId)
             apply(libs.findPlugin("kotlinxSerialization").get().get().pluginId)
             apply(libs.findPlugin("metro").get().get().pluginId)
+            apply("com.android.kotlin.multiplatform.library")
         }
 
         apply<KotlinMultiPlatformPlugin>()

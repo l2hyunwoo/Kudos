@@ -29,7 +29,8 @@ dependencyResolutionManagement {
     }
 }
 
-include(":composeApp")
+include(":shared")
+include(":androidApp")
 include(
     ":core:common",
     ":core:datastore",

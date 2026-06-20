@@ -23,7 +23,7 @@ class KotlinMultiPlatformPlugin : Plugin<Project> {
             }
 
             compilerOptions {
-                freeCompilerArgs.addAll("-Xexpect-actual-classes", "-Xcontext-parameters")
+                freeCompilerArgs.add("-Xexpect-actual-classes")
             }
 
             applyDefaultHierarchyTemplate()

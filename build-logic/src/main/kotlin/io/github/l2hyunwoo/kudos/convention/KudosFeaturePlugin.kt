@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 class KudosFeaturePlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         with(pluginManager) {
-            apply(libs.findPlugin("androidLibrary").get().get().pluginId)
+            apply("com.android.kotlin.multiplatform.library")
             apply(libs.findPlugin("kotlinMultiplatform").get().get().pluginId)
             apply(libs.findPlugin("composeMultiplatform").get().get().pluginId)
             apply(libs.findPlugin("composeCompiler").get().get().pluginId)

@@ -1,16 +1,19 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     id("kudos.kotlin.multiplatform")
     id("kudos.compose.multiplatform")
-    alias(libs.plugins.metro)
     alias(libs.plugins.buildConfig)
 }
 
 buildConfig {
+    // Pin the package so the generated class is io.github.l2hyunwoo.kudos.BuildConfig,
+    // the same package as IosAppGraph.kt (no import needed). Without this the gmazzo
+    // plugin derives it from project.group ("Kudos.shared"), which would change the import.
+    packageName("io.github.l2hyunwoo.kudos")
+
     val fileInputStream = rootProject.file("local.properties").inputStream()
     val properties = Properties().apply { load(fileInputStream) }
     val supabaseUrl = properties.getProperty("SUPABASE_URL", "")
@@ -21,12 +24,12 @@ buildConfig {
 }
 
 kotlin {
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
+    android {
+        namespace = "io.github.l2hyunwoo.kudos.shared"
     }
 
+    // Keep baseName "ComposeApp" so the iOS Swift side keeps `import ComposeApp` and
+    // the existing pbxproj framework wiring unchanged (the module rename is Stage 5).
     targets
         .filterIsInstance<KotlinNativeTarget>()
         .forEach { target ->
@@ -39,10 +42,6 @@ kotlin {
         }
 
     sourceSets {
-        androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
-        }
         commonMain.dependencies {
             // Core
             implementation(projects.core.common)
@@ -55,16 +54,21 @@ kotlin {
             implementation(projects.data.tasks)
 
             // Features
-            implementation(projects.feature.category)
+            // The feature *Context.Factory types are supertypes of the public AppGraph interface,
+            // so they must be `api` for the :androidApp MainActivity that uses AppGraph as a
+            // context receiver (Gradle api/impl rule). feature.main is only used inside App()'s
+            // body, so it stays `implementation`.
+            api(projects.feature.category)
             implementation(projects.feature.main)
-            implementation(projects.feature.project)
-            implementation(projects.feature.tasks)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            api(projects.feature.project)
+            api(projects.feature.tasks)
+
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.material3)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
+            implementation(libs.compose.components.uiToolingPreview)
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
@@ -77,40 +81,3 @@ kotlin {
         }
     }
 }
-
-android {
-    namespace = "io.github.l2hyunwoo.kudos"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        applicationId = "io.github.l2hyunwoo.kudos"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0.0"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
-
-dependencies {
-    debugImplementation(compose.uiTooling)
-}
-

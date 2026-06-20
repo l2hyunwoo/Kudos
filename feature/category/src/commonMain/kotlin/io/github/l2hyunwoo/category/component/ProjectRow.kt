@@ -36,19 +36,17 @@ fun ProjectRow(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { dismissValue ->
-            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                onDelete()
-                true
-            } else {
-                false
-            }
-        }
-    )
+    val dismissState = rememberSwipeToDismissBoxState()
 
     SwipeToDismissBox(
         state = dismissState,
+        // confirmValueChange is deprecated; the dismiss anchor set already excludes StartToEnd
+        // (enableDismissFromStartToEnd = false), so onDismiss only fires for an EndToStart swipe.
+        onDismiss = { dismissValue ->
+            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+            }
+        },
         backgroundContent = {
             Box(
                 modifier = Modifier

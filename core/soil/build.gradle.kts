@@ -1,12 +1,15 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     id("kudos.kotlin.multiplatform")
     id("kudos.compose.multiplatform")
 }
 
 kotlin {
+    android {
+        namespace = "io.github.l2hyunwoo.kudos.core.soil"
+    }
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core.common)
@@ -23,5 +26,3 @@ kotlin {
         }
     }
 }
-
-android.namespace = "io.github.l2hyunwoo.kudos.core.soil"

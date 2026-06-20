@@ -1,7 +1,7 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     id("kudos.kotlin.multiplatform")
     alias(libs.plugins.metro)
     id("kudos.ktor")
@@ -20,6 +20,9 @@ buildConfig {
 }
 
 kotlin {
+    android {
+        namespace = "io.github.l2hyunwoo.kudos.core.network"
+    }
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core.common)
@@ -31,7 +34,5 @@ kotlin {
 }
 
 ktorfit {
-    compilerPluginVersion.set("2.3.3")
+    compilerPluginVersion.set("2.3.5")
 }
-
-android.namespace = "io.github.l2hyunwoo.kudos.core.network"
