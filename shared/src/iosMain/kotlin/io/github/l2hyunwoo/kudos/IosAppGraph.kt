@@ -2,12 +2,6 @@ package io.github.l2hyunwoo.kudos
 
 // BuildConfig is generated into this same package (io.github.l2hyunwoo.kudos) via the
 // buildConfig { packageName(...) } pin in build.gradle.kts, so no import is required.
-import androidx.datastore.core.DataStore
-import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.emptyPreferences
-import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.DependencyGraph
@@ -31,11 +25,6 @@ import io.github.l2hyunwoo.data.tasks.model.TasksResponse
 import io.github.l2hyunwoo.data.tasks.query.DefaultTasksQueryKey
 import io.github.l2hyunwoo.kudos.core.common.DataScope
 import io.github.l2hyunwoo.kudos.core.datastore.DataStorePathProducer
-import io.github.l2hyunwoo.kudos.core.datastore.DataStoreProviders.Companion.DATA_STORE_CATEGORIES_FILE_NAME
-import io.github.l2hyunwoo.kudos.core.datastore.DataStoreProviders.Companion.DATA_STORE_TASKS_FILE_NAME
-import io.github.l2hyunwoo.kudos.core.datastore.annotation.CategoriesDataStore
-import io.github.l2hyunwoo.kudos.core.datastore.annotation.IoDispatchers
-import io.github.l2hyunwoo.kudos.core.datastore.annotation.TasksDataStore
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -51,11 +40,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ExportObjCClass
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
-import okio.Path.Companion.toPath
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSURL
@@ -99,15 +84,11 @@ interface IosAppGraph : AppGraph {
     @Binds
     val DefaultTasksQueryKey.bind: QueryKey<List<TasksResponse.CategoryWithTasks>>
 
-    @Provides
-    @SingleIn(AppScope::class)
-    fun provideJson(): Json = Json {
-        isLenient = true
-        ignoreUnknownKeys = true
-        encodeDefaults = true
-        prettyPrint = true
-    }
-
+    // iOS-only: the Ktor engine is platform-specific. commonMain NetworkGraph provides
+    // Json/Ktorfit (engine-agnostic) and androidMain AndroidNetworkGraph supplies the OkHttp
+    // engine; here we supply the Darwin engine. Json, Ktorfit and @IoDispatchers are NOT
+    // declared in this graph because the commonMain @ContributesTo(DataScope) providers
+    // (NetworkGraph, CoroutinesDispatchersProviders) already bind them for the iOS target.
     @Provides
     @SingleIn(AppScope::class)
     fun provideHttpClient(json: Json): HttpClient = HttpClient(Darwin) {
@@ -124,15 +105,10 @@ interface IosAppGraph : AppGraph {
         }
     }
 
-    @Provides
-    @SingleIn(AppScope::class)
-    fun provideKtorfit(
-        httpClient: HttpClient
-    ): Ktorfit = Ktorfit.Builder()
-        .httpClient(httpClient)
-        .baseUrl(BuildConfig.SUPABASE_URL)
-        .build()
-
+    // iOS-only: resolves the DataStore file path via NSFileManager. commonMain
+    // DataStoreProviders consumes this producer to build the actual DataStore instances,
+    // so this graph only injects the platform path producer (mirrors AndroidAppGraph, which
+    // contributes only its platform-specific Context).
     @OptIn(ExperimentalForeignApi::class)
     @Provides
     fun providesDataStorePathProducer(): DataStorePathProducer {
@@ -146,47 +122,6 @@ interface IosAppGraph : AppGraph {
             )
             requireNotNull(documentDirectory).path + "/$fileName"
         }
-    }
-
-    @IoDispatchers
-    @Provides
-    fun provideIoDispatcher(): CoroutineDispatcher {
-        // Since Kotlin/Native doesn't support Dispatchers.IO, we use Dispatchers.Default instead.
-        return Dispatchers.Default
-    }
-
-    @SingleIn(DataScope::class)
-    @TasksDataStore
-    @Provides
-    fun provideTasksDataStore(
-        dataStorePathProducer: DataStorePathProducer,
-        @IoDispatchers ioDispatcher: CoroutineDispatcher,
-    ): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.createWithPath(
-            corruptionHandler = ReplaceFileCorruptionHandler({ emptyPreferences() }),
-            migrations = emptyList(),
-            scope = CoroutineScope(ioDispatcher),
-            produceFile = {
-                dataStorePathProducer.producePath(DATA_STORE_TASKS_FILE_NAME).toPath()
-            },
-        )
-    }
-
-    @SingleIn(DataScope::class)
-    @CategoriesDataStore
-    @Provides
-    fun provideCategoriesDataStore(
-        dataStorePathProducer: DataStorePathProducer,
-        @IoDispatchers ioDispatcher: CoroutineDispatcher,
-    ): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.createWithPath(
-            corruptionHandler = ReplaceFileCorruptionHandler({ emptyPreferences() }),
-            migrations = emptyList(),
-            scope = CoroutineScope(ioDispatcher),
-            produceFile = {
-                dataStorePathProducer.producePath(DATA_STORE_CATEGORIES_FILE_NAME).toPath()
-            },
-        )
     }
 
     @DependencyGraph.Factory
