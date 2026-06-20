@@ -4,12 +4,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 // incompatible with com.android.application, so the app target lives in its own
 // single-platform module and depends on :shared (a KMP library) for the shared UI/DI.
 plugins {
+    // AGP 9 built-in Kotlin: com.android.application provides Kotlin compilation and the
+    // `kotlin {}` extension directly, so no standalone org.jetbrains.kotlin.android plugin.
     alias(libs.plugins.androidApplication)
-    // android.builtInKotlin is disabled repo-wide, so the standalone Kotlin Android plugin
-    // registers the `kotlin` extension that metro and compilerOptions rely on. The Kotlin
-    // Gradle plugin is already on the build classpath (KMP modules), so apply it without a
-    // version to avoid a "plugin already on the classpath" resolution conflict.
-    id("org.jetbrains.kotlin.android")
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.metro)
