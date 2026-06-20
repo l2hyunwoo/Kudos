@@ -15,7 +15,7 @@ import io.github.l2hyunwoo.kudos.navigation.categoryListGraph
 import io.github.l2hyunwoo.kudos.navigation.mainScreenGraph
 import io.github.l2hyunwoo.kudos.navigation.projectDetailGraph
 import io.github.l2hyunwoo.kudos.navigation.taskListGraph
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import soil.query.SwrCachePlus
 import soil.query.SwrCacheScope
 import soil.query.annotation.ExperimentalSoilQueryApi

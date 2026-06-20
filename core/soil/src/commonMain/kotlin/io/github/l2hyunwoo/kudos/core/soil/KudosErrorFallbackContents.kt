@@ -17,7 +17,7 @@ import kudos.core.soil.generated.resources.Res
 import kudos.core.soil.generated.resources.error
 import kudos.core.soil.generated.resources.retry
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 context(errorContext: ErrorContext)

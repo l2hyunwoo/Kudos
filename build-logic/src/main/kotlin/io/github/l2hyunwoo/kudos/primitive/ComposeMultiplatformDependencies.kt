@@ -14,7 +14,10 @@ internal fun Project.composeMultiplatformDependencies() {
                     implementation(libs.findLibrary("compose-foundation").get())
                     implementation(libs.findLibrary("compose-ui").get())
                     implementation(libs.findLibrary("compose-components-resources").get())
-                    implementation(libs.findLibrary("compose-components-uiToolingPreview").get())
+                    // org.jetbrains.compose.ui:ui-tooling-preview supplies the live @Preview
+                    // (androidx.compose.ui.tooling.preview.Preview). The components-ui-tooling-preview
+                    // variant only re-exports a @Deprecated shim of the same symbol, so use the ui one.
+                    implementation(libs.findLibrary("compose-ui-toolingPreview").get())
                     implementation(libs.findLibrary("material-icons-extended").get())
                     implementation(libs.findLibrary("material3").get())
                 }
@@ -24,7 +27,6 @@ internal fun Project.composeMultiplatformDependencies() {
             androidMain {
                 dependencies {
                     implementation(libs.findLibrary("compose-ui-tooling").get())
-                    implementation(libs.findLibrary("compose-ui-toolingPreview").get())
                 }
             }
         }
