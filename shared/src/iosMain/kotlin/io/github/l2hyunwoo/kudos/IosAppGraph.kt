@@ -1,6 +1,7 @@
 package io.github.l2hyunwoo.kudos
 
-import Kudos.composeApp.BuildConfig
+// BuildConfig is generated into this same package (io.github.l2hyunwoo.kudos) via the
+// buildConfig { packageName(...) } pin in build.gradle.kts, so no import is required.
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
@@ -127,7 +128,7 @@ interface IosAppGraph : AppGraph {
     @SingleIn(AppScope::class)
     fun provideKtorfit(
         httpClient: HttpClient
-    ) = Ktorfit.Builder()
+    ): Ktorfit = Ktorfit.Builder()
         .httpClient(httpClient)
         .baseUrl(BuildConfig.SUPABASE_URL)
         .build()
