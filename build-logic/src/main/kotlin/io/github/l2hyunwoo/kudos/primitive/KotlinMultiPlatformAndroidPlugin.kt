@@ -21,6 +21,13 @@ class KotlinMultiPlatformAndroidPlugin : Plugin<Project> {
                     compileSdk = libs.version("android-compileSdk").toInt()
                     minSdk = libs.version("android-minSdk").toInt()
 
+                    // androidResources.enable defaults to false for multiplatform libraries
+                    // (true for plain com.android.library). With it off, the variant exposes no
+                    // assets Sources, so the Compose plugin's CopyResourcesToAndroidAssetsTask
+                    // never gets an outputDirectory and composeResources (.cvr) are dropped from
+                    // the consuming APK, crashing at runtime with MissingResourceException.
+                    androidResources.enable = true
+
                     compilerOptions {
                         jvmTarget.set(JvmTarget.JVM_17)
                     }
