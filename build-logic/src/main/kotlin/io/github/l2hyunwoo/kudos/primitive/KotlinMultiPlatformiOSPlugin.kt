@@ -22,10 +22,11 @@ class KotlinMultiPlatformiOSPlugin : Plugin<Project> {
                 Arch.ARM_SIMULATOR_DEBUG -> {
                     iosSimulatorArm64()
                 }
-                Arch.X86_64 -> iosX64()
+                // Compose Multiplatform 1.11.1+ no longer publishes iosX64 artifacts;
+                // on Apple Silicon the simulator runs iosSimulatorArm64, so X86_64 falls back to it.
+                Arch.X86_64 -> iosSimulatorArm64()
                 Arch.ALL -> {
                     iosArm64()
-                    iosX64()
                     iosSimulatorArm64()
                 }
             }
