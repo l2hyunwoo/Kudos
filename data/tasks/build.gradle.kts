@@ -1,10 +1,13 @@
 plugins {
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     id("kudos.kotlin.multiplatform")
     id("kudos.ktor")
 }
 
 kotlin {
+    android {
+        namespace = "io.github.l2hyunwoo.data.tasks"
+    }
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core.common)
@@ -18,7 +21,5 @@ kotlin {
 }
 
 ktorfit {
-    compilerPluginVersion.set("2.3.3")
+    compilerPluginVersion.set("2.3.5")
 }
-
-android.namespace = "io.github.l2hyunwoo.data.tasks"
