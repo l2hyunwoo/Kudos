@@ -22,11 +22,14 @@ internal fun Project.composeMultiplatformDependencies() {
                     implementation(composeDependencies.material3)
                 }
             }
+            // com.android.kotlin.multiplatform.library is single-variant: there is no
+            // debugImplementation configuration, so debug-only tooling goes on androidMain.
+            androidMain {
+                dependencies {
+                    implementation(composeDependencies.uiTooling)
+                    implementation(composeDependencies.preview)
+                }
+            }
         }
-    }
-
-    dependencies {
-        "debugImplementation"(composeDependencies.uiTooling)
-        "debugImplementation"(composeDependencies.preview)
     }
 }
