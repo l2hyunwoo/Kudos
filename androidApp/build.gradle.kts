@@ -47,9 +47,6 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
-        // App() in :shared is a context-parameter @Composable; calling it from MainActivity
-        // requires this flag (context parameters are still gated in Kotlin 2.4).
-        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 
