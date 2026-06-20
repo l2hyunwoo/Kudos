@@ -53,7 +53,7 @@ kotlin {
 dependencies {
     implementation(projects.shared)
     implementation(libs.androidx.activity.compose)
-    implementation(compose.runtime)
-    debugImplementation(compose.uiTooling)
-    implementation(compose.preview)
+    implementation(libs.compose.runtime)
+    debugImplementation(libs.compose.ui.tooling)
+    implementation(libs.compose.ui.toolingPreview)
 }

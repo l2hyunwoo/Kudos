@@ -10,8 +10,8 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
+            implementation(libs.material3)
+            implementation(libs.material.icons.extended)
 
             implementation(libs.coil)
             implementation(libs.coil.network)
