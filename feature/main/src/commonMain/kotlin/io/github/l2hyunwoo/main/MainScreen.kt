@@ -18,6 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import io.github.l2hyunwoo.category.CategoryContext
 import io.github.l2hyunwoo.category.CategoryListEntryPoint
+import io.github.l2hyunwoo.category.CategoryListEvent
 import io.github.l2hyunwoo.category.component.CreateCategoryBottomSheet
 import io.github.l2hyunwoo.category.rememberCategoryContextRetained
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
@@ -60,6 +61,7 @@ fun MainScreen(
     }
 
     val tasksEventFlow = rememberEventFlow<TaskListEvent>()
+    val categoriesEventFlow = rememberEventFlow<CategoryListEvent>()
 
     Scaffold(
         bottomBar = {
@@ -109,6 +111,7 @@ fun MainScreen(
             MainTab.CATEGORIES -> {
                 with(categoryContext) {
                     CategoryListEntryPoint(
+                        eventFlow = categoriesEventFlow,
                         onNavigateToProjectDetail = onNavigateToProjectDetail
                     )
                 }
@@ -139,7 +142,7 @@ fun MainScreen(
             CreateCategoryBottomSheet(
                 onDismiss = { showCreateCategorySheet = false },
                 onCreate = { request ->
-                    // Create category via CategoryContext
+                    categoriesEventFlow.tryEmit(CategoryListEvent.CreateCategory(request))
                     showCreateCategorySheet = false
                 }
             )
