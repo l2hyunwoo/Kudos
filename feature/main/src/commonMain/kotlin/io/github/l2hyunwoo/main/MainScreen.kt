@@ -100,6 +100,7 @@ fun MainScreen(
                 with(tasksContext) {
                     TaskListEntryPoint(
                         eventFlow = tasksEventFlow,
+                        onAddTask = { showCreateTaskSheet = true },
                         onNavigateToCategories = { selectedTab = MainTab.CATEGORIES }
                     )
                 }

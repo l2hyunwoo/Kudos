@@ -10,7 +10,6 @@ import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
 import io.github.l2hyunwoo.kudos.core.soil.SoilBoundary
 import io.github.l2hyunwoo.kudos.core.soil.SoilFallbackDefaults
-import kotlinx.collections.immutable.toImmutableList
 import soil.query.compose.rememberQuery
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -18,6 +17,7 @@ import soil.query.compose.rememberQuery
 context(context: TasksContext)
 fun TaskListEntryPoint(
     eventFlow: EventFlow<TaskListEvent>? = null,
+    onAddTask: () -> Unit = {},
     onNavigateToCategories: () -> Unit = {}
 ) {
     val actualEventFlow = eventFlow ?: rememberEventFlow()
@@ -28,7 +28,7 @@ fun TaskListEntryPoint(
             title = "Tasks",
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = { /* TODO: Add task */ },
+                    onClick = onAddTask,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,
