@@ -154,8 +154,11 @@ fun darkKudosColors(): KudosColors {
             primary500 = Color(0xFF7A72EA),
             primary400 = Color(0xFF948DF2),
             primary200 = Color(0xFFC9C4F7),
-            primary100 = Color(0xFFECEBFB),
-            primary050 = Color(0xFFF5F4FD),
+            // 100/050 are the "selected" tint backgrounds (nav pill, chips, theme toggle). On dark
+            // they must be dark periwinkle tints that sit between surface2 and outlineStrong — the
+            // light near-white values (#ECEBFB/#F5F4FD) read as glaring white slabs over the dark BG.
+            primary100 = Color(0xFF322F4D),
+            primary050 = Color(0xFF272539),
         ),
         ink = KudosInk(
             ink = Color(0xFFF3F2FA),
