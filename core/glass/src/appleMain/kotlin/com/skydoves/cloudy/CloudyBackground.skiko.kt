@@ -156,18 +156,22 @@ private class SkyModifierNode(var sky: Sky) :
       graphicsLayer = it
     }
 
-    // Record the background into `layer`, the source a descendant `cloudy` overlay samples
-    // and blurs. `isCapturing` is set so the overlay draws nothing during this pass: it must be
-    // ABSENT from the blur source. Otherwise the overlay would draw its blur layer into `layer`,
-    // and that blur layer in turn samples `layer` — a cyclic RenderNode/picture graph that
-    // overflows the render thread stack (https://github.com/skydoves/Cloudy/issues/112).
-    sky.isCapturing = true
-    try {
+    // Record the background into `layer`, the source a `cloudy` overlay of this sky samples and
+    // blurs. `sky.capturing` marks the sky as recording so its overlays draw nothing during this
+    // pass: an overlay must be ABSENT from the blur source. Otherwise the overlay would draw its
+    // blur layer into the layer being recorded, and that blur layer in turn samples a backdrop
+    // layer — a cyclic RenderNode/picture graph that overflows the render thread stack
+    // (https://github.com/skydoves/Cloudy/issues/112).
+    //
+    // A depth counter (not a flag) because the SAME hoisted sky can drive `Modifier.sky` at more
+    // than one nesting level at once (e.g. an outer screen container and the inner list container).
+    // Those recorders nest; the counter stays > 0 until the outermost one finishes, so an overlay
+    // is never exposed while an enclosing recorder of the same sky is still capturing. Scoped to
+    // this `Sky`, so an independent sky's overlay is never suppressed.
+    sky.capturing {
       layer.record {
         this@draw.drawContent()
       }
-    } finally {
-      sky.isCapturing = false
     }
 
     // `layer` is reused across draws, so publish it to the snapshot state ONCE (when first
@@ -298,12 +302,13 @@ private class CloudyBackgroundModifierNode(
   }
 
   override fun ContentDrawScope.draw() {
-    // When `sky` is an ancestor of this overlay, the sky's capture pass re-enters this draw
-    // while recording the blur source into `backgroundLayer`. This overlay must be ABSENT from
-    // that source: if it drew here, its blur layer (which samples `backgroundLayer`) would be
-    // recorded into `backgroundLayer`, forming a cyclic RenderNode/picture graph that crashes
-    // the render thread (https://github.com/skydoves/Cloudy/issues/112). Draw nothing during
-    // capture; the overlay paints itself in the sky's on-screen pass, when `isCapturing` is false.
+    // While THIS sky is being recorded (by any of its `Modifier.sky` recorders), this overlay must
+    // be ABSENT from the blur source: if it drew here, its blur layer (which samples a backdrop
+    // layer of this sky) would be recorded into the layer being captured, forming a cyclic
+    // RenderNode/picture graph that crashes the render thread
+    // (https://github.com/skydoves/Cloudy/issues/112). Draw nothing during capture; the overlay
+    // paints itself in the sky's on-screen pass, when the capture counter is back at zero. The
+    // counter is per-`Sky`, so independent skys are unaffected.
     if (sky.isCapturing) {
       return
     }

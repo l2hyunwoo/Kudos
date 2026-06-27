@@ -81,25 +81,51 @@ public class Sky internal constructor() {
   internal var sourceBounds: Rect by mutableStateOf(Rect.Zero)
 
   /**
-   * `true` while [Modifier.sky] is recording the blur source into [backgroundLayer].
+   * Number of [Modifier.sky] recorders of THIS sky that are currently recording the blur source
+   * into a [GraphicsLayer]. `> 0` means a capture is in progress for this sky.
    *
    * A backdrop [Modifier.cloudy] overlay is, by design, a descendant of the [Modifier.sky]
    * container, so the sky's capture pass re-enters the overlay's own draw. If the overlay drew
    * its backdrop (which samples [backgroundLayer]) during that capture, the recorded display
-   * list of [backgroundLayer] would contain a reference back to itself — a cyclic `RenderNode`
-   * graph that makes the platform render thread recurse until the stack overflows
-   * (see https://github.com/skydoves/Cloudy/issues/112).
+   * list of the layer being recorded would contain a reference back to a layer that samples it —
+   * a cyclic `RenderNode` graph that makes the platform render thread recurse until the stack
+   * overflows (see https://github.com/skydoves/Cloudy/issues/112).
    *
-   * The overlay reads this flag and draws nothing while it is being captured, so it is absent
-   * from the blur source. [Modifier.sky] then draws its subtree to the window in a second pass
-   * with this flag `false`, during which the overlay paints its blurred backdrop (sampling the
-   * now-overlay-free [backgroundLayer]) and its foreground straight to the window canvas. The
-   * blur layer is therefore never recorded into [backgroundLayer], so no cycle can form.
+   * The overlay reads [isCapturing] and draws nothing while this sky is being captured, so it is
+   * absent from the blur source. [Modifier.sky] then draws its subtree to the window in a second
+   * pass with the counter back at zero, during which the overlay paints its blurred backdrop
+   * (sampling the now-overlay-free [backgroundLayer]) straight to the window canvas. The blur layer
+   * is therefore never recorded into a capture layer, so no cycle can form.
    *
-   * This is a plain (non-snapshot) field intentionally: capture and the nested overlay draw run
-   * synchronously on the same draw pass, so no recomposition or cross-thread visibility is needed.
+   * A COUNTER, not a boolean: the same hoisted [Sky] can be applied to [Modifier.sky] at more than
+   * one nesting level at once (e.g. an outer screen container and an inner list container both
+   * recording the same sky). Those recorders nest, so the inner recorder's draw runs while the
+   * outer one is still capturing. A boolean cleared in the inner recorder's `finally` would expose
+   * the overlay during the still-active outer capture and re-form the cycle; a depth counter stays
+   * `> 0` until the outermost recorder of this sky finishes.
+   *
+   * Scoped to this [Sky] instance (not process-global): an overlay of a *different*, independent
+   * sky is never suppressed by this sky's capture, so concurrent independent skys (e.g. two screens
+   * mid-navigation) keep blurring with no false positives.
+   *
+   * Plain (non-snapshot) [Int]: capture and the nested draws it triggers run synchronously on the
+   * same draw pass on one thread, so no recomposition or cross-thread visibility is needed.
    */
-  internal var isCapturing: Boolean = false
+  internal var captureDepth: Int = 0
+
+  /** `true` while any [Modifier.sky] recorder of this sky is recording. @see captureDepth */
+  internal val isCapturing: Boolean
+    get() = captureDepth > 0
+
+  /** Runs [block] with this sky marked as capturing; supports nested recorders of the same sky. */
+  internal inline fun <T> capturing(block: () -> T): T {
+    captureDepth++
+    try {
+      return block()
+    } finally {
+      captureDepth--
+    }
+  }
 
   /**
    * Content version counter that increments every time the background
