@@ -25,11 +25,16 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,6 +54,7 @@ import io.github.l2hyunwoo.data.tasks.model.fixture
 fun TaskRow(
     task: Task,
     modifier: Modifier = Modifier,
+    searchQuery: String = "",
     onClick: () -> Unit = {},
     onAdvanceStatus: () -> Unit = {},
     onPickPhase: () -> Unit = {},
@@ -71,6 +77,7 @@ fun TaskRow(
     ) {
         TaskRowContent(
             task = task,
+            searchQuery = searchQuery,
             onClick = onClick,
             onAdvanceStatus = onAdvanceStatus,
             onPickPhase = onPickPhase,
@@ -81,11 +88,18 @@ fun TaskRow(
 @Composable
 private fun TaskRowContent(
     task: Task,
+    searchQuery: String,
     onClick: () -> Unit,
     onAdvanceStatus: () -> Unit,
     onPickPhase: () -> Unit,
 ) {
     val isDone = task.status == TaskStatus.DONE
+    // Resolve the periwinkle span color outside remember (it's a theme/CompositionLocal read), then
+    // key the AnnotatedString on (title, query, color) so it isn't rebuilt on every scroll frame.
+    val highlightColor = KudosTheme.colors.brand.primary600
+    val title = remember(task.title, searchQuery, highlightColor) {
+        highlightedTitle(task.title, searchQuery, highlightColor)
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -110,11 +124,13 @@ private fun TaskRowContent(
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = task.title,
+                text = title,
                 style = KudosTheme.typography.rowTitle,
+                // Base ink color for unmatched text; the highlight span overrides only the matched range.
                 color = KudosTheme.colors.ink.ink,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                // Strikethrough (done) applies to the whole Text, on top of any highlight spans.
                 textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
             )
             Spacer(Modifier.height(2.dp))
@@ -129,6 +145,37 @@ private fun TaskRowContent(
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(12.dp))
+    }
+}
+
+// Tints every case-insensitive occurrence of [query] inside [title] with [highlightColor].
+// Returns a plain AnnotatedString when there's nothing to highlight, so the no-search path renders
+// byte-identically to the old plain-String Text. Pure (no Composable/theme reads) so the caller can
+// remember it keyed on its inputs.
+private fun highlightedTitle(
+    title: String,
+    query: String,
+    highlightColor: Color,
+): AnnotatedString {
+    val needle = query.trim()
+    // Empty/blank query or a query longer than the title can never match: emit the plain string.
+    if (needle.isEmpty() || needle.length > title.length) return AnnotatedString(title)
+
+    return buildAnnotatedString {
+        var cursor = 0
+        while (cursor <= title.length - needle.length) {
+            val match = title.indexOf(needle, cursor, ignoreCase = true)
+            if (match < 0) break
+            // Unmatched gap before this occurrence, then the tinted match.
+            append(title.substring(cursor, match))
+            withStyle(SpanStyle(color = highlightColor)) {
+                append(title.substring(match, match + needle.length))
+            }
+            // Advance by the full match length so overlapping starts aren't double-counted.
+            cursor = match + needle.length
+        }
+        // Tail after the last match (or the whole string if the loop never matched).
+        append(title.substring(cursor))
     }
 }
 
@@ -236,5 +283,14 @@ private fun TaskRowPreview() {
 private fun TaskRowDonePreview() {
     KudosTheme {
         TaskRow(task = Task.fixture.copy(status = TaskStatus.DONE))
+    }
+}
+
+// fixture title is "Sample Task" → "amp" (in "Sample") is tinted periwinkle.
+@Preview(showBackground = true)
+@Composable
+private fun TaskRowHighlightPreview() {
+    KudosTheme {
+        TaskRow(task = Task.fixture, searchQuery = "amp")
     }
 }

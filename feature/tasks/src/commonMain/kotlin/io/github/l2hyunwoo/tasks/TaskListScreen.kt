@@ -39,6 +39,7 @@ import org.jetbrains.compose.resources.stringResource
 fun TaskListScreen(
     categories: ImmutableList<TasksResponse.CategoryWithTasks>,
     modifier: Modifier = Modifier,
+    searchQuery: String = "",
     onTaskClick: (String) -> Unit = {},
 ) {
     // Hoist the backdrop recorder once at the screen root; the scroll container records it and the
@@ -82,6 +83,7 @@ fun TaskListScreen(
                         val task = category.tasks[taskIndex]
                         TaskRow(
                             task = task,
+                            searchQuery = searchQuery,
                             onClick = { onTaskClick(task.id) },
                         )
                     }

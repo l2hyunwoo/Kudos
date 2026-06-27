@@ -46,7 +46,8 @@ fun TaskListEntryPoint(
         )
 
         TaskListScreen(
-            categories = uiState.categories
+            categories = uiState.categories,
+            searchQuery = uiState.searchQuery,
         )
     }
 }
