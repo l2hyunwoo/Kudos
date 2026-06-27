@@ -11,7 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -20,7 +25,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -33,9 +38,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
+import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.component.moon.Moon
+import io.github.l2hyunwoo.core.design.token.KudosShapes
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
 import io.github.l2hyunwoo.data.tasks.model.CreateTaskRequest
@@ -95,6 +106,8 @@ fun CreateTaskBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        shape = KudosShapes().sheet,
+        containerColor = KudosTheme.colors.surface.surface,
         modifier = modifier
     ) {
         Column(
@@ -111,7 +124,8 @@ fun CreateTaskBottomSheet(
             ) {
                 Text(
                     text = stringResource(Res.string.create_task),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = KudosTheme.typography.bodyLargeXB,
+                    color = KudosTheme.colors.ink.ink,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
@@ -221,8 +235,9 @@ fun CreateTaskBottomSheet(
 
                 // Priority Chips
                 Text(
-                    text = stringResource(Res.string.priority),
-                    style = MaterialTheme.typography.labelLarge
+                    text = stringResource(Res.string.priority).uppercase(),
+                    style = KudosTheme.typography.eyebrow,
+                    color = KudosTheme.colors.ink.ink3
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 FlowRow(
@@ -232,7 +247,15 @@ fun CreateTaskBottomSheet(
                         FilterChip(
                             selected = selectedPriority == priority,
                             onClick = { selectedPriority = priority },
-                            label = { Text(priority.text) }
+                            shape = KudosShapes().chipSmall,
+                            colors = lunarChipColors(),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    PriorityDot(priority)
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(priority.text)
+                                }
+                            }
                         )
                     }
                 }
@@ -241,8 +264,9 @@ fun CreateTaskBottomSheet(
 
                 // Status Chips
                 Text(
-                    text = stringResource(Res.string.status),
-                    style = MaterialTheme.typography.labelLarge
+                    text = stringResource(Res.string.status).uppercase(),
+                    style = KudosTheme.typography.eyebrow,
+                    color = KudosTheme.colors.ink.ink3
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 FlowRow(
@@ -252,7 +276,15 @@ fun CreateTaskBottomSheet(
                         FilterChip(
                             selected = selectedStatus == status,
                             onClick = { selectedStatus = status },
-                            label = { Text("${status.text} ${status.name.lowercase().replace('_', ' ')}") }
+                            shape = KudosShapes().chipSmall,
+                            colors = lunarChipColors(),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Moon(k = status.fraction, size = 16.dp)
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(status.name.lowercase().replace('_', ' '))
+                                }
+                            }
                         )
                     }
                 }
@@ -308,3 +340,28 @@ fun CreateTaskBottomSheet(
         }
     }
 }
+
+@Composable
+private fun PriorityDot(priority: TaskPriority) {
+    val p = KudosTheme.colors.priority
+    val color = when (priority) {
+        TaskPriority.URGENT -> p.urgent
+        TaskPriority.HIGH -> p.high
+        TaskPriority.MEDIUM -> p.medium
+        TaskPriority.LOW -> p.low
+    }
+    Box(
+        modifier = Modifier
+            .size(8.dp)
+            .clip(CircleShape)
+            .background(color),
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun lunarChipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = KudosTheme.colors.brand.primary100,
+    selectedLabelColor = KudosTheme.colors.brand.primary600,
+    labelColor = KudosTheme.colors.ink.ink2,
+)

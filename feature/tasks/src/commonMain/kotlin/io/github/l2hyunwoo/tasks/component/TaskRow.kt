@@ -1,50 +1,225 @@
 package io.github.l2hyunwoo.tasks.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.component.moon.MoonToggle
+import io.github.l2hyunwoo.core.design.token.KudosShapes
 import io.github.l2hyunwoo.data.tasks.model.Task
+import io.github.l2hyunwoo.data.tasks.model.TaskPriority
+import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.data.tasks.model.fixture
-import androidx.compose.ui.tooling.preview.Preview
 
+// The list atom: priority bar · moon toggle · title + meta · chevron. Swipe-left reveals done/delete.
+// Visual-only redesign — interaction callbacks are hoisted and default to no-ops so the screen can
+// opt in without a presenter/event change.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskRow(
     task: Task,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
+    onAdvanceStatus: () -> Unit = {},
+    onPickPhase: () -> Unit = {},
+    onMarkDone: () -> Unit = {},
+    onDelete: () -> Unit = {},
 ) {
+    val dismissState = rememberSwipeToDismissBoxState()
+
+    SwipeToDismissBox(
+        state = dismissState,
+        onDismiss = { value ->
+            when (value) {
+                SwipeToDismissBoxValue.EndToStart -> onDelete()
+                SwipeToDismissBoxValue.StartToEnd -> onMarkDone()
+                SwipeToDismissBoxValue.Settled -> Unit
+            }
+        },
+        backgroundContent = { SwipeBackground(dismissState.targetValue) },
+        modifier = modifier,
+    ) {
+        TaskRowContent(
+            task = task,
+            onClick = onClick,
+            onAdvanceStatus = onAdvanceStatus,
+            onPickPhase = onPickPhase,
+        )
+    }
+}
+
+@Composable
+private fun TaskRowContent(
+    task: Task,
+    onClick: () -> Unit,
+    onAdvanceStatus: () -> Unit,
+    onPickPhase: () -> Unit,
+) {
+    val isDone = task.status == TaskStatus.DONE
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .background(
-                color = KudosTheme.colorScheme.surface,
-                shape = RoundedCornerShape(12.dp)
-            ).clip(shape = RoundedCornerShape(12.dp))
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .height(72.dp)
+            .background(KudosTheme.colors.surface.surface, KudosShapes().row)
+            .clip(KudosShapes().row)
+            .clickable(onClick = onClick)
+            // Done rows recede; the moon stays full to read the completion at a glance.
+            .alpha(if (isDone) 0.6f else 1f),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PriorityBar(task.priority)
+        Spacer(Modifier.width(12.dp))
+
+        MoonToggle(
+            k = task.status.fraction,
+            onTap = onAdvanceStatus,
+            onLongPress = onPickPhase,
+            size = 28.dp,
+        )
+        Spacer(Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = task.title,
+                style = KudosTheme.typography.rowTitle,
+                color = KudosTheme.colors.ink.ink,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
+            )
+            Spacer(Modifier.height(2.dp))
+            TaskMeta(task)
+        }
+
+        Spacer(Modifier.width(8.dp))
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = KudosTheme.colors.ink.ink3,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(Modifier.width(12.dp))
+    }
+}
+
+// id (tabular identifier) · project chip (pastel) · due (caption). Tags axis is not in the data
+// model yet, so the project title doubles as the single chip for now.
+@Composable
+private fun TaskMeta(task: Task) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = task.status.text,
-            style = KudosTheme.typography.bodyMediumR,
-            color = KudosTheme.colorScheme.tertiary
+            text = task.taskId.uppercase(),
+            style = KudosTheme.typography.identifier,
+            color = KudosTheme.colors.ink.ink3,
+            maxLines = 1,
         )
+        task.projectTitle?.let { project ->
+            TagChip(label = project, dot = KudosTheme.colors.pastels.lilac)
+        }
+        task.dueDate?.let { due ->
+            Text(
+                text = due,
+                style = KudosTheme.typography.labelLargeM,
+                color = KudosTheme.colors.ink.ink2,
+                maxLines = 1,
+            )
+        }
+    }
+}
 
-        Spacer(modifier = Modifier.width(16.dp))
+@Composable
+private fun TagChip(label: String, dot: Color) {
+    val (bg, fg) = KudosTheme.colors.pastelChip(dot)
+    Text(
+        text = label,
+        style = KudosTheme.typography.labelLargeM,
+        color = fg,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .clip(KudosShapes().chipSmall)
+            .background(bg)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    )
+}
 
-        Text(
-            text = task.title,
-            style = KudosTheme.typography.titleMediumR,
-            color = KudosTheme.colorScheme.onPrimaryContainer
+// Small left accent bar + dot — priority is felt, never shouted (must not fight the moon).
+@Composable
+private fun PriorityBar(priority: TaskPriority) {
+    val color = priority.toColor()
+    Box(
+        modifier = Modifier
+            .padding(start = 4.dp)
+            .width(4.dp)
+            .fillMaxHeight()
+            .padding(vertical = 14.dp)
+            .clip(KudosShapes().pill)
+            .background(color),
+    )
+}
+
+@Composable
+private fun TaskPriority.toColor(): Color {
+    val p = KudosTheme.colors.priority
+    return when (this) {
+        TaskPriority.URGENT -> p.urgent
+        TaskPriority.HIGH -> p.high
+        TaskPriority.MEDIUM -> p.medium
+        TaskPriority.LOW -> p.low
+    }
+}
+
+@Composable
+private fun SwipeBackground(target: SwipeToDismissBoxValue) {
+    val isDelete = target == SwipeToDismissBoxValue.EndToStart
+    val color = if (isDelete) KudosTheme.colors.priority.urgent else KudosTheme.colors.priority.low
+    val alignment = if (isDelete) Alignment.CenterEnd else Alignment.CenterStart
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(KudosShapes().row)
+            .background(color)
+            .padding(horizontal = 24.dp),
+        contentAlignment = alignment,
+    ) {
+        Icon(
+            imageVector = if (isDelete) Icons.Default.Delete else Icons.Default.Check,
+            contentDescription = null,
+            tint = Color.White,
         )
     }
 }
@@ -53,9 +228,14 @@ fun TaskRow(
 @Composable
 private fun TaskRowPreview() {
     KudosTheme {
-        TaskRow(
-            task = Task.fixture,
-        )
+        TaskRow(task = Task.fixture)
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun TaskRowDonePreview() {
+    KudosTheme {
+        TaskRow(task = Task.fixture.copy(status = TaskStatus.DONE))
+    }
+}
