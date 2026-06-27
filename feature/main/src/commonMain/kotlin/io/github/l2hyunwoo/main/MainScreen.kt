@@ -141,12 +141,12 @@ fun MainScreen(
         }
     }
 
-    // Re-capture the backdrop once per tab swap. A Crossfade is a content change, not a scroll, so
+    // Re-capture the backdrop across a tab swap. A Crossfade is a content change, not a scroll, so
     // the recorder's scroll-driven re-arm never fires for it; without this, the glass chrome keeps
-    // blurring the previous tab's content (ghost). Edge-triggered on the tab value: fires once per
-    // swap, NOT per frame, so the app still idles afterwards.
+    // blurring the previous tab's content (ghost). Pass the cross-fade duration so the blur tracks
+    // the whole dissolve instead of freezing partway once a short settle tail elapses.
     LaunchedEffect(selectedTab) {
-        sky.invalidate()
+        sky.invalidate(LunarDurationStandard.toLong())
     }
 
     Scaffold(
