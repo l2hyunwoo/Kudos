@@ -15,4 +15,16 @@
     <string name="status">Status</string>
     <string name="cancel">Cancel</string>
     <string name="create">Create</string>
+    <string name="task_title_hint">What needs to be done?</string>
+    <string name="add_description">Add description…</string>
+    <string name="due_date">Due date</string>
+    <string name="due_today">Today</string>
+    <string name="due_this_week">This Week</string>
+    <string name="due_pick">Pick</string>
+    <string name="due_none">None</string>
+    <string name="status_backlog">Backlog</string>
+    <string name="status_todo">To Do</string>
+    <string name="status_in_progress">In Progress</string>
+    <string name="status_done">Done</string>
+    <string name="date_confirm">OK</string>
 </resources>

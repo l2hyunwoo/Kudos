@@ -1,9 +1,8 @@
 package io.github.l2hyunwoo.tasks.component
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,22 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,39 +26,47 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.button.GhostButton
 import io.github.l2hyunwoo.core.design.component.button.PrimaryButton
-import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.component.sheet.KudosBottomSheet
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
 import io.github.l2hyunwoo.data.tasks.model.CreateTaskRequest
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
+import io.github.l2hyunwoo.tasks.DueOption
+import io.github.l2hyunwoo.tasks.dueOptionToIso
+import io.github.l2hyunwoo.tasks.isoFromEpochDayDue
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.launch
 import kudos.feature.tasks.generated.resources.Res
+import kudos.feature.tasks.generated.resources.add_description
 import kudos.feature.tasks.generated.resources.cancel
 import kudos.feature.tasks.generated.resources.category
 import kudos.feature.tasks.generated.resources.create
 import kudos.feature.tasks.generated.resources.create_task
-import kudos.feature.tasks.generated.resources.description
+import kudos.feature.tasks.generated.resources.date_confirm
+import kudos.feature.tasks.generated.resources.due_date
+import kudos.feature.tasks.generated.resources.due_none
+import kudos.feature.tasks.generated.resources.due_pick
+import kudos.feature.tasks.generated.resources.due_this_week
+import kudos.feature.tasks.generated.resources.due_today
 import kudos.feature.tasks.generated.resources.no_project
 import kudos.feature.tasks.generated.resources.priority
 import kudos.feature.tasks.generated.resources.project
-import kudos.feature.tasks.generated.resources.select_category
-import kudos.feature.tasks.generated.resources.select_project
 import kudos.feature.tasks.generated.resources.status
-import kudos.feature.tasks.generated.resources.title
+import kudos.feature.tasks.generated.resources.status_backlog
+import kudos.feature.tasks.generated.resources.status_done
+import kudos.feature.tasks.generated.resources.status_in_progress
+import kudos.feature.tasks.generated.resources.status_todo
+import kudos.feature.tasks.generated.resources.task_title_hint
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTaskBottomSheet(
     categories: ImmutableList<Category>,
@@ -85,15 +84,14 @@ fun CreateTaskBottomSheet(
     var description by remember { mutableStateOf("") }
     var selectedPriority by remember { mutableStateOf(TaskPriority.MEDIUM) }
     var selectedStatus by remember { mutableStateOf(TaskStatus.TODO) }
-    var categoryDropdownExpanded by remember { mutableStateOf(false) }
-    var projectDropdownExpanded by remember { mutableStateOf(false) }
+    var selectedDue by remember { mutableStateOf(DueOption.NONE) }
+    var pickedIso by remember { mutableStateOf<String?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
-    // Filter projects based on selected category
     val availableProjects = remember(selectedCategory) {
         selectedCategory?.projects ?: emptyList()
     }
 
-    // Reset selected project when category changes
     LaunchedEffect(selectedCategory) {
         if (selectedProject != null && !availableProjects.contains(selectedProject)) {
             selectedProject = null
@@ -112,7 +110,6 @@ fun CreateTaskBottomSheet(
                 .fillMaxSize()
                 .imePadding()
         ) {
-            // Scrollable content area
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -126,162 +123,126 @@ fun CreateTaskBottomSheet(
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // Category Dropdown
-                ExposedDropdownMenuBox(
-                    expanded = categoryDropdownExpanded,
-                    onExpandedChange = { categoryDropdownExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = selectedCategory?.title ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(Res.string.category)) },
-                        placeholder = { Text(stringResource(Res.string.select_category)) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = categoryDropdownExpanded,
-                        onDismissRequest = { categoryDropdownExpanded = false }
-                    ) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text("${category.prefix} - ${category.title}") },
-                                onClick = {
-                                    selectedCategory = category
-                                    categoryDropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Project Dropdown
-                ExposedDropdownMenuBox(
-                    expanded = projectDropdownExpanded,
-                    onExpandedChange = { projectDropdownExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = selectedProject?.title ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(Res.string.project)) },
-                        placeholder = { Text(stringResource(Res.string.select_project)) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = projectDropdownExpanded) },
-                        enabled = selectedCategory != null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = projectDropdownExpanded,
-                        onDismissRequest = { projectDropdownExpanded = false }
-                    ) {
-                        // "No project" option
-                        DropdownMenuItem(
-                            text = { Text(stringResource(Res.string.no_project)) },
-                            onClick = {
-                                selectedProject = null
-                                projectDropdownExpanded = false
-                            }
-                        )
-
-                        // Available projects from selected category
-                        availableProjects.forEach { project ->
-                            DropdownMenuItem(
-                                text = { Text(project.title) },
-                                onClick = {
-                                    selectedProject = project
-                                    projectDropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Title
-                OutlinedTextField(
+                // Headline title + description first (matches the mockup's "title first" feel), then the
+                // functionally-required selectors below.
+                LunarTextInput(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text(stringResource(Res.string.title)) },
+                    placeholder = stringResource(Res.string.task_title_hint),
+                    textStyle = KudosTheme.typography.titleLargeM,
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Description
-                OutlinedTextField(
+                LunarTextInput(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text(stringResource(Res.string.description)) },
+                    placeholder = stringResource(Res.string.add_description),
+                    textStyle = KudosTheme.typography.bodyLargeR,
                     minLines = 3,
-                    maxLines = 5,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // Priority Chips
-                Text(
-                    text = stringResource(Res.string.priority).uppercase(),
-                    style = KudosTheme.typography.eyebrow,
-                    color = KudosTheme.colors.ink.ink3
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TaskPriority.entries.forEach { priority ->
-                        FilterChip(
-                            selected = selectedPriority == priority,
-                            onClick = { selectedPriority = priority },
-                            shape = KudosTheme.shapes.chipSmall,
-                            colors = lunarChipColors(),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    PriorityDot(priority)
-                                    Spacer(Modifier.width(6.dp))
-                                    Text(priority.text)
-                                }
-                            }
-                        )
+                // CATEGORY drives PROJECT, so it leads the selector block.
+                LunarFormSection(title = stringResource(Res.string.category).uppercase()) {
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        categories.forEach { category ->
+                            LunarSelectableChip(
+                                label = "${category.prefix} · ${category.title}",
+                                selected = selectedCategory == category,
+                                onClick = { selectedCategory = category }
+                            )
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Status Chips
-                Text(
-                    text = stringResource(Res.string.status).uppercase(),
-                    style = KudosTheme.typography.eyebrow,
-                    color = KudosTheme.colors.ink.ink3
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TaskStatus.entries.forEach { status ->
-                        FilterChip(
-                            selected = selectedStatus == status,
-                            onClick = { selectedStatus = status },
-                            shape = KudosTheme.shapes.chipSmall,
-                            colors = lunarChipColors(),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Moon(k = status.fraction, size = 16.dp)
-                                    Spacer(Modifier.width(6.dp))
-                                    Text(status.name.lowercase().replace('_', ' '))
-                                }
+                LunarFormSection(title = stringResource(Res.string.project).uppercase()) {
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        LunarSelectableChip(
+                            label = stringResource(Res.string.no_project),
+                            selected = selectedProject == null,
+                            onClick = { selectedProject = null }
+                        )
+                        availableProjects.forEach { project ->
+                            LunarSelectableChip(
+                                label = project.title,
+                                selected = selectedProject == project,
+                                onClick = { selectedProject = project }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LunarFormSection(title = stringResource(Res.string.status).uppercase()) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TaskStatus.entries.forEach { status ->
+                            LunarStatusCard(
+                                fraction = status.fraction,
+                                label = stringResource(status.labelRes()),
+                                selected = selectedStatus == status,
+                                onClick = { selectedStatus = status },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LunarFormSection(title = stringResource(Res.string.priority).uppercase()) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TaskPriority.entries.forEach { priority ->
+                            LunarSelectableChip(
+                                label = priority.text,
+                                selected = selectedPriority == priority,
+                                onClick = { selectedPriority = priority },
+                                leadingDotColor = priority.dotColor()
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LunarFormSection(title = stringResource(Res.string.due_date).uppercase()) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LunarSelectableChip(
+                            label = stringResource(Res.string.due_today),
+                            selected = selectedDue == DueOption.TODAY,
+                            onClick = { selectedDue = DueOption.TODAY }
+                        )
+                        LunarSelectableChip(
+                            label = stringResource(Res.string.due_this_week),
+                            selected = selectedDue == DueOption.THIS_WEEK,
+                            onClick = { selectedDue = DueOption.THIS_WEEK }
+                        )
+                        LunarSelectableChip(
+                            // Show the chosen date on the Pick chip once one exists.
+                            label = pickedIso ?: stringResource(Res.string.due_pick),
+                            selected = selectedDue == DueOption.PICK,
+                            onClick = {
+                                selectedDue = DueOption.PICK
+                                showDatePicker = true
                             }
+                        )
+                        LunarSelectableChip(
+                            label = stringResource(Res.string.due_none),
+                            selected = selectedDue == DueOption.NONE,
+                            onClick = { selectedDue = DueOption.NONE }
                         )
                     }
                 }
@@ -289,7 +250,6 @@ fun CreateTaskBottomSheet(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Fixed action buttons at bottom
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -322,7 +282,8 @@ fun CreateTaskBottomSheet(
                                     description = description.takeIf { it.isNotBlank() },
                                     projectId = selectedProject?.id,
                                     priority = selectedPriority,
-                                    status = selectedStatus
+                                    status = selectedStatus,
+                                    dueDate = dueOptionToIso(selectedDue, pickedIso)
                                 )
                             )
                             onDismiss()
@@ -336,29 +297,50 @@ fun CreateTaskBottomSheet(
             }
         }
     }
-}
 
-@Composable
-private fun PriorityDot(priority: TaskPriority) {
-    val p = KudosTheme.colors.priority
-    val color = when (priority) {
-        TaskPriority.URGENT -> p.urgent
-        TaskPriority.HIGH -> p.high
-        TaskPriority.MEDIUM -> p.medium
-        TaskPriority.LOW -> p.low
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            // selectedDateMillis is the start-of-day in UTC, so integer division by a
+                            // day's millis yields the exact epoch day.
+                            pickedIso = isoFromEpochDayDue(millis / 86_400_000L)
+                            selectedDue = DueOption.PICK
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text(stringResource(Res.string.date_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(Res.string.cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
-    Box(
-        modifier = Modifier
-            .size(8.dp)
-            .clip(CircleShape)
-            .background(color),
-    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// Status enum -> localized label resource.
+private fun TaskStatus.labelRes(): StringResource = when (this) {
+    TaskStatus.BACKLOG -> Res.string.status_backlog
+    TaskStatus.TODO -> Res.string.status_todo
+    TaskStatus.IN_PROGRESS -> Res.string.status_in_progress
+    TaskStatus.DONE -> Res.string.status_done
+}
+
+// Priority enum -> its semantic color token (the leading dot on the priority chip).
 @Composable
-private fun lunarChipColors() = FilterChipDefaults.filterChipColors(
-    selectedContainerColor = KudosTheme.colors.brand.primary100,
-    selectedLabelColor = KudosTheme.colors.brand.primary600,
-    labelColor = KudosTheme.colors.ink.ink2,
-)
+private fun TaskPriority.dotColor() = when (this) {
+    TaskPriority.URGENT -> KudosTheme.colors.priority.urgent
+    TaskPriority.HIGH -> KudosTheme.colors.priority.high
+    TaskPriority.MEDIUM -> KudosTheme.colors.priority.medium
+    TaskPriority.LOW -> KudosTheme.colors.priority.low
+}

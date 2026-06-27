@@ -15,4 +15,16 @@
     <string name="status">상태</string>
     <string name="cancel">취소</string>
     <string name="create">만들기</string>
+    <string name="task_title_hint">무엇을 해야 하나요?</string>
+    <string name="add_description">설명 추가…</string>
+    <string name="due_date">마감일</string>
+    <string name="due_today">오늘</string>
+    <string name="due_this_week">이번 주</string>
+    <string name="due_pick">직접 선택</string>
+    <string name="due_none">없음</string>
+    <string name="status_backlog">백로그</string>
+    <string name="status_todo">할 일</string>
+    <string name="status_in_progress">진행 중</string>
+    <string name="status_done">완료</string>
+    <string name="date_confirm">확인</string>
 </resources>

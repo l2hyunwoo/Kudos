@@ -66,7 +66,7 @@ private fun parseIsoDate(s: String): CivilDate? {
 // Howard Hinnant's days_from_civil: (year, month, day) -> days since the Unix epoch (inverse of the
 // civil_from_days used by todayIso()/civilMonthDay()). Lets us take an exact signed day delta for the
 // "N일 지남"/"N일 후" labels instead of only a lexicographic comparison.
-private fun daysFromCivil(year: Long, month: Long, day: Long): Long {
+internal fun daysFromCivil(year: Long, month: Long, day: Long): Long {
     val y = if (month <= 2L) year - 1L else year
     val era = (if (y >= 0L) y else y - 399L) / 400L
     val yoe = y - era * 400L

@@ -86,12 +86,14 @@ fun groupTasksByDueDate(
 // else the whole string (already date-only or otherwise short).
 private fun String.dueDay(): String = if (length >= 10) substring(0, 10) else this
 
-// Today's local civil date as "YYYY-MM-DD", derived from epoch days via Howard Hinnant's
-// civil_from_days so commonMain needs no datetime dependency (mirrors MainScreen.todayLabel()).
-// Uses the device's UTC-based day, which is acceptable for due-date bucketing here.
-fun todayIso(): String {
-    val epochDays = Clock.System.now().epochSeconds.floorDiv(86_400L)
-    val z = epochDays + 719_468L
+// Today's local civil date as "YYYY-MM-DD". Uses the device's UTC-based day, which is acceptable for
+// due-date bucketing here.
+fun todayIso(): String = isoFromEpochDay(Clock.System.now().epochSeconds.floorDiv(86_400L))
+
+// Howard Hinnant's civil_from_days: epoch day -> "YYYY-MM-DD". Single source of this conversion,
+// reused by todayIso() and the due-date selector (DueOption). Inverse of DueDate.daysFromCivil().
+internal fun isoFromEpochDay(epochDay: Long): String {
+    val z = epochDay + 719_468L
     val era = (if (z >= 0) z else z - 146_096L) / 146_097L
     val doe = z - era * 146_097L
     val yoe = (doe - doe / 1460L + doe / 36_524L - doe / 146_096L) / 365L
