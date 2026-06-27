@@ -6,6 +6,7 @@ import dev.zacsweers.metro.Inject
 import io.github.l2hyunwoo.data.tasks.model.CreateTaskRequest
 import io.github.l2hyunwoo.data.tasks.model.ProjectTasksResponse
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
+import io.github.l2hyunwoo.data.tasks.model.UpdateTaskRequest
 import io.github.l2hyunwoo.kudos.core.common.DataScope
 
 @ContributesBinding(DataScope::class)
@@ -23,5 +24,13 @@ class DefaultTasksApiClient internal constructor(ktorfit: Ktorfit) : TasksApiCli
 
     override suspend fun createTask(request: CreateTaskRequest) {
         return tasksApi.createTask(request)
+    }
+
+    override suspend fun updateTask(taskId: String, request: UpdateTaskRequest) {
+        return tasksApi.updateTask(taskId, request)
+    }
+
+    override suspend fun deleteTask(taskId: String) {
+        return tasksApi.deleteTask(taskId)
     }
 }
