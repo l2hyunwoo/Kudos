@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.Moon
-import io.github.l2hyunwoo.core.design.token.KudosShapes
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.data.tasks.model.UpdateTaskRequest
@@ -70,7 +69,7 @@ fun EditTaskBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = KudosShapes().sheet,
+        shape = KudosTheme.shapes.sheet,
         containerColor = KudosTheme.colors.surface.surface,
         modifier = modifier
     ) {
@@ -93,7 +92,7 @@ fun EditTaskBottomSheet(
                 onValueChange = { title = it },
                 label = { Text("Title") },
                 singleLine = true,
-                shape = KudosShapes().chipSmall,
+                shape = KudosTheme.shapes.chipSmall,
                 colors = fieldColors,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -106,7 +105,7 @@ fun EditTaskBottomSheet(
                 label = { Text("Description") },
                 minLines = 3,
                 maxLines = 5,
-                shape = KudosShapes().chipSmall,
+                shape = KudosTheme.shapes.chipSmall,
                 colors = fieldColors,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -118,7 +117,7 @@ fun EditTaskBottomSheet(
                 onValueChange = { dueDate = it },
                 label = { Text("Due date (ISO-8601)") },
                 singleLine = true,
-                shape = KudosShapes().chipSmall,
+                shape = KudosTheme.shapes.chipSmall,
                 colors = fieldColors,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -189,7 +188,7 @@ fun EditTaskBottomSheet(
                         )
                     },
                     enabled = title.isNotBlank(),
-                    shape = KudosShapes().pill,
+                    shape = KudosTheme.shapes.pill,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = KudosTheme.colors.brand.primary600,
                         contentColor = Color.White,
@@ -223,7 +222,7 @@ private fun PriorityChip(
         style = KudosTheme.typography.labelLargeM,
         color = if (isSelected) Color.White else fg,
         modifier = modifier
-            .clip(KudosShapes().chipSmall)
+            .clip(KudosTheme.shapes.chipSmall)
             .background(if (isSelected) dot else bg)
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 8.dp),
@@ -241,7 +240,7 @@ private fun StatusChip(
     val fg = if (isSelected) KudosTheme.colors.brand.primary600 else KudosTheme.colors.ink.ink2
     Row(
         modifier = modifier
-            .clip(KudosShapes().chipSmall)
+            .clip(KudosTheme.shapes.chipSmall)
             .background(bg)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),

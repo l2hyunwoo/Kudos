@@ -26,7 +26,6 @@ import com.skydoves.cloudy.sky
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.component.surface.glassSurface
-import io.github.l2hyunwoo.core.design.token.KudosShapes
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
 import io.github.l2hyunwoo.data.tasks.model.fixture
 import io.github.l2hyunwoo.tasks.component.TaskRow
@@ -122,7 +121,7 @@ private fun GlassTopBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(TopBarHeight)
-                .glassSurface(sky = sky, shape = KudosShapes().card),
+                .glassSurface(sky = sky, shape = KudosTheme.shapes.card),
             contentAlignment = Alignment.CenterStart,
         ) {
             Text(

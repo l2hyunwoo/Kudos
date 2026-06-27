@@ -18,10 +18,14 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.AsyncImagePreviewHandler
 import coil3.compose.LocalAsyncImagePreviewHandler
 import io.github.l2hyunwoo.core.design.token.KudosColors
+import io.github.l2hyunwoo.core.design.token.KudosElevation
 import io.github.l2hyunwoo.core.design.token.KudosMotion
+import io.github.l2hyunwoo.core.design.token.KudosShapes
+import io.github.l2hyunwoo.core.design.token.LocalElevation
 import io.github.l2hyunwoo.core.design.token.LocalKudosColors
 import io.github.l2hyunwoo.core.design.token.LocalMotion
 import io.github.l2hyunwoo.core.design.token.LocalReduceMotion
+import io.github.l2hyunwoo.core.design.token.LocalShapes
 import io.github.l2hyunwoo.core.design.token.darkKudosColors
 import io.github.l2hyunwoo.core.design.token.kudosMotion
 import io.github.l2hyunwoo.core.design.token.lightKudosColors
@@ -86,4 +90,14 @@ object KudosTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalMotion.current
+
+    val shapes: KudosShapes
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalShapes.current
+
+    val elevation: KudosElevation
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalElevation.current
 }

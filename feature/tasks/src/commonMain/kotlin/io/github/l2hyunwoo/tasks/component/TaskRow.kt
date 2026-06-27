@@ -36,7 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.MoonToggle
-import io.github.l2hyunwoo.core.design.token.KudosShapes
 import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
@@ -91,8 +90,8 @@ private fun TaskRowContent(
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
-            .background(KudosTheme.colors.surface.surface, KudosShapes().row)
-            .clip(KudosShapes().row)
+            .background(KudosTheme.colors.surface.surface, KudosTheme.shapes.row)
+            .clip(KudosTheme.shapes.row)
             .clickable(onClick = onClick)
             // Done rows recede; the moon stays full to read the completion at a glance.
             .alpha(if (isDone) 0.6f else 1f),
@@ -171,7 +170,7 @@ private fun TagChip(label: String, dot: Color) {
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier
-            .clip(KudosShapes().chipSmall)
+            .clip(KudosTheme.shapes.chipSmall)
             .background(bg)
             .padding(horizontal = 8.dp, vertical = 2.dp),
     )
@@ -187,7 +186,7 @@ private fun PriorityBar(priority: TaskPriority) {
             .width(4.dp)
             .fillMaxHeight()
             .padding(vertical = 14.dp)
-            .clip(KudosShapes().pill)
+            .clip(KudosTheme.shapes.pill)
             .background(color),
     )
 }
@@ -211,7 +210,7 @@ private fun SwipeBackground(target: SwipeToDismissBoxValue) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .clip(KudosShapes().row)
+            .clip(KudosTheme.shapes.row)
             .background(color)
             .padding(horizontal = 24.dp),
         contentAlignment = alignment,

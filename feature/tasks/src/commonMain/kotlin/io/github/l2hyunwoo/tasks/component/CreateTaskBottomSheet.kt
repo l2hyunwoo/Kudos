@@ -46,7 +46,6 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.Moon
-import io.github.l2hyunwoo.core.design.token.KudosShapes
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
 import io.github.l2hyunwoo.data.tasks.model.CreateTaskRequest
@@ -106,7 +105,7 @@ fun CreateTaskBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = KudosShapes().sheet,
+        shape = KudosTheme.shapes.sheet,
         containerColor = KudosTheme.colors.surface.surface,
         modifier = modifier
     ) {
@@ -247,7 +246,7 @@ fun CreateTaskBottomSheet(
                         FilterChip(
                             selected = selectedPriority == priority,
                             onClick = { selectedPriority = priority },
-                            shape = KudosShapes().chipSmall,
+                            shape = KudosTheme.shapes.chipSmall,
                             colors = lunarChipColors(),
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -276,7 +275,7 @@ fun CreateTaskBottomSheet(
                         FilterChip(
                             selected = selectedStatus == status,
                             onClick = { selectedStatus = status },
-                            shape = KudosShapes().chipSmall,
+                            shape = KudosTheme.shapes.chipSmall,
                             colors = lunarChipColors(),
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
