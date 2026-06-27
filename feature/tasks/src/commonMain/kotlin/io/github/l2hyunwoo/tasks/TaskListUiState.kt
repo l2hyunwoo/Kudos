@@ -9,5 +9,6 @@ import kotlinx.collections.immutable.persistentListOf
 data class TaskListUiState(
     val categories: ImmutableList<TasksResponse.CategoryWithTasks> = persistentListOf(),
     val isLoading: Boolean = false,
-    val error: Throwable? = null
+    val error: Throwable? = null,
+    val searchQuery: String = "",
 )

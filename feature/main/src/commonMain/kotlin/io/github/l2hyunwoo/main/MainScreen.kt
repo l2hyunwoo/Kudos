@@ -21,9 +21,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ListAlt
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
@@ -39,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -84,6 +87,7 @@ fun MainScreen(
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.TASKS) }
     var showCreateTaskSheet by remember { mutableStateOf(false) }
     var showCreateCategorySheet by remember { mutableStateOf(false) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
 
     val tasksContext = with(tasksContextFactory) {
         rememberTasksContextRetained()
@@ -120,7 +124,8 @@ fun MainScreen(
             ) {
                 TodayHeader(
                     selectedTab = selectedTab,
-                    onSearch = { /* TODO: wire search once TaskList/Category expose a search event */ },
+                    searchQuery = searchQuery,
+                    onSearchChange = { searchQuery = it },
                 )
                 Box(Modifier.fillMaxSize()) {
                     when (selectedTab) {
@@ -129,7 +134,8 @@ fun MainScreen(
                                 TaskListEntryPoint(
                                     eventFlow = tasksEventFlow,
                                     onAddTask = { showCreateTaskSheet = true },
-                                    onNavigateToCategories = { selectedTab = MainTab.CATEGORIES }
+                                    onNavigateToCategories = { selectedTab = MainTab.CATEGORIES },
+                                    searchQuery = searchQuery,
                                 )
                             }
                         }
@@ -193,7 +199,8 @@ fun MainScreen(
 @Composable
 private fun TodayHeader(
     selectedTab: MainTab,
-    onSearch: () -> Unit,
+    searchQuery: String,
+    onSearchChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -222,13 +229,15 @@ private fun TodayHeader(
             color = KudosTheme.colors.ink.ink2,
         )
         Spacer(Modifier.height(16.dp))
-        SearchEntry(onClick = onSearch)
+        // Search filters the task list (TASKS tab); on the categories tab it stays a passive field.
+        SearchField(query = searchQuery, onQueryChange = onSearchChange)
     }
 }
 
 @Composable
-private fun SearchEntry(
-    onClick: () -> Unit,
+private fun SearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -236,7 +245,6 @@ private fun SearchEntry(
             .fillMaxWidth()
             .clip(PillShape)
             .background(KudosTheme.colors.surface.surface2)
-            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -247,11 +255,35 @@ private fun SearchEntry(
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(10.dp))
-        Text(
-            text = "검색",
-            style = KudosTheme.typography.bodyMediumR,
-            color = KudosTheme.colors.ink.ink3,
-        )
+        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+            if (query.isEmpty()) {
+                Text(
+                    text = "검색",
+                    style = KudosTheme.typography.bodyMediumR,
+                    color = KudosTheme.colors.ink.ink3,
+                )
+            }
+            BasicTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                singleLine = true,
+                textStyle = KudosTheme.typography.bodyMediumR.copy(color = KudosTheme.colors.ink.ink),
+                cursorBrush = SolidColor(KudosTheme.colors.brand.primary600),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        if (query.isNotEmpty()) {
+            Spacer(Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Rounded.Close,
+                contentDescription = "검색어 지우기",
+                tint = KudosTheme.colors.ink.ink3,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(PillShape)
+                    .clickable { onQueryChange("") },
+            )
+        }
     }
 }
 
@@ -417,7 +449,7 @@ private fun ChromePreviewScaffold() {
             .background(KudosTheme.colors.surface.bg)
     ) {
         Column(Modifier.fillMaxSize().sky(sky)) {
-            TodayHeader(selectedTab = tab, onSearch = {})
+            TodayHeader(selectedTab = tab, searchQuery = "", onSearchChange = {})
         }
         GlassNavBar(
             selectedTab = tab,

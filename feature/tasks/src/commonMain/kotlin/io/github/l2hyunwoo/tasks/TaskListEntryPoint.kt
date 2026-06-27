@@ -18,7 +18,8 @@ context(context: TasksContext)
 fun TaskListEntryPoint(
     eventFlow: EventFlow<TaskListEvent>? = null,
     onAddTask: () -> Unit = {},
-    onNavigateToCategories: () -> Unit = {}
+    onNavigateToCategories: () -> Unit = {},
+    searchQuery: String = "",
 ) {
     val actualEventFlow = eventFlow ?: rememberEventFlow()
 
@@ -40,7 +41,8 @@ fun TaskListEntryPoint(
     ) { categories ->
         val uiState = taskListPresenter(
             eventFlow = actualEventFlow,
-            categories = categories
+            categories = categories,
+            searchQuery = searchQuery,
         )
 
         TaskListScreen(
