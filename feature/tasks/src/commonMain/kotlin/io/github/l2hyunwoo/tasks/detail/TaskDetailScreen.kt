@@ -153,15 +153,19 @@ fun TaskDetailScreen(
         containerColor = KudosTheme.colors.surface.bg,
         modifier = modifier
     ) { paddingValues ->
+        // `sky` records this region as the glass top bar's blur backdrop. Keep it on the static
+        // outer Box, not on the scrolling Column: a `sky` recorder on the scroll container itself
+        // stops the container from consuming vertical drags (the list/page stops scrolling). The Box
+        // is a non-scrolling parent, so the recorded backdrop is identical while the Column scrolls.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .sky(sky)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .sky(sky)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {

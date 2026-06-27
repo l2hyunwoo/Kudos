@@ -105,63 +105,71 @@ fun TaskListScreen(
                 EmptyState()
             } else {
                 val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .sky(sky)
-                        .padding(horizontal = 16.dp),
-                    contentPadding = PaddingValues(
-                        // Clear the floating glass top bar (status bar + bar height + its vertical padding).
-                        top = statusBarTop + TopBarHeight + 24.dp,
-                        bottom = 16.dp,
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    groups.forEachIndexed { groupIndex, group ->
-                        if (group.tasks.isEmpty()) return@forEachIndexed
-                        stickyHeader(key = "header_${group.kind}") {
-                            GroupHeader(kind = group.kind, count = group.tasks.size)
-                        }
-                        items(
-                            count = group.tasks.size,
-                            key = { taskIndex -> group.tasks[taskIndex].id },
-                        ) { taskIndex ->
-                            val task = group.tasks[taskIndex]
-                            TaskRow(
-                                task = task,
-                                searchQuery = uiState.searchQuery,
-                                onClick = { onTaskClick(task) },
-                                // Tap the moon: advance one phase (DONE wraps to BACKLOG).
-                                onAdvanceStatus = {
-                                    eventFlow.tryEmit(
-                                        TaskListEvent.ChangeStatus(task.taskId, task.id, task.status.next()),
-                                    )
-                                },
-                                // Swipe-right: mark done directly.
-                                onMarkDone = {
-                                    eventFlow.tryEmit(
-                                        TaskListEvent.ChangeStatus(task.taskId, task.id, TaskStatus.DONE),
-                                    )
-                                },
-                                // Swipe-left: delete (undo snackbar).
-                                onDelete = {
-                                    eventFlow.tryEmit(TaskListEvent.DeleteTask(task.taskId, task.id))
-                                },
-                                // Filtered/reordered rows fade+slide instead of snapping. fade specs are
-                                // Float (reduce-motion free); placement is rebuilt as an IntOffset spec.
-                                modifier = Modifier.animateItem(
-                                    fadeInSpec = KudosTheme.motion.standard,
-                                    placementSpec = tween<IntOffset>(
-                                        LunarDurationStandard,
-                                        easing = LunarStandardEasing,
+                // `sky` records this region as the glass top bar's blur backdrop. It MUST sit on a
+                // non-scrolling container, not on the LazyColumn itself: the recorder reuses one
+                // GraphicsLayer and re-records the subtree each draw, but the LazyColumn re-runs that
+                // recorder as part of its own scroll-driven draw, which left the scroll container
+                // unable to consume vertical drags (swipes degraded into row taps). Wrapping the list
+                // in a static Box and recording the Box keeps an identical backdrop while the
+                // LazyColumn scrolls normally.
+                Box(modifier = Modifier.fillMaxSize().sky(sky)) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        contentPadding = PaddingValues(
+                            // Clear the floating glass top bar (status bar + bar height + its vertical padding).
+                            top = statusBarTop + TopBarHeight + 24.dp,
+                            bottom = 16.dp,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        groups.forEachIndexed { groupIndex, group ->
+                            if (group.tasks.isEmpty()) return@forEachIndexed
+                            stickyHeader(key = "header_${group.kind}") {
+                                GroupHeader(kind = group.kind, count = group.tasks.size)
+                            }
+                            items(
+                                count = group.tasks.size,
+                                key = { taskIndex -> group.tasks[taskIndex].id },
+                            ) { taskIndex ->
+                                val task = group.tasks[taskIndex]
+                                TaskRow(
+                                    task = task,
+                                    searchQuery = uiState.searchQuery,
+                                    onClick = { onTaskClick(task) },
+                                    // Tap the moon: advance one phase (DONE wraps to BACKLOG).
+                                    onAdvanceStatus = {
+                                        eventFlow.tryEmit(
+                                            TaskListEvent.ChangeStatus(task.taskId, task.id, task.status.next()),
+                                        )
+                                    },
+                                    // Swipe-right: mark done directly.
+                                    onMarkDone = {
+                                        eventFlow.tryEmit(
+                                            TaskListEvent.ChangeStatus(task.taskId, task.id, TaskStatus.DONE),
+                                        )
+                                    },
+                                    // Swipe-left: delete (undo snackbar).
+                                    onDelete = {
+                                        eventFlow.tryEmit(TaskListEvent.DeleteTask(task.taskId, task.id))
+                                    },
+                                    // Filtered/reordered rows fade+slide instead of snapping. fade specs are
+                                    // Float (reduce-motion free); placement is rebuilt as an IntOffset spec.
+                                    modifier = Modifier.animateItem(
+                                        fadeInSpec = KudosTheme.motion.standard,
+                                        placementSpec = tween<IntOffset>(
+                                            LunarDurationStandard,
+                                            easing = LunarStandardEasing,
+                                        ),
+                                        fadeOutSpec = KudosTheme.motion.micro,
                                     ),
-                                    fadeOutSpec = KudosTheme.motion.micro,
-                                ),
-                            )
-                        }
-                        if (groupIndex < groups.lastIndex) {
-                            item(key = "spacer_${group.kind}") {
-                                Spacer(modifier = Modifier.height(16.dp))
+                                )
+                            }
+                            if (groupIndex < groups.lastIndex) {
+                                item(key = "spacer_${group.kind}") {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
                             }
                         }
                     }
