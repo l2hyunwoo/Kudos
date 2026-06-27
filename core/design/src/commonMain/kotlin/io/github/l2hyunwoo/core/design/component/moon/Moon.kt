@@ -1,7 +1,12 @@
 package io.github.l2hyunwoo.core.design.component.moon
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -176,6 +181,27 @@ fun MoonProgress(
 ) {
     val k = if (total <= 0) 0f else (done.toFloat() / total.toFloat()).coerceIn(0f, 1f)
     Moon(k = k, modifier = modifier, size = size, glow = k >= 1f)
+}
+
+// Brand loading indicator: the moon waxes new -> full on a loop, the on-brand replacement for a
+// CircularProgressIndicator. The phase is animated (not data-driven), so it reads as "working".
+@Composable
+fun MoonLoadingIndicator(
+    modifier: Modifier = Modifier,
+    size: Dp = 40.dp,
+    periodMillis: Int = 1400,
+) {
+    val phase = rememberInfiniteTransition(label = "moonLoading")
+    val k by phase.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(periodMillis, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "moonPhase",
+    )
+    Moon(k = k, modifier = modifier, size = size, glow = k >= 0.95f)
 }
 
 @Preview
