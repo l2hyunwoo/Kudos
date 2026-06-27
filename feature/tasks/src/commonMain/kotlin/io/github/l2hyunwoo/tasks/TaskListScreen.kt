@@ -8,14 +8,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,14 +32,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.skydoves.cloudy.Sky
-import com.skydoves.cloudy.rememberSky
-import com.skydoves.cloudy.sky
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.Moon
-import io.github.l2hyunwoo.core.design.component.surface.glassSurface
 import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.tasks.model.Task
@@ -54,9 +48,6 @@ import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
 import io.github.l2hyunwoo.tasks.component.TaskRow
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kudos.feature.tasks.generated.resources.Res
-import kudos.feature.tasks.generated.resources.tasks
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,9 +55,10 @@ fun TaskListScreen(
     uiState: TaskListUiState,
     eventFlow: EventFlow<TaskListEvent>,
     modifier: Modifier = Modifier,
-    // Reuse the backdrop recorder hoisted by the parent (MainScreen) so a single sky records+blurs
-    // per visible screen. The default makes standalone usage (own nav route) self-contained.
-    sky: Sky = rememberSky(),
+    // Top padding to clear the floating glass top bar, which is hoisted to and owned by the parent
+    // (MainScreen) OUTSIDE the backdrop recorder. The list reserves room for it but no longer draws
+    // or records it. Standalone usage passes 0.
+    topBarClearance: Dp = 0.dp,
     onTaskClick: (Task) -> Unit = {},
 ) {
     val groups = uiState.groups
@@ -104,115 +96,70 @@ fun TaskListScreen(
             if (isEmpty) {
                 EmptyState()
             } else {
-                val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                // `sky` records this region as the glass top bar's blur backdrop. It MUST sit on a
-                // non-scrolling container, not on the LazyColumn itself: the recorder reuses one
-                // GraphicsLayer and re-records the subtree each draw, but the LazyColumn re-runs that
-                // recorder as part of its own scroll-driven draw, which left the scroll container
-                // unable to consume vertical drags (swipes degraded into row taps). Wrapping the list
-                // in a static Box and recording the Box keeps an identical backdrop while the
-                // LazyColumn scrolls normally.
-                Box(modifier = Modifier.fillMaxSize().sky(sky)) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        contentPadding = PaddingValues(
-                            // Clear the floating glass top bar (status bar + bar height + its vertical padding).
-                            top = statusBarTop + TopBarHeight + 24.dp,
-                            bottom = 16.dp,
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        groups.forEachIndexed { groupIndex, group ->
-                            if (group.tasks.isEmpty()) return@forEachIndexed
-                            stickyHeader(key = "header_${group.kind}") {
-                                GroupHeader(kind = group.kind, count = group.tasks.size)
-                            }
-                            items(
-                                count = group.tasks.size,
-                                key = { taskIndex -> group.tasks[taskIndex].id },
-                            ) { taskIndex ->
-                                val task = group.tasks[taskIndex]
-                                TaskRow(
-                                    task = task,
-                                    searchQuery = uiState.searchQuery,
-                                    onClick = { onTaskClick(task) },
-                                    // Tap the moon: advance one phase (DONE wraps to BACKLOG).
-                                    onAdvanceStatus = {
-                                        eventFlow.tryEmit(
-                                            TaskListEvent.ChangeStatus(task.taskId, task.id, task.status.next()),
-                                        )
-                                    },
-                                    // Swipe-right: mark done directly.
-                                    onMarkDone = {
-                                        eventFlow.tryEmit(
-                                            TaskListEvent.ChangeStatus(task.taskId, task.id, TaskStatus.DONE),
-                                        )
-                                    },
-                                    // Swipe-left: delete (undo snackbar).
-                                    onDelete = {
-                                        eventFlow.tryEmit(TaskListEvent.DeleteTask(task.taskId, task.id))
-                                    },
-                                    // Filtered/reordered rows fade+slide instead of snapping. fade specs are
-                                    // Float (reduce-motion free); placement is rebuilt as an IntOffset spec.
-                                    modifier = Modifier.animateItem(
-                                        fadeInSpec = KudosTheme.motion.standard,
-                                        placementSpec = tween<IntOffset>(
-                                            LunarDurationStandard,
-                                            easing = LunarStandardEasing,
-                                        ),
-                                        fadeOutSpec = KudosTheme.motion.micro,
+                // The list is already inside MainScreen's single `Modifier.sky` recorder (this
+                // screen draws no glass chrome of its own — the floating glass top bar is hoisted to
+                // MainScreen, outside the recorder, so its title never pollutes the blur source).
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(
+                        // Clear the floating glass top bar owned by the parent.
+                        top = topBarClearance,
+                        bottom = 16.dp,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    groups.forEachIndexed { groupIndex, group ->
+                        if (group.tasks.isEmpty()) return@forEachIndexed
+                        stickyHeader(key = "header_${group.kind}") {
+                            GroupHeader(kind = group.kind, count = group.tasks.size)
+                        }
+                        items(
+                            count = group.tasks.size,
+                            key = { taskIndex -> group.tasks[taskIndex].id },
+                        ) { taskIndex ->
+                            val task = group.tasks[taskIndex]
+                            TaskRow(
+                                task = task,
+                                searchQuery = uiState.searchQuery,
+                                onClick = { onTaskClick(task) },
+                                // Tap the moon: advance one phase (DONE wraps to BACKLOG).
+                                onAdvanceStatus = {
+                                    eventFlow.tryEmit(
+                                        TaskListEvent.ChangeStatus(task.taskId, task.id, task.status.next()),
+                                    )
+                                },
+                                // Swipe-right: mark done directly.
+                                onMarkDone = {
+                                    eventFlow.tryEmit(
+                                        TaskListEvent.ChangeStatus(task.taskId, task.id, TaskStatus.DONE),
+                                    )
+                                },
+                                // Swipe-left: delete (undo snackbar).
+                                onDelete = {
+                                    eventFlow.tryEmit(TaskListEvent.DeleteTask(task.taskId, task.id))
+                                },
+                                // Filtered/reordered rows fade+slide instead of snapping. fade specs are
+                                // Float (reduce-motion free); placement is rebuilt as an IntOffset spec.
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = KudosTheme.motion.standard,
+                                    placementSpec = tween<IntOffset>(
+                                        LunarDurationStandard,
+                                        easing = LunarStandardEasing,
                                     ),
-                                )
-                            }
-                            if (groupIndex < groups.lastIndex) {
-                                item(key = "spacer_${group.kind}") {
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                }
+                                    fadeOutSpec = KudosTheme.motion.micro,
+                                ),
+                            )
+                        }
+                        if (groupIndex < groups.lastIndex) {
+                            item(key = "spacer_${group.kind}") {
+                                Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
                     }
                 }
             }
-
-            GlassTopBar(
-                title = stringResource(Res.string.tasks),
-                sky = sky,
-                modifier = Modifier.align(Alignment.TopCenter),
-            )
-        }
-    }
-}
-
-private val TopBarHeight = 56.dp
-
-@Composable
-private fun GlassTopBar(
-    title: String,
-    sky: com.skydoves.cloudy.Sky,
-    modifier: Modifier = Modifier,
-) {
-    val topInset = WindowInsets.statusBars.asPaddingValues()
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = topInset.run { calculateTopPadding() })
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(TopBarHeight)
-                .glassSurface(sky = sky, shape = KudosTheme.shapes.card),
-            contentAlignment = Alignment.CenterStart,
-        ) {
-            Text(
-                text = title,
-                style = KudosTheme.typography.bodyLargeXB,
-                color = KudosTheme.colors.ink.ink,
-                modifier = Modifier.padding(horizontal = 20.dp),
-            )
         }
     }
 }

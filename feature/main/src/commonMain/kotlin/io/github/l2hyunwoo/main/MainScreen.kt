@@ -43,6 +43,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -116,8 +117,8 @@ fun MainScreen(
     val tasksEventFlow = rememberEventFlow<TaskListEvent>()
     val categoriesEventFlow = rememberEventFlow<CategoryListEvent>()
 
-    // Backdrop recorder hoisted at the screen root; the content container records via Modifier.sky,
-    // the floating nav bar (a descendant) blurs it through glassSurface.
+    // Single backdrop recorder for the screen. The swappable tab content records via Modifier.sky;
+    // the glass chrome (top bar, nav bar) sits OUTSIDE that recorder and blurs it via glassSurface.
     val sky = rememberSky()
 
     val onAddCurrentTab: () -> Unit = remember(selectedTab) {
@@ -129,16 +130,19 @@ fun MainScreen(
         }
     }
 
+    // Re-capture the backdrop once per tab swap. A Crossfade is a content change, not a scroll, so
+    // the recorder's scroll-driven re-arm never fires for it; without this, the glass chrome keeps
+    // blurring the previous tab's content (ghost). Edge-triggered on the tab value: fires once per
+    // swap, NOT per frame, so the app still idles afterwards.
+    LaunchedEffect(selectedTab) {
+        sky.invalidate()
+    }
+
     Scaffold(
         containerColor = KudosTheme.colors.surface.bg,
     ) { _ ->
         Box(Modifier.fillMaxSize()) {
-            // Content container records the backdrop so the floating nav bar can blur it.
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .sky(sky)
-            ) {
+            Column(Modifier.fillMaxSize()) {
                 TodayHeader(
                     selectedTab = selectedTab,
                     searchQuery = searchQuery,
@@ -146,41 +150,59 @@ fun MainScreen(
                     darkTheme = darkTheme,
                     onToggleTheme = onToggleTheme,
                 )
+                // Content area: the swappable tab subtree is the ONLY thing recorded into the
+                // backdrop (Modifier.sky). The glass chrome (top bar, nav bar) is layered OUTSIDE
+                // this recorder so its own foreground never pollutes the blur source.
                 Box(Modifier.fillMaxSize()) {
-                    // Cross-fade the tab subtree instead of hard-swapping it (the reported tab-switch
-                    // flicker). standard is a Float spec, so reduce-motion collapses it for free.
-                    Crossfade(
-                        targetState = selectedTab,
-                        animationSpec = KudosTheme.motion.standard,
-                        label = "tabContent",
-                    ) { tab ->
-                        when (tab) {
-                            MainTab.TASKS -> {
-                                with(tasksContext) {
-                                    TaskListEntryPoint(
-                                        eventFlow = tasksEventFlow,
-                                        onAddTask = { showCreateTaskSheet = true },
-                                        onNavigateToCategories = { selectedTab = MainTab.CATEGORIES },
-                                        onNavigateToTaskDetail = onNavigateToTaskDetail,
-                                        searchQuery = searchQuery,
-                                        // Reuse MainScreen's hoisted sky instead of letting the inner
-                                        // screen create a second one (stacked capture+blur).
-                                        sky = sky,
-                                    )
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .sky(sky)
+                    ) {
+                        // Cross-fade the tab subtree instead of hard-swapping it (the reported
+                        // tab-switch flicker). standard is a Float spec, so reduce-motion collapses
+                        // it for free.
+                        Crossfade(
+                            targetState = selectedTab,
+                            animationSpec = KudosTheme.motion.standard,
+                            label = "tabContent",
+                        ) { tab ->
+                            when (tab) {
+                                MainTab.TASKS -> {
+                                    with(tasksContext) {
+                                        TaskListEntryPoint(
+                                            eventFlow = tasksEventFlow,
+                                            onAddTask = { showCreateTaskSheet = true },
+                                            onNavigateToCategories = { selectedTab = MainTab.CATEGORIES },
+                                            onNavigateToTaskDetail = onNavigateToTaskDetail,
+                                            searchQuery = searchQuery,
+                                            topBarClearance = TopBarClearance,
+                                        )
+                                    }
                                 }
-                            }
 
-                            MainTab.CATEGORIES -> {
-                                with(categoryContext) {
-                                    CategoryListEntryPoint(
-                                        eventFlow = categoriesEventFlow,
-                                        searchQuery = searchQuery,
-                                        onNavigateToProjectDetail = onNavigateToProjectDetail
-                                    )
+                                MainTab.CATEGORIES -> {
+                                    with(categoryContext) {
+                                        CategoryListEntryPoint(
+                                            eventFlow = categoriesEventFlow,
+                                            searchQuery = searchQuery,
+                                            onNavigateToProjectDetail = onNavigateToProjectDetail
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
+
+                    // Floating frosted top bar, hoisted OUT of the recorder (a sibling of the
+                    // recorded content), so its title blurs the tab content behind it with no band.
+                    GlassTopBar(
+                        title = stringResource(
+                            if (selectedTab == MainTab.TASKS) Res.string.tasks else Res.string.categories
+                        ),
+                        sky = sky,
+                        modifier = Modifier.align(Alignment.TopCenter),
+                    )
                 }
             }
 
@@ -358,6 +380,39 @@ private fun SearchField(
     }
 }
 
+// Floating frosted top bar shared by both tabs. Built as a content-less glassSurface (the blurred
+// background) with the title drawn as a SIBLING overlaid on top — the glassSurface itself carries no
+// foreground, so nothing of the bar leaks into the blur source it samples. Rendered OUTSIDE the
+// `Modifier.sky` recorder by the caller.
+@Composable
+private fun GlassTopBar(
+    title: String,
+    sky: Sky,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .height(TopBarHeight),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        // Background: blurred fill + shadow/clip/border, no children.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .glassSurface(sky = sky, shape = KudosTheme.shapes.card),
+        )
+        // Foreground sibling: the title, overlaid on (not a child of) the glass background.
+        Text(
+            text = title,
+            style = KudosTheme.typography.bodyLargeXB,
+            color = KudosTheme.colors.ink.ink,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+    }
+}
+
 @Composable
 private fun GlassNavBar(
     selectedTab: MainTab,
@@ -366,35 +421,43 @@ private fun GlassNavBar(
     sky: Sky,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .height(64.dp)
-            .glassSurface(sky = sky, shape = PillShape)
-            // Inner inset so a selected item's pill never reaches the glass bar's rounded edge;
-            // without it the parent pill clip shears the item-pill's outer corner ("squished").
-            .padding(horizontal = 6.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        NavBarItem(
-            icon = Icons.AutoMirrored.Rounded.ListAlt,
-            label = stringResource(Res.string.tasks),
-            selected = selectedTab == MainTab.TASKS,
-            onClick = { onSelectTab(MainTab.TASKS) },
-            modifier = Modifier.weight(1f),
+    Box(modifier.fillMaxWidth().height(64.dp)) {
+        // Background: blurred fill + shadow/clip/border, no children (background-only glassSurface).
+        Box(
+            Modifier
+                .fillMaxSize()
+                .glassSurface(sky = sky, shape = PillShape),
         )
-        CenterAddButton(
-            onClick = onAdd,
-            modifier = Modifier.padding(horizontal = 8.dp),
-        )
-        NavBarItem(
-            icon = Icons.Rounded.GridView,
-            label = stringResource(Res.string.categories),
-            selected = selectedTab == MainTab.CATEGORIES,
-            onClick = { onSelectTab(MainTab.CATEGORIES) },
-            modifier = Modifier.weight(1f),
-        )
+        // Foreground sibling: the nav items, overlaid on (not children of) the glass background, so
+        // none of their pixels fold back into the blur source.
+        Row(
+            Modifier
+                .fillMaxSize()
+                // Inner inset so a selected item's pill never reaches the glass bar's rounded edge;
+                // without it the parent pill clip shears the item-pill's outer corner ("squished").
+                .padding(horizontal = 6.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            NavBarItem(
+                icon = Icons.AutoMirrored.Rounded.ListAlt,
+                label = stringResource(Res.string.tasks),
+                selected = selectedTab == MainTab.TASKS,
+                onClick = { onSelectTab(MainTab.TASKS) },
+                modifier = Modifier.weight(1f),
+            )
+            CenterAddButton(
+                onClick = onAdd,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
+            NavBarItem(
+                icon = Icons.Rounded.GridView,
+                label = stringResource(Res.string.categories),
+                selected = selectedTab == MainTab.CATEGORIES,
+                onClick = { onSelectTab(MainTab.CATEGORIES) },
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
@@ -511,6 +574,11 @@ private fun CenterAddButton(
 // Full pill: PillRadius (999dp) caps to half the smaller dimension for any chrome height.
 private val PillShape = RoundedCornerShape(KudosShapes.PillRadius)
 
+// Floating glass top bar geometry. Height of the bar itself; clearance = bar + its vertical padding,
+// reserved as top contentPadding by the tab list so the first row clears the floating bar.
+private val TopBarHeight = 56.dp
+private val TopBarClearance = TopBarHeight + 16.dp + 24.dp
+
 // Monday-first to match a Korean calendar header.
 private val KoreanWeekdays = listOf("월", "화", "수", "목", "금", "토", "일")
 
@@ -563,7 +631,7 @@ private fun ChromePreviewScaffold() {
             .fillMaxSize()
             .background(KudosTheme.colors.surface.bg)
     ) {
-        Column(Modifier.fillMaxSize().sky(sky)) {
+        Column(Modifier.fillMaxSize()) {
             TodayHeader(
                 selectedTab = tab,
                 searchQuery = "",
@@ -571,6 +639,14 @@ private fun ChromePreviewScaffold() {
                 darkTheme = false,
                 onToggleTheme = {},
             )
+            Box(Modifier.fillMaxSize()) {
+                Box(Modifier.fillMaxSize().sky(sky))
+                GlassTopBar(
+                    title = if (tab == MainTab.TASKS) "Tasks" else "Categories",
+                    sky = sky,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                )
+            }
         }
         GlassNavBar(
             selectedTab = tab,

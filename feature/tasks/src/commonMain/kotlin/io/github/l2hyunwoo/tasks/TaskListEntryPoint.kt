@@ -6,8 +6,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import com.skydoves.cloudy.Sky
-import com.skydoves.cloudy.rememberSky
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
@@ -24,8 +24,8 @@ fun TaskListEntryPoint(
     onNavigateToCategories: () -> Unit = {},
     onNavigateToTaskDetail: (Task) -> Unit = {},
     searchQuery: String = "",
-    // Reuse the parent's backdrop recorder when given (MainScreen tab); standalone routes create one.
-    sky: Sky = rememberSky(),
+    // Top padding so the list clears the floating glass top bar owned by the parent (MainScreen).
+    topBarClearance: Dp = 0.dp,
 ) {
     val actualEventFlow = eventFlow ?: rememberEventFlow()
 
@@ -54,7 +54,7 @@ fun TaskListEntryPoint(
         TaskListScreen(
             uiState = uiState,
             eventFlow = actualEventFlow,
-            sky = sky,
+            topBarClearance = topBarClearance,
             onTaskClick = onNavigateToTaskDetail,
         )
     }
