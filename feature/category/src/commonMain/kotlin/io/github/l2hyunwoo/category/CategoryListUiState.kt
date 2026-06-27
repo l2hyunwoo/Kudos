@@ -8,7 +8,8 @@ data class CategoryListUiState(
     val categories: ImmutableList<Category>,
     val isLoading: Boolean = false,
     val error: Throwable? = null,
-    val deletedProject: DeletedProjectInfo? = null
+    val deletedProject: DeletedProjectInfo? = null,
+    val searchQuery: String = ""
 )
 
 data class DeletedProjectInfo(

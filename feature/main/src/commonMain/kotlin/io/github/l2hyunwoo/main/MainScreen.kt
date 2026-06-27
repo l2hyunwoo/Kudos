@@ -144,6 +144,7 @@ fun MainScreen(
                             with(categoryContext) {
                                 CategoryListEntryPoint(
                                     eventFlow = categoriesEventFlow,
+                                    searchQuery = searchQuery,
                                     onNavigateToProjectDetail = onNavigateToProjectDetail
                                 )
                             }

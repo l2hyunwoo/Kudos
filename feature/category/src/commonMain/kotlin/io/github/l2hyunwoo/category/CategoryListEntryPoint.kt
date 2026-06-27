@@ -12,6 +12,7 @@ import soil.query.compose.rememberSubscription
 context(context: CategoryContext)
 fun CategoryListEntryPoint(
     eventFlow: EventFlow<CategoryListEvent>? = null,
+    searchQuery: String = "",
     onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> }
 ) {
     val actualEventFlow = eventFlow ?: rememberEventFlow()
@@ -23,7 +24,8 @@ fun CategoryListEntryPoint(
 
     val uiState = categoryListPresenter(
         eventFlow = actualEventFlow,
-        categories = categories
+        categories = categories,
+        searchQuery = searchQuery
     )
 
     CategoryListScreen(

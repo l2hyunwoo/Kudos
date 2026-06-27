@@ -27,6 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.data.categories.model.Category
@@ -47,12 +52,21 @@ fun CategorySection(
     onDeleteCategoryClick: () -> Unit,
     onProjectClick: (Project) -> Unit = {},
     onDeleteProjectClick: (Project) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    searchQuery: String = ""
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     val pastel = Color(category.color.removePrefix("#").toLong(16) or 0xFF000000)
     val (badgeBg, badgeFg) = KudosTheme.colors.pastelChip(pastel)
+
+    // Highlight against the display string (uppercased); match the query case-insensitively. Resolve
+    // the periwinkle span color outside remember (theme read) then key on (display, query, color).
+    val highlightColor = KudosTheme.colors.brand.primary600
+    val displayTitle = category.title.uppercase()
+    val titleText = remember(displayTitle, searchQuery, highlightColor) {
+        highlighted(displayTitle, searchQuery, highlightColor)
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         // Category Header
@@ -77,8 +91,9 @@ fun CategorySection(
                 )
 
                 Text(
-                    text = category.title.uppercase(),
+                    text = titleText,
                     style = KudosTheme.typography.eyebrow,
+                    // Base ink color for unmatched text; the highlight span overrides matched ranges.
                     color = KudosTheme.colors.ink.ink2,
                 )
             }
@@ -119,6 +134,7 @@ fun CategorySection(
                         ProjectRow(
                             project = project,
                             categoryColor = category.color,
+                            searchQuery = searchQuery,
                             onClick = { onProjectClick(project) },
                             onDelete = { onDeleteProjectClick(project) }
                         )
@@ -148,6 +164,64 @@ fun CategorySection(
                     Text(stringResource(Res.string.cancel))
                 }
             }
+        )
+    }
+}
+
+// Tints every case-insensitive occurrence of [query] inside [text] with [highlightColor].
+// Returns a plain AnnotatedString when there's nothing to highlight, so the no-search path renders
+// byte-identically to the old plain-String Text. Pure (no Composable/theme reads) so the caller can
+// remember it keyed on its inputs. Duplicated from TaskRow; a shared util for two call sites is overkill.
+private fun highlighted(
+    text: String,
+    query: String,
+    highlightColor: Color,
+): AnnotatedString {
+    val needle = query.trim()
+    if (needle.isEmpty() || needle.length > text.length) return AnnotatedString(text)
+
+    return buildAnnotatedString {
+        var cursor = 0
+        while (cursor <= text.length - needle.length) {
+            val match = text.indexOf(needle, cursor, ignoreCase = true)
+            if (match < 0) break
+            append(text.substring(cursor, match))
+            withStyle(SpanStyle(color = highlightColor)) {
+                append(text.substring(match, match + needle.length))
+            }
+            cursor = match + needle.length
+        }
+        append(text.substring(cursor))
+    }
+}
+
+// "Work Projects" → display "WORK PROJECTS"; query "work" tints both the badge-adjacent title match.
+@Preview(showBackground = true)
+@Composable
+private fun CategorySectionHighlightPreview() {
+    KudosTheme {
+        CategorySection(
+            category = Category(
+                id = "1",
+                prefix = "WORK",
+                title = "Work Projects",
+                color = "#C9B8F0",
+                createdAt = "2024-01-01T00:00:00Z",
+                updatedAt = "2024-01-01T00:00:00Z",
+                projects = listOf(
+                    Project(
+                        id = "p1",
+                        title = "Mobile App Development",
+                        description = "Build a new mobile application",
+                        createdAt = "2024-01-01T00:00:00Z",
+                        updatedAt = "2024-01-01T00:00:00Z"
+                    )
+                )
+            ),
+            searchQuery = "work",
+            onAddProjectClick = {},
+            onDeleteCategoryClick = {},
+            onDeleteProjectClick = {},
         )
     }
 }

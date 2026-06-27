@@ -17,7 +17,8 @@ import soil.query.compose.rememberMutation
 context(context: CategoryContext)
 fun categoryListPresenter(
     eventFlow: EventFlow<CategoryListEvent>,
-    categories: List<Category>
+    categories: List<Category>,
+    searchQuery: String = ""
 ): CategoryListUiState {
     val createCategoryMutation = rememberMutation(context.createCategoryMutation)
     val deleteCategoryMutation = rememberMutation(context.deleteCategoryMutation)
@@ -57,8 +58,31 @@ fun categoryListPresenter(
         }
     }
 
+    val query = searchQuery.trim()
+    val visibleCategories = if (query.isEmpty()) {
+        categories
+    } else {
+        // A category survives if its own title/prefix matches, or any of its projects match.
+        // When the category itself matched, keep all its projects; otherwise keep only the matching
+        // projects so a search for a project name shows just that project under its category.
+        // Categories with no match at all drop out, surfacing the screen's "결과 없음" empty state.
+        categories.mapNotNull { category ->
+            val categoryMatches = category.title.contains(query, ignoreCase = true) ||
+                category.prefix.contains(query, ignoreCase = true)
+            val matchingProjects = category.projects.filter { project ->
+                project.title.contains(query, ignoreCase = true) ||
+                    project.description?.contains(query, ignoreCase = true) == true
+            }
+            when {
+                categoryMatches -> category
+                matchingProjects.isNotEmpty() -> category.copy(projects = matchingProjects)
+                else -> null
+            }
+        }
+    }
+
     return CategoryListUiState(
-        categories = categories.toImmutableList(),
+        categories = visibleCategories.toImmutableList(),
         isLoading = createCategoryMutation.isPending
             || deleteCategoryMutation.isPending
             || createProjectMutation.isPending
@@ -67,6 +91,7 @@ fun categoryListPresenter(
             ?: deleteCategoryMutation.error
             ?: createProjectMutation.error
             ?: deleteProjectMutation.error,
-        deletedProject = deletedProject
+        deletedProject = deletedProject,
+        searchQuery = query
     )
 }

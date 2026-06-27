@@ -24,10 +24,16 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.data.categories.model.Project
@@ -39,11 +45,18 @@ fun ProjectRow(
     categoryColor: String,
     onClick: () -> Unit = {},
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    searchQuery: String = ""
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
     val rowShape = RoundedCornerShape(16.dp)
     val accent = Color(categoryColor.removePrefix("#").toLong(16) or 0xFF000000)
+
+    // Resolve the periwinkle span color outside remember (theme read), then key on (title, query, color).
+    val highlightColor = KudosTheme.colors.brand.primary600
+    val titleText = remember(project.title, searchQuery, highlightColor) {
+        highlighted(project.title, searchQuery, highlightColor)
+    }
 
     SwipeToDismissBox(
         state = dismissState,
@@ -91,8 +104,9 @@ fun ProjectRow(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = project.title,
+                    text = titleText,
                     style = KudosTheme.typography.rowTitle,
+                    // Base ink color for unmatched text; the highlight span overrides matched ranges.
                     color = KudosTheme.colors.ink.ink
                 )
 
@@ -112,5 +126,52 @@ fun ProjectRow(
                 tint = KudosTheme.colors.ink.ink3
             )
         }
+    }
+}
+
+// Tints every case-insensitive occurrence of [query] inside [text] with [highlightColor].
+// Returns a plain AnnotatedString when there's nothing to highlight, so the no-search path renders
+// byte-identically to the old plain-String Text. Pure (no Composable/theme reads) so the caller can
+// remember it keyed on its inputs. Duplicated from TaskRow; a shared util for two call sites is overkill.
+private fun highlighted(
+    text: String,
+    query: String,
+    highlightColor: Color,
+): AnnotatedString {
+    val needle = query.trim()
+    if (needle.isEmpty() || needle.length > text.length) return AnnotatedString(text)
+
+    return buildAnnotatedString {
+        var cursor = 0
+        while (cursor <= text.length - needle.length) {
+            val match = text.indexOf(needle, cursor, ignoreCase = true)
+            if (match < 0) break
+            append(text.substring(cursor, match))
+            withStyle(SpanStyle(color = highlightColor)) {
+                append(text.substring(match, match + needle.length))
+            }
+            cursor = match + needle.length
+        }
+        append(text.substring(cursor))
+    }
+}
+
+// title "Mobile App Development"; query "app" tints the "App" occurrence periwinkle.
+@Preview(showBackground = true)
+@Composable
+private fun ProjectRowHighlightPreview() {
+    KudosTheme {
+        ProjectRow(
+            project = Project(
+                id = "p1",
+                title = "Mobile App Development",
+                description = "Build a new mobile application",
+                createdAt = "2024-01-01T00:00:00Z",
+                updatedAt = "2024-01-01T00:00:00Z"
+            ),
+            categoryColor = "#C9B8F0",
+            searchQuery = "app",
+            onDelete = {},
+        )
     }
 }

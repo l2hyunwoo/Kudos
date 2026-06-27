@@ -2,6 +2,7 @@ package io.github.l2hyunwoo.category
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -23,12 +24,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.category.component.CategorySection
 import io.github.l2hyunwoo.category.component.CreateCategoryBottomSheet
 import io.github.l2hyunwoo.category.component.CreateProjectBottomSheet
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.component.moon.Moon
+import androidx.compose.material3.Text
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
@@ -127,6 +132,9 @@ fun CategoryListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            if (uiState.categories.isEmpty()) {
+                EmptyState()
+            } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -149,6 +157,7 @@ fun CategoryListScreen(
 
                         CategorySection(
                             category = filteredCategory,
+                            searchQuery = uiState.searchQuery,
                             onAddProjectClick = { showCreateProjectDialog = category.id },
                             onDeleteCategoryClick = {
                                 eventFlow.tryEmit(CategoryListEvent.DeleteCategory(category.id))
@@ -181,6 +190,7 @@ fun CategoryListScreen(
                     }
                 }
             }
+            }
 
             if (uiState.isLoading) {
                 CircularProgressIndicator(
@@ -207,6 +217,25 @@ fun CategoryListScreen(
             onCreate = { catId, request ->
                 eventFlow.tryEmit(CategoryListEvent.CreateProject(catId, request))
             }
+        )
+    }
+}
+
+@Composable
+private fun EmptyState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // New moon: nothing illuminated — the empty-list glyph (shared with TaskListScreen).
+        Moon(k = 0f, size = 56.dp, modifier = Modifier.alpha(0.7f))
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "결과 없음",
+            style = KudosTheme.typography.bodyLargeXB,
+            color = KudosTheme.colors.ink.ink2,
+            textAlign = TextAlign.Center,
         )
     }
 }
