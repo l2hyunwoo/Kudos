@@ -1,11 +1,16 @@
 package io.github.l2hyunwoo.kudos
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -28,7 +33,11 @@ context(appGraph: AppGraph)
 @Preview
 fun App() {
     SwrClientProvider(SwrCachePlus(SwrCacheScope())) {
-        KudosTheme {
+        // null = follow the system setting; non-null = user override. Survives config change via
+        // rememberSaveable (in-memory across recreation is enough; no persistence requirement).
+        var userDark: Boolean? by rememberSaveable { mutableStateOf(null) }
+        val dark = userDark ?: isSystemInDarkTheme()
+        KudosTheme(darkTheme = dark) {
             val navController = rememberNavController()
             Scaffold(
                 modifier = Modifier.fillMaxSize()
@@ -41,7 +50,11 @@ fun App() {
                         .imePadding()
                         .background(MaterialTheme.colorScheme.background)
                 ) {
-                    mainScreenGraph(navController)
+                    mainScreenGraph(
+                        navController = navController,
+                        darkTheme = dark,
+                        onToggleTheme = { userDark = !dark },
+                    )
                     taskListGraph(navController)
                     categoryListGraph(navController)
                     projectDetailGraph(navController)

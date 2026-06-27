@@ -9,11 +9,17 @@ import io.github.l2hyunwoo.kudos.core.common.navigation.ProjectDetail
 import io.github.l2hyunwoo.main.MainScreen
 
 context(appGraph: AppGraph)
-fun NavGraphBuilder.mainScreenGraph(navController: NavHostController) {
+fun NavGraphBuilder.mainScreenGraph(
+    navController: NavHostController,
+    darkTheme: Boolean,
+    onToggleTheme: () -> Unit,
+) {
     composable<Main> {
         MainScreen(
             tasksContextFactory = appGraph,
             categoryContextFactory = appGraph,
+            darkTheme = darkTheme,
+            onToggleTheme = onToggleTheme,
             onNavigateToProjectDetail = { projectId, categoryId, title, description, categoryColor, categoryPrefix ->
                 navController.navigate(
                     ProjectDetail(
