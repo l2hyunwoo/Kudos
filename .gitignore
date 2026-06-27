@@ -294,3 +294,7 @@ obj/
 
 # macOS
 .DS_Store
+
+# Kotlin/Native standalone test executables (built at repo root by some test tasks)
+program.kexe
+program.kexe.dSYM/
