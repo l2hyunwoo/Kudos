@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -22,6 +23,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -40,6 +43,7 @@ import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.tasks.model.Task
+import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.data.tasks.model.fixture
 import io.github.l2hyunwoo.data.tasks.model.next
@@ -48,6 +52,8 @@ import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
 import io.github.l2hyunwoo.tasks.component.TaskRow
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableSharedFlow
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,10 +66,46 @@ fun TaskListScreen(
     // rest of its rows scroll UNDER the translucent header. Standalone usage passes 0.
     topContentPadding: Dp = 0.dp,
     onTaskClick: (Task) -> Unit = {},
+    // Pull-to-refresh wiring. The gesture (Modifier.pullToRefresh) lives on the list INSIDE the
+    // backdrop recorder, but the visible indicator is rendered by the parent (MainScreen) as a sibling
+    // OUTSIDE the recorder so it stays crisp over the glass instead of being blurred. Null disables PTR
+    // (standalone usage), in which case the list takes no pull modifier.
+    pullToRefreshState: PullToRefreshState? = null,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
 ) {
     val groups = uiState.groups
     val isEmpty = groups.all { it.tasks.isEmpty() }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Flat lookup: task id -> (its group kind, its current priority). Built from the rendered groups so
+    // drag onMove can decide same-group + read the drop neighbor's grade without re-deriving buckets.
+    val rowIndex = remember(groups) {
+        buildMap {
+            groups.forEach { group ->
+                group.tasks.forEach { task -> put(task.id, group.kind to task.priority) }
+            }
+        }
+    }
+
+    val lazyListState = rememberLazyListState()
+    // Drag-and-drop reorder mapped to a priority change. Key-based (never raw index) so sticky headers
+    // and spacers — whose keys are Strings, not task ids — are simply absent from rowIndex and ignored.
+    val reorderState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        val fromId = from.key as? String ?: return@rememberReorderableLazyListState
+        val toId = to.key as? String ?: return@rememberReorderableLazyListState
+        val (fromGroup, _) = rowIndex[fromId] ?: return@rememberReorderableLazyListState
+        val (toGroup, toPriority) = rowIndex[toId] ?: return@rememberReorderableLazyListState
+        // Within-group only: dropping into another time-group would change the due date, which this
+        // gesture must never do (option b). Cross-group drags are rejected as a no-op.
+        if (fromGroup != toGroup) return@rememberReorderableLazyListState
+        // Map the drop to the neighbor's grade. Same grade = no-op: intra-grade order isn't persisted,
+        // the priority sort restores placement. taskId for the PATCH path is recoverable from the row.
+        val target = groups.firstNotNullOfOrNull { g -> g.tasks.firstOrNull { it.id == fromId } }
+            ?: return@rememberReorderableLazyListState
+        if (target.priority == toPriority) return@rememberReorderableLazyListState
+        eventFlow.tryEmit(TaskListEvent.ReorderPriority(target.taskId, target.id, toPriority))
+    }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
@@ -99,10 +141,25 @@ fun TaskListScreen(
                 // The list is already inside MainScreen's single `Modifier.sky` recorder (this
                 // screen draws no glass chrome of its own — the glass header is hoisted to
                 // MainScreen, outside the recorder, so its foreground never pollutes the blur source).
+                val listModifier = Modifier
+                    .fillMaxSize()
+                    // Pull-to-refresh gesture on the scroll container; the indicator is drawn by the
+                    // parent outside the recorder (see param doc). Only attached when PTR is enabled.
+                    .let { base ->
+                        if (pullToRefreshState != null) {
+                            base.pullToRefresh(
+                                isRefreshing = isRefreshing,
+                                state = pullToRefreshState,
+                                onRefresh = onRefresh,
+                            )
+                        } else {
+                            base
+                        }
+                    }
+                    .padding(horizontal = 16.dp)
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
+                    state = lazyListState,
+                    modifier = listModifier,
                     contentPadding = PaddingValues(
                         // Clear the glass header owned by the parent; rows beyond it scroll under it.
                         top = topContentPadding,
@@ -112,6 +169,8 @@ fun TaskListScreen(
                 ) {
                     groups.forEachIndexed { groupIndex, group ->
                         if (group.tasks.isEmpty()) return@forEachIndexed
+                        // Sticky headers carry no drag handle: they stay inert and act as the group
+                        // boundary the onMove guard rejects crossing.
                         stickyHeader(key = "header_${group.kind}") {
                             GroupHeader(kind = group.kind, count = group.tasks.size)
                         }
@@ -120,37 +179,45 @@ fun TaskListScreen(
                             key = { taskIndex -> group.tasks[taskIndex].id },
                         ) { taskIndex ->
                             val task = group.tasks[taskIndex]
-                            TaskRow(
-                                task = task,
-                                searchQuery = uiState.searchQuery,
-                                onClick = { onTaskClick(task) },
-                                // Tap the moon: advance one phase (DONE wraps to BACKLOG).
-                                onAdvanceStatus = {
-                                    eventFlow.tryEmit(
-                                        TaskListEvent.ChangeStatus(task.taskId, task.id, task.status.next()),
-                                    )
-                                },
-                                // Swipe-right: mark done directly.
-                                onMarkDone = {
-                                    eventFlow.tryEmit(
-                                        TaskListEvent.ChangeStatus(task.taskId, task.id, TaskStatus.DONE),
-                                    )
-                                },
-                                // Swipe-left: delete (undo snackbar).
-                                onDelete = {
-                                    eventFlow.tryEmit(TaskListEvent.DeleteTask(task.taskId, task.id))
-                                },
-                                // Filtered/reordered rows fade+slide instead of snapping. fade specs are
-                                // Float (reduce-motion free); placement is rebuilt as an IntOffset spec.
-                                modifier = Modifier.animateItem(
-                                    fadeInSpec = KudosTheme.motion.standard,
-                                    placementSpec = tween<IntOffset>(
-                                        LunarDurationStandard,
-                                        easing = LunarStandardEasing,
-                                    ),
-                                    fadeOutSpec = KudosTheme.motion.micro,
+                            // Carry the existing fade+slide spec as the non-dragging placement animation
+                            // so reordered rows still animate to their re-sorted slot.
+                            val itemAnimation = Modifier.animateItem(
+                                fadeInSpec = KudosTheme.motion.standard,
+                                placementSpec = tween<IntOffset>(
+                                    LunarDurationStandard,
+                                    easing = LunarStandardEasing,
                                 ),
+                                fadeOutSpec = KudosTheme.motion.micro,
                             )
+                            ReorderableItem(
+                                state = reorderState,
+                                key = task.id,
+                                animateItemModifier = itemAnimation,
+                            ) {
+                                TaskRow(
+                                    task = task,
+                                    searchQuery = uiState.searchQuery,
+                                    onClick = { onTaskClick(task) },
+                                    // Tap the moon: advance one phase (DONE wraps to BACKLOG).
+                                    onAdvanceStatus = {
+                                        eventFlow.tryEmit(
+                                            TaskListEvent.ChangeStatus(task.taskId, task.id, task.status.next()),
+                                        )
+                                    },
+                                    // Swipe-right: mark done directly.
+                                    onMarkDone = {
+                                        eventFlow.tryEmit(
+                                            TaskListEvent.ChangeStatus(task.taskId, task.id, TaskStatus.DONE),
+                                        )
+                                    },
+                                    // Swipe-left: delete (undo snackbar).
+                                    onDelete = {
+                                        eventFlow.tryEmit(TaskListEvent.DeleteTask(task.taskId, task.id))
+                                    },
+                                    // Long-press to pick the row up; drag onto another grade re-grades it.
+                                    modifier = Modifier.longPressDraggableHandle(),
+                                )
+                            }
                         }
                         if (groupIndex < groups.lastIndex) {
                             item(key = "spacer_${group.kind}") {

@@ -38,9 +38,12 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -95,6 +98,7 @@ enum class MainTab {
     CATEGORIES
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     tasksContextFactory: TasksContext.Factory,
@@ -131,6 +135,12 @@ fun MainScreen(
     var headerHeightPx by remember { mutableStateOf(0) }
     val density = LocalDensity.current
     val headerHeight = with(density) { headerHeightPx.toDp() }
+
+    // Pull-to-refresh is owned here so its indicator can be a sibling of the recorder (crisp over the
+    // glass). The Tasks tab attaches the gesture to its list and reports validation state back via
+    // tasksRefreshing; the indicator below renders with the same state.
+    val ptrState = rememberPullToRefreshState()
+    var tasksRefreshing by remember { mutableStateOf(false) }
 
     val onAddCurrentTab: () -> Unit = remember(selectedTab) {
         {
@@ -182,6 +192,10 @@ fun MainScreen(
                                     // MainScreen owns the glass header/nav/FAB; the fallback must be
                                     // chrome-less so it doesn't bleed through the glass.
                                     embedded = true,
+                                    // PTR gesture lives on the list (inside the recorder); the
+                                    // indicator is drawn below as a sibling (outside the recorder).
+                                    pullToRefreshState = ptrState,
+                                    onRefreshingChanged = { tasksRefreshing = it },
                                 )
                             }
                         }
@@ -225,6 +239,20 @@ fun MainScreen(
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(horizontal = 24.dp, vertical = 16.dp)
             )
+
+            // Pull-to-refresh indicator: a sibling of the recorder (never recorded), so it stays crisp
+            // over the glass instead of being blurred. Offset below the measured glass header so it
+            // sits in the same band as the first list row. Only the Tasks tab wires PTR.
+            if (selectedTab == MainTab.TASKS) {
+                PullToRefreshDefaults.Indicator(
+                    state = ptrState,
+                    isRefreshing = tasksRefreshing,
+                    color = KudosTheme.colors.brand.primary600,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = headerHeight),
+                )
+            }
         }
     }
 

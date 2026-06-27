@@ -16,6 +16,7 @@ kotlin {
             implementation(libs.soil.query)
             implementation(libs.soil.query.compose)
             implementation(libs.rin)
+            implementation(libs.reorderable)
         }
 
         commonTest {

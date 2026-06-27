@@ -33,6 +33,7 @@ ktor = "3.5.0"
 buildConfig = "6.0.10"
 ktorfit = "2.7.5"
 rin = "0.4.0"
+reorderable = "3.1.0"
 
 [libraries]
 # Kotlin
@@ -110,6 +111,9 @@ ktorfit = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "kt
 
 # Rin
 rin = { module = "io.github.takahirom.rin:rin", version.ref = "rin" }
+
+# Reorderable (drag-and-drop for lazy lists, KMP-common)
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

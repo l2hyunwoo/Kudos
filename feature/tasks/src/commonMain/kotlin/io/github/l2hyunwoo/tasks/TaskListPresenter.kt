@@ -1,11 +1,13 @@
 package io.github.l2hyunwoo.tasks
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.l2hyunwoo.data.tasks.model.DeleteTaskParams
+import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
 import io.github.l2hyunwoo.data.tasks.model.UpdateTaskParams
 import io.github.l2hyunwoo.data.tasks.model.UpdateTaskRequest
@@ -29,6 +31,13 @@ fun taskListPresenter(
     // only committed (mutation) on ConfirmDelete, restored on UndoDelete. Mirrors TaskDetail.
     var pendingDelete by remember { mutableStateOf<PendingDelete?>(null) }
 
+    // Optimistic priority overrides from drag-and-drop reorder, keyed by task `id`. Applied to the
+    // task set before grouping so the row re-sorts/animates to its new grade immediately, then
+    // committed via updateTaskMutation. On commit failure the override is dropped (rollback) and the
+    // mutation surfaces the error. On success it is reconciled away once the refetched list catches up
+    // (see below), so a later Edit-Task priority change can't be clobbered by a stale override.
+    var priorityOverrides by remember { mutableStateOf<Map<String, TaskPriority>>(emptyMap()) }
+
     EventEffect(eventFlow) { event ->
         when (event) {
             is TaskListEvent.CreateTask -> {
@@ -43,6 +52,24 @@ fun taskListPresenter(
                         request = UpdateTaskRequest(status = event.status),
                     )
                 )
+            }
+
+            is TaskListEvent.ReorderPriority -> {
+                // Optimistic: show the new grade immediately, then commit. mutate() throws on failure
+                // (it suspends through the PATCH), so a failed commit rolls the override back and the
+                // mutation's own error state surfaces the snackbar.
+                priorityOverrides = priorityOverrides + (event.id to event.priority)
+                try {
+                    updateTaskMutation.mutate(
+                        UpdateTaskParams(
+                            taskId = event.taskId,
+                            request = UpdateTaskRequest(priority = event.priority),
+                        )
+                    )
+                } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
+                    priorityOverrides = priorityOverrides - event.id
+                }
             }
 
             is TaskListEvent.DeleteTask -> {
@@ -84,9 +111,25 @@ fun taskListPresenter(
     }
 
     // Group the SAME filtered task set so search + time-grouping compose: flatten the surviving
-    // tasks across categories, then bucket by due date relative to today. Recomputed only when the
-    // filtered set changes (todayIso is stable across a composition / day).
-    val filteredTasks = visibleCategories.flatMap { it.tasks }
+    // tasks across categories, then bucket by due date relative to today.
+    val baseTasks = visibleCategories.flatMap { it.tasks }
+    // Reconcile overrides the refetched list already reflects, so a stale override can't later clobber
+    // an independent (e.g. Edit-Task) priority change. Done in an effect (not the body) to avoid a
+    // backward write to snapshot state during composition.
+    LaunchedEffect(baseTasks, priorityOverrides) {
+        if (priorityOverrides.isEmpty()) return@LaunchedEffect
+        val settled = baseTasks.filter { priorityOverrides[it.id] == it.priority }.map { it.id }
+        if (settled.isNotEmpty()) priorityOverrides = priorityOverrides - settled.toSet()
+    }
+    // Apply the optimistic overrides for rendering. Keep id stable through the copy so animateItem
+    // animates the move instead of a remove+insert.
+    val filteredTasks = if (priorityOverrides.isEmpty()) {
+        baseTasks
+    } else {
+        baseTasks.map { task ->
+            priorityOverrides[task.id]?.let { task.copy(priority = it) } ?: task
+        }
+    }
     val groups = remember(filteredTasks) {
         groupTasksByDueDate(filteredTasks, todayIso())
     }
