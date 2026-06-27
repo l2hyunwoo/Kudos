@@ -34,6 +34,7 @@ buildConfig = "6.0.10"
 ktorfit = "2.7.5"
 rin = "0.4.0"
 reorderable = "3.1.0"
+composeDnd = "0.4.0"
 
 [libraries]
 # Kotlin
@@ -114,6 +115,9 @@ rin = { module = "io.github.takahirom.rin:rin", version.ref = "rin" }
 
 # Reorderable (drag-and-drop for lazy lists, KMP-common)
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+
+# Compose DnD (cross-container drag-and-drop, KMP-common incl. iOS)
+compose-dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version.ref = "composeDnd" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -31,13 +31,16 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ListAlt
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.ViewKanban
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -82,12 +85,15 @@ import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.tasks.TaskListEntryPoint
 import io.github.l2hyunwoo.tasks.TaskListEvent
 import io.github.l2hyunwoo.tasks.TasksContext
+import io.github.l2hyunwoo.tasks.board.KanbanBoardEntryPoint
 import io.github.l2hyunwoo.tasks.component.CreateTaskBottomSheet
+import io.github.l2hyunwoo.tasks.dashboard.DashboardEntryPoint
 import io.github.l2hyunwoo.tasks.rememberTasksContextRetained
 import kotlinx.collections.immutable.persistentListOf
 import kudos.feature.main.generated.resources.Res
 import kudos.feature.main.generated.resources.add_task
 import kudos.feature.main.generated.resources.categories
+import kudos.feature.main.generated.resources.dashboard
 import kudos.feature.main.generated.resources.tasks
 import org.jetbrains.compose.resources.stringResource
 import soil.query.compose.rememberQuery
@@ -95,7 +101,13 @@ import kotlin.time.Clock
 
 enum class MainTab {
     TASKS,
-    CATEGORIES
+    DASHBOARD
+}
+
+// Tasks-tab view toggle: the same task data rendered as a vertical list or a horizontal kanban board.
+enum class TasksViewMode {
+    LIST,
+    BOARD
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,6 +121,11 @@ fun MainScreen(
     onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> }
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.TASKS) }
+    // Tasks-tab list/board toggle, owned here so the board renders inside the same sky recorder.
+    var tasksViewMode by rememberSaveable { mutableStateOf(TasksViewMode.LIST) }
+    // Categories is no longer a nav tab (option c-1): it is reached from a header action and shown as
+    // a full-screen in-place overlay that keeps the glass chrome, so no new nav route is needed.
+    var showCategories by rememberSaveable { mutableStateOf(false) }
     var showCreateTaskSheet by remember { mutableStateOf(false) }
     var showCreateCategorySheet by remember { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -142,20 +159,24 @@ fun MainScreen(
     val ptrState = rememberPullToRefreshState()
     var tasksRefreshing by remember { mutableStateOf(false) }
 
-    val onAddCurrentTab: () -> Unit = remember(selectedTab) {
+    // The center "+" adds in the active surface: a task on Tasks/Categories, nothing on Dashboard
+    // (a read-only summary). Keyed on the surfaces that change its meaning.
+    val onAddCurrentTab: () -> Unit = remember(selectedTab, showCategories) {
         {
-            when (selectedTab) {
-                MainTab.TASKS -> showCreateTaskSheet = true
-                MainTab.CATEGORIES -> showCreateCategorySheet = true
+            when {
+                showCategories -> showCreateCategorySheet = true
+                selectedTab == MainTab.TASKS -> showCreateTaskSheet = true
+                else -> Unit
             }
         }
     }
 
-    // Re-capture the backdrop across a tab swap. A Crossfade is a content change, not a scroll, so
-    // the recorder's scroll-driven re-arm never fires for it; without this, the glass chrome keeps
-    // blurring the previous tab's content (ghost). Pass the cross-fade duration so the blur tracks
-    // the whole dissolve instead of freezing partway once a short settle tail elapses.
-    LaunchedEffect(selectedTab) {
+    // Re-capture the backdrop whenever the recorded content swaps under the glass: a tab change, a
+    // list/board toggle, or opening/closing the Categories overlay. A Crossfade/content swap is not a
+    // scroll, so the recorder's scroll-driven re-arm never fires for it; without this the glass chrome
+    // keeps blurring the previous content (ghost). Pass the cross-fade duration so the blur tracks the
+    // whole dissolve instead of freezing partway once a short settle tail elapses.
+    LaunchedEffect(selectedTab, tasksViewMode, showCategories) {
         sky.invalidate(LunarDurationStandard.toLong())
     }
 
@@ -172,20 +193,54 @@ fun MainScreen(
                     .fillMaxSize()
                     .sky(sky)
             ) {
-                // Cross-fade the tab subtree instead of hard-swapping it (the reported tab-switch
-                // flicker). standard is a Float spec, so reduce-motion collapses it for free.
+                // Cross-fade the recorded subtree instead of hard-swapping it (the reported tab-switch
+                // flicker). The target encodes every distinct surface — the Categories overlay, the
+                // active tab, and (on Tasks) the list/board view — so each swap dissolves. standard is
+                // a Float spec, so reduce-motion collapses it for free.
+                val contentKey: Any = when {
+                    showCategories -> "categories"
+                    selectedTab == MainTab.DASHBOARD -> "dashboard"
+                    else -> tasksViewMode
+                }
                 Crossfade(
-                    targetState = selectedTab,
+                    targetState = contentKey,
                     animationSpec = KudosTheme.motion.standard,
                     label = "tabContent",
-                ) { tab ->
-                    when (tab) {
-                        MainTab.TASKS -> {
+                ) { key ->
+                    when (key) {
+                        "categories" -> {
+                            with(categoryContext) {
+                                CategoryListEntryPoint(
+                                    eventFlow = categoriesEventFlow,
+                                    searchQuery = searchQuery,
+                                    topContentPadding = headerHeight,
+                                    onNavigateToProjectDetail = onNavigateToProjectDetail
+                                )
+                            }
+                        }
+
+                        "dashboard" -> {
+                            with(tasksContext) {
+                                DashboardEntryPoint(topContentPadding = headerHeight)
+                            }
+                        }
+
+                        TasksViewMode.BOARD -> {
+                            with(tasksContext) {
+                                KanbanBoardEntryPoint(
+                                    eventFlow = tasksEventFlow,
+                                    onNavigateToTaskDetail = onNavigateToTaskDetail,
+                                    searchQuery = searchQuery,
+                                    topContentPadding = headerHeight,
+                                )
+                            }
+                        }
+
+                        else -> {
                             with(tasksContext) {
                                 TaskListEntryPoint(
                                     eventFlow = tasksEventFlow,
                                     onAddTask = { showCreateTaskSheet = true },
-                                    onNavigateToCategories = { selectedTab = MainTab.CATEGORIES },
                                     onNavigateToTaskDetail = onNavigateToTaskDetail,
                                     searchQuery = searchQuery,
                                     topContentPadding = headerHeight,
@@ -199,17 +254,6 @@ fun MainScreen(
                                 )
                             }
                         }
-
-                        MainTab.CATEGORIES -> {
-                            with(categoryContext) {
-                                CategoryListEntryPoint(
-                                    eventFlow = categoriesEventFlow,
-                                    searchQuery = searchQuery,
-                                    topContentPadding = headerHeight,
-                                    onNavigateToProjectDetail = onNavigateToProjectDetail
-                                )
-                            }
-                        }
                     }
                 }
             }
@@ -220,10 +264,21 @@ fun MainScreen(
             // search field stays crisp and interactive.
             TodayHeader(
                 selectedTab = selectedTab,
+                showCategories = showCategories,
+                tasksViewMode = tasksViewMode,
                 searchQuery = searchQuery,
                 onSearchChange = { searchQuery = it },
                 darkTheme = darkTheme,
                 onToggleTheme = onToggleTheme,
+                onToggleViewMode = {
+                    tasksViewMode = if (tasksViewMode == TasksViewMode.LIST) {
+                        TasksViewMode.BOARD
+                    } else {
+                        TasksViewMode.LIST
+                    }
+                },
+                onOpenCategories = { showCategories = true },
+                onCloseCategories = { showCategories = false },
                 sky = sky,
                 onHeightChanged = { headerHeightPx = it },
                 modifier = Modifier.align(Alignment.TopCenter),
@@ -231,7 +286,11 @@ fun MainScreen(
 
             GlassNavBar(
                 selectedTab = selectedTab,
-                onSelectTab = { selectedTab = it },
+                onSelectTab = {
+                    // Selecting a nav tab always exits the Categories overlay.
+                    showCategories = false
+                    selectedTab = it
+                },
                 onAdd = onAddCurrentTab,
                 sky = sky,
                 modifier = Modifier
@@ -242,8 +301,9 @@ fun MainScreen(
 
             // Pull-to-refresh indicator: a sibling of the recorder (never recorded), so it stays crisp
             // over the glass instead of being blurred. Offset below the measured glass header so it
-            // sits in the same band as the first list row. Only the Tasks tab wires PTR.
-            if (selectedTab == MainTab.TASKS) {
+            // sits in the same band as the first list row. Only the Tasks LIST view wires PTR (the
+            // board has no vertical pull container, dashboard/categories aren't refreshable here).
+            if (selectedTab == MainTab.TASKS && tasksViewMode == TasksViewMode.LIST && !showCategories) {
                 PullToRefreshDefaults.Indicator(
                     state = ptrState,
                     isRefreshing = tasksRefreshing,
@@ -296,10 +356,15 @@ fun MainScreen(
 @Composable
 private fun TodayHeader(
     selectedTab: MainTab,
+    showCategories: Boolean,
+    tasksViewMode: TasksViewMode,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
     darkTheme: Boolean,
     onToggleTheme: () -> Unit,
+    onToggleViewMode: () -> Unit,
+    onOpenCategories: () -> Unit,
+    onCloseCategories: () -> Unit,
     sky: Sky,
     onHeightChanged: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -323,13 +388,50 @@ private fun TodayHeader(
                 color = KudosTheme.colors.brand.primary500,
                 modifier = Modifier.weight(1f),
             )
-            ThemeToggleButton(darkTheme = darkTheme, onToggle = onToggleTheme)
+            // Header actions. In the Categories overlay only a back affordance shows; otherwise the
+            // Tasks tab carries the list/board view toggle, every surface carries a Categories shortcut
+            // (Categories was demoted from a nav tab), then the theme toggle.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (showCategories) {
+                    HeaderIconButton(
+                        icon = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = "뒤로",
+                        onClick = onCloseCategories,
+                    )
+                } else {
+                    if (selectedTab == MainTab.TASKS) {
+                        val isBoard = tasksViewMode == TasksViewMode.BOARD
+                        HeaderIconButton(
+                            // Icon shows the view the tap switches TO.
+                            icon = if (isBoard) {
+                                Icons.AutoMirrored.Rounded.ListAlt
+                            } else {
+                                Icons.Rounded.ViewKanban
+                            },
+                            contentDescription = if (isBoard) "리스트 보기" else "보드 보기",
+                            onClick = onToggleViewMode,
+                        )
+                    }
+                    HeaderIconButton(
+                        icon = Icons.Rounded.GridView,
+                        contentDescription = stringResource(Res.string.categories),
+                        onClick = onOpenCategories,
+                    )
+                }
+                ThemeToggleButton(darkTheme = darkTheme, onToggle = onToggleTheme)
+            }
         }
         Spacer(Modifier.height(6.dp))
+        val titleRes = when {
+            showCategories -> Res.string.categories
+            selectedTab == MainTab.DASHBOARD -> Res.string.dashboard
+            else -> Res.string.tasks
+        }
         Text(
-            text = stringResource(
-                if (selectedTab == MainTab.TASKS) Res.string.tasks else Res.string.categories
-            ),
+            text = stringResource(titleRes),
             style = KudosTheme.typography.titleLargeB,
             color = KudosTheme.colors.ink.ink,
         )
@@ -340,8 +442,39 @@ private fun TodayHeader(
             color = KudosTheme.colors.ink.ink2,
         )
         Spacer(Modifier.height(16.dp))
-        // Search filters the task list (TASKS tab); on the categories tab it stays a passive field.
+        // Search filters the task list/board and categories; on the dashboard it stays a passive field.
         SearchField(query = searchQuery, onQueryChange = onSearchChange)
+    }
+}
+
+// Round translucent header action button, matching ThemeToggleButton's footprint so the action row
+// reads as one cluster.
+@Composable
+private fun HeaderIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier
+            .size(36.dp)
+            .clip(PillShape)
+            .background(KudosTheme.colors.brand.primary050)
+            .clickable(
+                interactionSource = interaction,
+                indication = ripple(bounded = true),
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = KudosTheme.colors.brand.primary500,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 
@@ -466,10 +599,10 @@ private fun GlassNavBar(
                 modifier = Modifier.padding(horizontal = 8.dp),
             )
             NavBarItem(
-                icon = Icons.Rounded.GridView,
-                label = stringResource(Res.string.categories),
-                selected = selectedTab == MainTab.CATEGORIES,
-                onClick = { onSelectTab(MainTab.CATEGORIES) },
+                icon = Icons.Rounded.BarChart,
+                label = stringResource(Res.string.dashboard),
+                selected = selectedTab == MainTab.DASHBOARD,
+                onClick = { onSelectTab(MainTab.DASHBOARD) },
                 modifier = Modifier.weight(1f),
             )
         }
@@ -650,10 +783,15 @@ private fun ChromePreviewScaffold() {
         // Glass header overlay, pinned to the top, outside the recorder.
         TodayHeader(
             selectedTab = tab,
+            showCategories = false,
+            tasksViewMode = TasksViewMode.LIST,
             searchQuery = "",
             onSearchChange = {},
             darkTheme = false,
             onToggleTheme = {},
+            onToggleViewMode = {},
+            onOpenCategories = {},
+            onCloseCategories = {},
             sky = sky,
             onHeightChanged = {},
             modifier = Modifier.align(Alignment.TopCenter),
