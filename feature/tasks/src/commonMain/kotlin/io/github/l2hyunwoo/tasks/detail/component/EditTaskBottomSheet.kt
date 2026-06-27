@@ -12,14 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,7 +28,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.component.button.GhostButton
+import io.github.l2hyunwoo.core.design.component.button.PrimaryButton
 import io.github.l2hyunwoo.core.design.component.moon.Moon
+import io.github.l2hyunwoo.core.design.component.sheet.KudosBottomSheet
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.data.tasks.model.UpdateTaskRequest
@@ -66,11 +65,9 @@ fun EditTaskBottomSheet(
         cursorColor = KudosTheme.colors.brand.primary600,
     )
 
-    ModalBottomSheet(
+    KudosBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = KudosTheme.shapes.sheet,
-        containerColor = KudosTheme.colors.surface.surface,
         modifier = modifier
     ) {
         Column(
@@ -161,7 +158,7 @@ fun EditTaskBottomSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                TextButton(
+                GhostButton(
                     onClick = {
                         scope.launch {
                             sheetState.hide()
@@ -170,12 +167,12 @@ fun EditTaskBottomSheet(
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Cancel", color = KudosTheme.colors.ink.ink2)
+                    Text("Cancel")
                 }
 
                 Spacer(modifier = Modifier.weight(0.2f))
 
-                Button(
+                PrimaryButton(
                     onClick = {
                         onUpdate(
                             UpdateTaskRequest(
@@ -188,11 +185,6 @@ fun EditTaskBottomSheet(
                         )
                     },
                     enabled = title.isNotBlank(),
-                    shape = KudosTheme.shapes.pill,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = KudosTheme.colors.brand.primary600,
-                        contentColor = Color.White,
-                    ),
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Save")

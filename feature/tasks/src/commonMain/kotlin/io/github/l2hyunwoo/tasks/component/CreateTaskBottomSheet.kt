@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -26,8 +25,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -45,7 +42,10 @@ import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.component.button.GhostButton
+import io.github.l2hyunwoo.core.design.component.button.PrimaryButton
 import io.github.l2hyunwoo.core.design.component.moon.Moon
+import io.github.l2hyunwoo.core.design.component.sheet.KudosBottomSheet
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
 import io.github.l2hyunwoo.data.tasks.model.CreateTaskRequest
@@ -102,11 +102,9 @@ fun CreateTaskBottomSheet(
 
     val isValid = selectedCategory != null && title.isNotBlank()
 
-    ModalBottomSheet(
+    KudosBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = KudosTheme.shapes.sheet,
-        containerColor = KudosTheme.colors.surface.surface,
         modifier = modifier
     ) {
         Column(
@@ -299,7 +297,7 @@ fun CreateTaskBottomSheet(
                     .padding(bottom = 32.dp, top = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedButton(
+                GhostButton(
                     onClick = {
                         scope.launch {
                             sheetState.hide()
@@ -314,7 +312,7 @@ fun CreateTaskBottomSheet(
                     Text(stringResource(Res.string.cancel))
                 }
 
-                Button(
+                PrimaryButton(
                     onClick = {
                         selectedCategory?.let { category ->
                             onCreate(

@@ -32,7 +32,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
+import io.github.l2hyunwoo.core.design.component.sheet.KudosBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -344,11 +344,9 @@ private fun PhasePickerSheet(
     // produces the stagger. Held as state so it survives recomposition during the sheet's lifetime.
     var rowsVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { rowsVisible = true }
-    ModalBottomSheet(
+    KudosBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = KudosTheme.shapes.sheet,
-        containerColor = KudosTheme.colors.surface.surface,
     ) {
         Column(
             modifier = Modifier

@@ -6,12 +6,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +19,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.component.button.GhostButton
+import io.github.l2hyunwoo.core.design.component.button.PrimaryButton
+import io.github.l2hyunwoo.core.design.component.sheet.KudosBottomSheet
 import io.github.l2hyunwoo.data.categories.model.UpdateProjectRequest
 import kotlinx.coroutines.launch
 
@@ -40,7 +40,7 @@ fun EditProjectBottomSheet(
     var title by remember { mutableStateOf(initialTitle) }
     var description by remember { mutableStateOf(initialDescription ?: "") }
 
-    ModalBottomSheet(
+    KudosBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         modifier = modifier
@@ -86,7 +86,7 @@ fun EditProjectBottomSheet(
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                TextButton(
+                GhostButton(
                     onClick = {
                         scope.launch {
                             sheetState.hide()
@@ -100,7 +100,7 @@ fun EditProjectBottomSheet(
 
                 Spacer(modifier = Modifier.weight(0.2f))
 
-                Button(
+                PrimaryButton(
                     onClick = {
                         scope.launch {
                             onUpdate(

@@ -59,6 +59,15 @@ data class KudosGlass(
     val fill: Color,
     val border: Color,
     val shadowTint: Color,
+    // sheetFill is the bottom-sheet variant of [fill]. A ModalBottomSheet renders in its own
+    // window above the app content and cannot read the screen's `sky` backdrop recorder, so it
+    // can't do a real backdrop blur the way `glassSurface(sky)` does. sheetFill therefore carries
+    // a HIGHER alpha than [fill]: an honest translucent-frost slab over the scrim (not a fake
+    // backdrop blur), with the same periwinkle tint so it reads as the same glass material family.
+    val sheetFill: Color,
+    // Soft dark scrim behind floating chrome (e.g. bottom-sheet scrim). Periwinkle-tinted dark
+    // rather than flat black so the dim matches the moonlight palette.
+    val scrim: Color,
 )
 
 @Immutable
@@ -134,6 +143,11 @@ fun lightKudosColors(): KudosColors {
             fill = Color(0xFFF5F4FD).copy(alpha = 0.44f),
             border = Color.White.copy(alpha = 0.6f),
             shadowTint = Color(0x24281C5A), // rgba(40,32,90,.14)
+            // Faint periwinkle wash (primary050) at high alpha: legible over the scrim while still
+            // reading cooler/frostier than a plain white slab.
+            sheetFill = Color(0xFFF5F4FD).copy(alpha = 0.94f),
+            // rgba(40,32,90,.32) — soft periwinkle-tinted dim.
+            scrim = Color(0x52281C5A),
         ),
         moon = KudosMoon(
             litGradient = Brush.linearGradient(
@@ -178,6 +192,10 @@ fun darkKudosColors(): KudosColors {
             fill = Color(0xFF1A1922).copy(alpha = 0.55f),
             border = Color.White.copy(alpha = 0.12f),
             shadowTint = Color(0x33000000),
+            // Dark surface2 at high alpha — a frosted night-glass slab that stays above the bg.
+            sheetFill = Color(0xFF222230).copy(alpha = 0.96f),
+            // Deeper dim on dark per the spec's raised-sheet shadow family (rgba(8,6,20,.7)).
+            scrim = Color(0xB3080614),
         ),
         moon = KudosMoon(
             litGradient = Brush.linearGradient(
