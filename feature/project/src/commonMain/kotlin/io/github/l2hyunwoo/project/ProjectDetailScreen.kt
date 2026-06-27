@@ -23,6 +23,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -32,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
 import io.github.l2hyunwoo.project.component.EditProjectBottomSheet
 import io.github.l2hyunwoo.project.component.ProjectTasksList
@@ -41,9 +43,11 @@ import io.github.l2hyunwoo.project.component.ProjectTasksList
 fun ProjectDetailScreen(
     uiState: ProjectDetailUiState,
     eventFlow: EventFlow<ProjectDetailEvent>,
+    onTaskClick: (Task) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val colors = KudosTheme.colors
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
@@ -56,12 +60,19 @@ fun ProjectDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("프로젝트 상세") },
+                title = {
+                    Text(
+                        text = "프로젝트 상세",
+                        style = KudosTheme.typography.titleMediumB,
+                        color = colors.ink.ink
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { eventFlow.tryEmit(ProjectDetailEvent.NavigateBack) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로가기"
+                            contentDescription = "뒤로가기",
+                            tint = colors.ink.ink2
                         )
                     }
                 },
@@ -71,13 +82,19 @@ fun ProjectDetailScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "수정"
+                            contentDescription = "수정",
+                            tint = colors.brand.primary600
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colors.glass.fill,
+                    scrolledContainerColor = colors.glass.fill,
+                ),
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = colors.surface.bg,
         modifier = modifier
     ) { paddingValues ->
         Box(
@@ -91,61 +108,47 @@ fun ProjectDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
-                // Category Badge
-                Text(
-                    text = uiState.categoryPrefix,
-                    style = KudosTheme.typography.labelSmallM,
-                    color = Color.White,
-                    modifier = Modifier
-                        .background(
-                            color = Color(uiState.categoryColor.removePrefix("#").toLong(16) or 0xFF000000),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .clip(RoundedCornerShape(4.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                CategoryBadge(
+                    label = uiState.categoryPrefix,
+                    categoryColor = uiState.categoryColor,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Project Title
                 Text(
                     text = uiState.title,
                     style = KudosTheme.typography.titleLargeB,
-                    color = KudosTheme.colorScheme.onSurface
+                    color = colors.ink.ink
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Project Description
                 uiState.description?.let { description ->
                     Text(
                         text = description,
                         style = KudosTheme.typography.bodyMediumR,
-                        color = KudosTheme.colorScheme.secondary
+                        color = colors.ink.ink2
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                 } ?: run {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Tasks List
                 ProjectTasksList(
                     tasks = uiState.tasks,
-                    onTaskClick = { /* TODO: Navigate to task detail */ }
+                    onTaskClick = onTaskClick
                 )
             }
 
-            // Loading Indicator
             if (uiState.isLoadingTasks || uiState.isUpdatingProject) {
                 CircularProgressIndicator(
-                    modifier = Modifier
-                        .align(Alignment.Center)
+                    color = colors.brand.primary600,
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
         }
     }
 
-    // Edit Bottom Sheet
     if (uiState.showEditSheet) {
         EditProjectBottomSheet(
             initialTitle = uiState.title,
@@ -156,4 +159,28 @@ fun ProjectDetailScreen(
             }
         )
     }
+}
+
+@Composable
+private fun CategoryBadge(
+    label: String,
+    categoryColor: String,
+    modifier: Modifier = Modifier,
+) {
+    val dot = remember(categoryColor) { parseHexColor(categoryColor) }
+    val (bg, fg) = KudosTheme.colors.pastelChip(dot)
+    Text(
+        text = label,
+        style = KudosTheme.typography.eyebrow,
+        color = fg,
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(color = bg, shape = RoundedCornerShape(8.dp))
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+    )
+}
+
+private fun parseHexColor(hex: String): Color {
+    val value = hex.removePrefix("#").toLong(16) or 0xFF000000
+    return Color(value)
 }

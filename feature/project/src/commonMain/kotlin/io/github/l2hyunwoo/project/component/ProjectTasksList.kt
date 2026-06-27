@@ -21,11 +21,10 @@ fun ProjectTasksList(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        // Section Header
         Text(
-            text = "📋 연관된 이슈 (${tasks.size})",
-            style = KudosTheme.typography.titleMediumB,
-            color = KudosTheme.colorScheme.onSurface
+            text = "연관된 이슈 (${tasks.size})",
+            style = KudosTheme.typography.eyebrow,
+            color = KudosTheme.colors.ink.ink3
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -34,8 +33,8 @@ fun ProjectTasksList(
             Text(
                 text = "연관된 이슈가 없습니다",
                 style = KudosTheme.typography.bodySmallR,
-                color = KudosTheme.colorScheme.tertiary,
-                modifier = Modifier.padding(start = 16.dp)
+                color = KudosTheme.colors.ink.ink3,
+                modifier = Modifier.padding(start = 4.dp)
             )
         } else {
             Column(

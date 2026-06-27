@@ -1,6 +1,7 @@
 package io.github.l2hyunwoo.project
 
 import androidx.compose.runtime.Composable
+import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
 
 @Composable
@@ -12,7 +13,8 @@ fun ProjectDetailEntryPoint(
     categoryColor: String,
     initialTitle: String,
     initialDescription: String?,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToTaskDetail: (Task) -> Unit = {}
 ) {
     val eventFlow = rememberEventFlow<ProjectDetailEvent>()
 
@@ -29,6 +31,7 @@ fun ProjectDetailEntryPoint(
 
     ProjectDetailScreen(
         uiState = uiState,
-        eventFlow = eventFlow
+        eventFlow = eventFlow,
+        onTaskClick = onNavigateToTaskDetail
     )
 }
