@@ -27,12 +27,18 @@ fun TaskListEntryPoint(
     // Top contentPadding so the list starts below the glass header owned by the parent (MainScreen)
     // and the rest scrolls under it. Standalone usage passes 0.
     topContentPadding: Dp = 0.dp,
+    // When embedded in MainScreen, the glass header + nav bar + FAB are owned by the parent and
+    // hoisted OUTSIDE the backdrop recorder. The loading/error fallback must then carry NO chrome of
+    // its own: an AppBar + FAB here would render inside the recorder and bleed through the glass
+    // (title under the header, FAB under the nav bar). Standalone usage keeps the app-bar fallback.
+    embedded: Boolean = false,
 ) {
     val actualEventFlow = eventFlow ?: rememberEventFlow()
 
-    SoilBoundary(
-        state = rememberQuery(context.tasksQuery),
-        fallback = SoilFallbackDefaults.appBar(
+    val fallback = if (embedded) {
+        SoilFallbackDefaults.default()
+    } else {
+        SoilFallbackDefaults.appBar(
             title = "Tasks",
             floatingActionButton = {
                 FloatingActionButton(
@@ -44,7 +50,12 @@ fun TaskListEntryPoint(
                     )
                 }
             }
-        ),
+        )
+    }
+
+    SoilBoundary(
+        state = rememberQuery(context.tasksQuery),
+        fallback = fallback,
     ) { categories ->
         val uiState = taskListPresenter(
             eventFlow = actualEventFlow,

@@ -179,6 +179,9 @@ fun MainScreen(
                                     onNavigateToTaskDetail = onNavigateToTaskDetail,
                                     searchQuery = searchQuery,
                                     topContentPadding = headerHeight,
+                                    // MainScreen owns the glass header/nav/FAB; the fallback must be
+                                    // chrome-less so it doesn't bleed through the glass.
+                                    embedded = true,
                                 )
                             }
                         }
