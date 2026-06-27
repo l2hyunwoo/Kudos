@@ -2,15 +2,20 @@ package io.github.l2hyunwoo.category.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +42,8 @@ fun ProjectRow(
     modifier: Modifier = Modifier
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
+    val rowShape = RoundedCornerShape(16.dp)
+    val accent = Color(categoryColor.removePrefix("#").toLong(16) or 0xFF000000)
 
     SwipeToDismissBox(
         state = dismissState,
@@ -51,10 +58,7 @@ fun ProjectRow(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        color = Color(categoryColor.removePrefix("#").toLong(16) or 0xFF000000),
-                        shape = RoundedCornerShape(12.dp)
-                    )
+                    .background(color = KudosTheme.colors.priority.urgent, shape = rowShape)
                     .padding(horizontal = 20.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
@@ -68,31 +72,45 @@ fun ProjectRow(
         enableDismissFromStartToEnd = false,
         modifier = modifier
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    color = KudosTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .clip(shape = RoundedCornerShape(12.dp))
+                .background(color = KudosTheme.colors.surface.surface, shape = rowShape)
+                .clip(rowShape)
                 .clickable(onClick = onClick)
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = project.title,
-                style = KudosTheme.typography.titleMediumR,
-                color = KudosTheme.colorScheme.onPrimaryContainer
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(accent)
             )
 
-            project.description?.let { description ->
-                Spacer(modifier = Modifier.height(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = description,
-                    style = KudosTheme.typography.bodySmallR,
-                    color = KudosTheme.colorScheme.secondary
+                    text = project.title,
+                    style = KudosTheme.typography.rowTitle,
+                    color = KudosTheme.colors.ink.ink
                 )
+
+                project.description?.let { description ->
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = description,
+                        style = KudosTheme.typography.bodySmallR,
+                        color = KudosTheme.colors.ink.ink2
+                    )
+                }
             }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = KudosTheme.colors.ink.ink3
+            )
         }
     }
 }

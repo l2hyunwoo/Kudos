@@ -7,12 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -27,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.category.component.CategorySection
 import io.github.l2hyunwoo.category.component.CreateCategoryBottomSheet
@@ -39,7 +36,6 @@ import io.github.l2hyunwoo.kudos.core.soil.appbar.AnimatedTextTopAppBar
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kudos.feature.category.generated.resources.Res
-import kudos.feature.category.generated.resources.add_category
 import kudos.feature.category.generated.resources.categories
 import kudos.feature.category.generated.resources.project_deleted
 import kudos.feature.category.generated.resources.undo
@@ -106,12 +102,24 @@ fun CategoryListScreen(
 
     Scaffold(
         topBar = {
+            // Transparent app-bar containers so the scrolling content shows through behind the title.
+            // NOTE: this is a plain transparent bar, not a real backdrop-blur "glass" surface — a
+            // frosted bar would need `glassSurface` support added to AnimatedTextTopAppBar in
+            // core/soil (the topBar slot is a Scaffold sibling of the content, not a descendant of a
+            // sky-recording container, so a backdrop Modifier.cloudy cannot sample it here).
             AnimatedTextTopAppBar(
                 title = stringResource(Res.string.categories),
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent,
+                ),
+                textColor = KudosTheme.colors.ink.ink,
+                scrolledTextColor = KudosTheme.colors.ink.ink,
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = KudosTheme.colors.surface.bg,
         modifier = modifier
     ) { paddingValues ->
         Box(
@@ -176,6 +184,7 @@ fun CategoryListScreen(
 
             if (uiState.isLoading) {
                 CircularProgressIndicator(
+                    color = KudosTheme.colors.brand.primary600,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -213,7 +222,7 @@ private fun CategoryListScreenPreview() {
                         id = "1",
                         prefix = "WORK",
                         title = "Work Projects",
-                        color = "#FF6B6B",
+                        color = "#C9B8F0",
                         createdAt = "2024-01-01T00:00:00Z",
                         updatedAt = "2024-01-01T00:00:00Z",
                         projects = listOf(
@@ -237,7 +246,7 @@ private fun CategoryListScreenPreview() {
                         id = "2",
                         prefix = "PERS",
                         title = "Personal",
-                        color = "#4ECDC4",
+                        color = "#A6E3C9",
                         createdAt = "2024-01-01T00:00:00Z",
                         updatedAt = "2024-01-01T00:00:00Z",
                         projects = emptyList()

@@ -51,6 +51,9 @@ fun CategorySection(
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
+    val pastel = Color(category.color.removePrefix("#").toLong(16) or 0xFF000000)
+    val (badgeBg, badgeFg) = KudosTheme.colors.pastelChip(pastel)
+
     Column(modifier = modifier.fillMaxWidth()) {
         // Category Header
         Row(
@@ -62,24 +65,21 @@ fun CategorySection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Category Prefix Badge
+                // Category prefix badge: pastel chip (12% fill over surface, darkened text).
                 Text(
                     text = category.prefix,
-                    style = KudosTheme.typography.labelSmallM,
-                    color = Color.White,
+                    style = KudosTheme.typography.eyebrow,
+                    color = badgeFg,
                     modifier = Modifier
-                        .background(
-                            color = Color(category.color.removePrefix("#").toLong(16) or 0xFF000000),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(color = badgeBg)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
 
                 Text(
                     text = category.title.uppercase(),
-                    style = KudosTheme.typography.labelLargeM,
-                    color = KudosTheme.colorScheme.secondary,
+                    style = KudosTheme.typography.eyebrow,
+                    color = KudosTheme.colors.ink.ink2,
                 )
             }
 
@@ -88,7 +88,7 @@ fun CategorySection(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(Res.string.add_project),
-                        tint = KudosTheme.colorScheme.primary
+                        tint = KudosTheme.colors.brand.primary600
                     )
                 }
 
@@ -96,7 +96,7 @@ fun CategorySection(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = stringResource(Res.string.delete_category),
-                        tint = KudosTheme.colorScheme.error
+                        tint = KudosTheme.colors.priority.urgent
                     )
                 }
             }
@@ -109,7 +109,7 @@ fun CategorySection(
             Text(
                 text = stringResource(Res.string.no_projects_yet),
                 style = KudosTheme.typography.bodySmallR,
-                color = KudosTheme.colorScheme.tertiary,
+                color = KudosTheme.colors.ink.ink3,
                 modifier = Modifier.padding(start = 16.dp)
             )
         } else {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -14,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.data.categories.model.CategoryColor
 import kudos.feature.category.generated.resources.Res
 import kudos.feature.category.generated.resources.select_color
@@ -35,15 +36,15 @@ fun ColorPicker(
 ) {
     Column(modifier = modifier) {
         Text(
-            text = stringResource(Res.string.select_color),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = stringResource(Res.string.select_color).uppercase(),
+            style = KudosTheme.typography.eyebrow,
+            color = KudosTheme.colors.ink.ink2
         )
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            items(CategoryColor.entries) { color ->
+            items(CategoryColor.entries, key = { it.name }) { color ->
                 ColorSwatch(
                     color = color,
                     isSelected = selectedColor == color,
@@ -61,14 +62,18 @@ private fun ColorSwatch(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val pastel = Color(color.hexCode.removePrefix("#").toLong(16) or 0xFF000000)
+    // Check icon and selected ring read against the light pastel fill: ink for the glyph,
+    // periwinkle for the ring.
     Box(
         modifier = modifier
             .size(56.dp)
             .clip(CircleShape)
-            .background(Color(color.hexCode.removePrefix("#").toLong(16) or 0xFF000000))
+            .background(pastel)
             .then(
                 if (isSelected) {
-                    Modifier.border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                    Modifier.border(3.dp, KudosTheme.colors.brand.primary600, CircleShape)
+                        .padding(3.dp)
                 } else {
                     Modifier
                 }
@@ -80,7 +85,7 @@ private fun ColorSwatch(
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint = Color.White,
+                tint = KudosTheme.colors.ink.ink,
                 modifier = Modifier.size(24.dp)
             )
         }
