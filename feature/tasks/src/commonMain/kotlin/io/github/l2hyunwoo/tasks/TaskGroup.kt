@@ -66,7 +66,19 @@ fun groupTasksByDueDate(
         byKind.getOrPut(kind) { mutableListOf() }.add(task)
     }
     return GroupOrder.mapNotNull { kind ->
-        byKind[kind]?.let { TaskGroup(kind, it.toImmutableList()) }
+        byKind[kind]?.let { bucket ->
+            // Sort every non-DONE bucket by priority (URGENT=ordinal 0 first), tie-broken by
+            // taskNumber so the order is deterministic and stable across recompositions. DONE keeps
+            // input order so completed work doesn't reshuffle by urgency it no longer carries.
+            val ordered = if (kind == TaskGroupKind.DONE) {
+                bucket
+            } else {
+                bucket.sortedWith(
+                    compareBy({ it.priority.ordinal }, { it.taskNumber }),
+                )
+            }
+            TaskGroup(kind, ordered.toImmutableList())
+        }
     }.toImmutableList()
 }
 

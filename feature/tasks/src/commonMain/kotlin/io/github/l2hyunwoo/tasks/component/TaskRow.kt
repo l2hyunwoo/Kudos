@@ -250,7 +250,9 @@ private fun TagChip(label: String, dot: Color) {
     )
 }
 
-// Small left accent bar + dot — priority is felt, never shouted (must not fight the moon).
+// Small left accent bar — priority is felt, never shouted (must not fight the moon). Encoded by BOTH
+// color and length: URGENT runs nearly full row height, each lower grade inset more so the bar reads
+// shorter. The fraction maps to vertical padding that trims the bar symmetrically.
 @Composable
 private fun PriorityBar(priority: TaskPriority) {
     val color = priority.toColor()
@@ -259,10 +261,19 @@ private fun PriorityBar(priority: TaskPriority) {
             .padding(start = 4.dp)
             .width(4.dp)
             .fillMaxHeight()
-            .padding(vertical = 14.dp)
+            .padding(vertical = priority.barInset())
             .clip(KudosTheme.shapes.pill)
             .background(color),
     )
+}
+
+// Symmetric vertical inset that trims the bar to encode priority by length. The row is 72.dp tall, so
+// these values keep URGENT near-full and taper LOW down to a short stub while staying subtle.
+private fun TaskPriority.barInset() = when (this) {
+    TaskPriority.URGENT -> 8.dp
+    TaskPriority.HIGH -> 16.dp
+    TaskPriority.MEDIUM -> 24.dp
+    TaskPriority.LOW -> 30.dp
 }
 
 @Composable
