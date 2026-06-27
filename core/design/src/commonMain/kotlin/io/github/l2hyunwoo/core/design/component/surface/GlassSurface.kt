@@ -28,6 +28,8 @@ import io.github.l2hyunwoo.core.design.KudosTheme
  * @param shape clip + shadow + border outline; reuse the same [Shape] for all three to stay aligned.
  * @param tint color blended over the blurred backdrop (glass fill).
  * @param border hairline stroke; defaults to the glass border token.
+ * @param shadowColor ambient + spot shadow color; defaults to the periwinkle glass shadow token so
+ *   the float reads as a soft on-brand tint instead of Compose's default neutral/black shadow.
  * @param elevation shadow elevation; rendered unconditionally.
  * @param blurRadius backdrop blur radius in px (sigma handled inside Cloudy).
  */
@@ -37,10 +39,13 @@ public fun Modifier.glassSurface(
     shape: Shape,
     tint: Color = KudosTheme.colors.glass.fill,
     border: BorderStroke = BorderStroke(1.dp, KudosTheme.colors.glass.border),
-    elevation: Dp = 8.dp,
+    shadowColor: Color = KudosTheme.colors.glass.shadowTint,
+    elevation: Dp = 6.dp,
     blurRadius: Int = 18,
 ): Modifier = this
-    .shadow(elevation, shape)
+    // Pass the periwinkle shadow token as both ambient and spot color; the default overload uses
+    // DefaultShadowColor (neutral), which on a light backdrop renders as the muddy gray box.
+    .shadow(elevation, shape, ambientColor = shadowColor, spotColor = shadowColor)
     .clip(shape)
     // cpuBlurEnabled=false: native CPU-blur .so is not vendored, so API<31 uses the static
     // translucent scrim fallback. saturate is omitted (tint-only material for now).

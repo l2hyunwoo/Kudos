@@ -128,7 +128,10 @@ fun lightKudosColors(): KudosColors {
         pastels = LunarPastels,
         priority = LunarPriority,
         glass = KudosGlass(
-            fill = Color.White.copy(alpha = 0.55f),
+            // Faint periwinkle (primary050) at a lower alpha than plain white: over an empty/white
+            // backdrop the old White@0.55 read as a solid white slab. The cool tint + reduced alpha
+            // makes it frosted while keeping ink text legible.
+            fill = Color(0xFFF5F4FD).copy(alpha = 0.44f),
             border = Color.White.copy(alpha = 0.6f),
             shadowTint = Color(0x24281C5A), // rgba(40,32,90,.14)
         ),
