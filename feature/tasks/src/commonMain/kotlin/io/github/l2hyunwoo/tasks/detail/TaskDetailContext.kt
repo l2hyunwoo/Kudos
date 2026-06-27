@@ -3,6 +3,7 @@ package io.github.l2hyunwoo.tasks.detail
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.GraphExtension
+import io.github.l2hyunwoo.data.tasks.model.CreateTaskMutationKey
 import io.github.l2hyunwoo.data.tasks.model.DeleteTaskMutationKey
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
 import io.github.l2hyunwoo.data.tasks.model.UpdateTaskMutationKey
@@ -11,6 +12,7 @@ import soil.query.QueryKey
 
 @GraphExtension(TaskDetailScope::class)
 interface TaskDetailContext : ScreenContext {
+    val createTaskMutation: CreateTaskMutationKey
     val updateTaskMutation: UpdateTaskMutationKey
     val deleteTaskMutation: DeleteTaskMutationKey
 

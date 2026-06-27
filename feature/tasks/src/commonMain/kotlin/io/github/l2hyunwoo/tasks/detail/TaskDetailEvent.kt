@@ -12,4 +12,9 @@ sealed interface TaskDetailEvent {
     data object ConfirmDelete : TaskDetailEvent
     data object UndoDelete : TaskDetailEvent
     data object NavigateBack : TaskDetailEvent
+
+    // Subtask mutations. A subtask is a child Task carrying parentTaskId = this task's UUID.
+    data class CreateSubtask(val title: String) : TaskDetailEvent
+    data class ToggleSubtask(val subtask: SubtaskItem) : TaskDetailEvent
+    data class DeleteSubtask(val subtask: SubtaskItem) : TaskDetailEvent
 }

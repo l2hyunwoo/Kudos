@@ -21,8 +21,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,6 +33,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -49,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.skydoves.cloudy.rememberSky
@@ -62,22 +68,19 @@ import io.github.l2hyunwoo.core.design.token.LunarDurationMicro
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
+import io.github.l2hyunwoo.data.tasks.model.next
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
 import io.github.l2hyunwoo.tasks.detail.component.EditTaskBottomSheet
 import kotlinx.collections.immutable.ImmutableList
 
-// Advances the status one phase along the fraction order (waxing). DONE wraps back to BACKLOG.
+// Phase order for the picker sheet (waxing). The single-step advance uses TaskStatus.next() from the
+// data model, shared with the list screen.
 private val PhaseOrder = listOf(
     TaskStatus.BACKLOG,
     TaskStatus.TODO,
     TaskStatus.IN_PROGRESS,
     TaskStatus.DONE,
 )
-
-private fun TaskStatus.next(): TaskStatus {
-    val i = PhaseOrder.indexOf(this)
-    return PhaseOrder[(i + 1) % PhaseOrder.size]
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -211,6 +214,9 @@ fun TaskDetailScreen(
                     subtasks = uiState.subtasks,
                     done = uiState.subtaskDone,
                     total = uiState.subtaskTotal,
+                    onToggle = { subtask -> eventFlow.tryEmit(TaskDetailEvent.ToggleSubtask(subtask)) },
+                    onDelete = { subtask -> eventFlow.tryEmit(TaskDetailEvent.DeleteSubtask(subtask)) },
+                    onAdd = { title -> eventFlow.tryEmit(TaskDetailEvent.CreateSubtask(title)) },
                 )
             }
 
@@ -441,13 +447,17 @@ private fun PhasePickerRowContent(
     }
 }
 
-// Subtask section: a progress ring driven by real done/total, then the child rows. The ring's
-// fraction (done/total) is the same value that would advance the parent moon as children complete.
+// Subtask section: a progress ring driven by real done/total, then the child rows, then an inline
+// add row. The ring's fraction (done/total) is the same value that would advance the parent moon as
+// children complete. Tapping a row's moon toggles DONE↔TODO; the trailing icon deletes it.
 @Composable
 private fun SubtaskSection(
     subtasks: ImmutableList<SubtaskItem>,
     done: Int,
     total: Int,
+    onToggle: (SubtaskItem) -> Unit,
+    onDelete: (SubtaskItem) -> Unit,
+    onAdd: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -475,16 +485,16 @@ private fun SubtaskSection(
                 MoonProgress(done = done, total = total, size = 24.dp)
             }
         }
-        if (subtasks.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(KudosTheme.shapes.card)
-                    .background(KudosTheme.colors.surface.surface2)
-                    .padding(20.dp),
-                contentAlignment = Alignment.Center,
-            ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(KudosTheme.shapes.card)
+                .background(KudosTheme.colors.surface.surface2)
+                .padding(vertical = 4.dp),
+        ) {
+            if (subtasks.isEmpty()) {
                 Column(
+                    modifier = Modifier.fillMaxWidth().padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -495,25 +505,27 @@ private fun SubtaskSection(
                         color = KudosTheme.colors.ink.ink3,
                     )
                 }
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(KudosTheme.shapes.card)
-                    .background(KudosTheme.colors.surface.surface2)
-                    .padding(vertical = 4.dp),
-            ) {
+            } else {
                 subtasks.forEach { subtask ->
-                    SubtaskRow(subtask)
+                    SubtaskRow(
+                        subtask = subtask,
+                        onToggle = { onToggle(subtask) },
+                        onDelete = { onDelete(subtask) },
+                    )
                 }
             }
+            AddSubtaskRow(onAdd = onAdd)
         }
     }
 }
 
 @Composable
-private fun SubtaskRow(subtask: SubtaskItem, modifier: Modifier = Modifier) {
+private fun SubtaskRow(
+    subtask: SubtaskItem,
+    onToggle: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val isDone = subtask.status == TaskStatus.DONE
     Row(
         modifier = modifier
@@ -522,13 +534,81 @@ private fun SubtaskRow(subtask: SubtaskItem, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Moon(k = subtask.status.fraction, size = 22.dp)
+        // Tap the moon to flip DONE↔TODO; the fill tweens between phases.
+        MoonToggle(
+            k = subtask.status.fraction,
+            onTap = onToggle,
+            onLongPress = onToggle,
+            size = 22.dp,
+        )
         Text(
             text = subtask.title,
             style = KudosTheme.typography.rowTitle,
             color = if (isDone) KudosTheme.colors.ink.ink3 else KudosTheme.colors.ink.ink,
             textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
+            modifier = Modifier.weight(1f),
         )
+        IconButton(onClick = onDelete) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete subtask",
+                tint = KudosTheme.colors.ink.ink3,
+            )
+        }
+    }
+}
+
+// Inline add affordance: a moon glyph + text field + add action. Submitting (IME Done or the add
+// button) emits the title and clears the field so several subtasks can be added in a row.
+@Composable
+private fun AddSubtaskRow(
+    onAdd: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var draft by remember { mutableStateOf("") }
+    val canAdd = draft.isNotBlank()
+    val submit = {
+        if (draft.isNotBlank()) {
+            onAdd(draft.trim())
+            draft = ""
+        }
+    }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Moon(k = 0f, size = 22.dp)
+        OutlinedTextField(
+            value = draft,
+            onValueChange = { draft = it },
+            placeholder = {
+                Text(
+                    text = "서브태스크 추가",
+                    style = KudosTheme.typography.rowTitle,
+                    color = KudosTheme.colors.ink.ink3,
+                )
+            },
+            singleLine = true,
+            shape = KudosTheme.shapes.chipSmall,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = KudosTheme.colors.brand.primary600,
+                unfocusedBorderColor = KudosTheme.colors.surface.outlineStrong,
+                cursorColor = KudosTheme.colors.brand.primary600,
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { submit() }),
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(onClick = submit, enabled = canAdd) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add subtask",
+                tint = if (canAdd) KudosTheme.colors.brand.primary600 else KudosTheme.colors.ink.ink3,
+            )
+        }
     }
 }
 

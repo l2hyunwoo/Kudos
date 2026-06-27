@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.l2hyunwoo.data.tasks.model.CreateTaskRequest
 import io.github.l2hyunwoo.data.tasks.model.DeleteTaskParams
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
@@ -29,6 +30,7 @@ fun taskDetailPresenter(
     eventFlow: EventFlow<TaskDetailEvent>,
     onNavigateBack: () -> Unit,
 ): TaskDetailUiState {
+    val createTaskMutation = rememberMutation(context.createTaskMutation)
     val updateTaskMutation = rememberMutation(context.updateTaskMutation)
     val deleteTaskMutation = rememberMutation(context.deleteTaskMutation)
 
@@ -44,6 +46,16 @@ fun taskDetailPresenter(
             .toList()
             .toImmutableList()
     }
+
+    // A new subtask inherits the parent's category (required by the create API) and project, looked
+    // up from the same cached list by the parent task's UUID.
+    val parentTask = remember(tasksQuery.data, id) {
+        tasksQuery.data.orEmpty().firstNotNullOfOrNull { category ->
+            category.tasks.firstOrNull { it.id == id }?.let { task -> category.id to task }
+        }
+    }
+    val parentCategoryId = parentTask?.first
+    val parentProjectId = parentTask?.second?.projectId
 
     var title by remember { mutableStateOf(initialTitle) }
     var description by remember { mutableStateOf(initialDescription) }
@@ -101,6 +113,42 @@ fun taskDetailPresenter(
 
             is TaskDetailEvent.NavigateBack -> {
                 onNavigateBack()
+            }
+
+            is TaskDetailEvent.CreateSubtask -> {
+                // categoryId is required by the create API; skip if the parent isn't in the cache yet.
+                parentCategoryId?.let { categoryId ->
+                    createTaskMutation.mutate(
+                        CreateTaskRequest(
+                            categoryId = categoryId,
+                            title = event.title,
+                            projectId = parentProjectId,
+                            status = TaskStatus.TODO,
+                            priority = TaskPriority.MEDIUM,
+                            parentTaskId = id,
+                        )
+                    )
+                }
+            }
+
+            is TaskDetailEvent.ToggleSubtask -> {
+                val nextStatus = if (event.subtask.status == TaskStatus.DONE) {
+                    TaskStatus.TODO
+                } else {
+                    TaskStatus.DONE
+                }
+                updateTaskMutation.mutate(
+                    UpdateTaskParams(
+                        taskId = event.subtask.taskId,
+                        request = UpdateTaskRequest(status = nextStatus),
+                    )
+                )
+            }
+
+            is TaskDetailEvent.DeleteSubtask -> {
+                deleteTaskMutation.mutate(
+                    DeleteTaskParams(taskId = event.subtask.taskId, id = event.subtask.id),
+                )
             }
         }
     }
