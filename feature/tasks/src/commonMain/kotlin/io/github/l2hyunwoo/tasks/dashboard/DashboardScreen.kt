@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,6 +39,11 @@ import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import kotlin.math.roundToInt
 
+// Mirrors MainScreen's GlassNavBar footprint (height + vertical margin) so the scroll content can
+// reserve room to clear the floating bar at the bottom.
+private val NavBarHeight = 64.dp
+private val NavBarVerticalMargin = 16.dp
+
 // Read-only summary screen rendered by the Tasks feature. Embedded-style: no chrome of its own —
 // MainScreen owns the glass header/nav, so this only reserves [topContentPadding] up top and scrolls
 // the rest under the translucent header (same contract as TaskListScreen).
@@ -49,6 +57,11 @@ fun DashboardScreen(
         if (uiState.totalCount == 0) {
             EmptyDashboard(topContentPadding = topContentPadding)
         } else {
+            // The floating glass nav bar (64dp + 16dp vertical margin each side, over the system nav
+            // inset) is a MainScreen sibling drawn ON TOP of this scroll area, so reserve its full
+            // footprint at the bottom — otherwise the last card scrolls under it and can't be reached.
+            val navBarClearance = NavBarHeight + NavBarVerticalMargin * 2 +
+                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -60,7 +73,7 @@ fun DashboardScreen(
                 CompletionCard(uiState)
                 StatusDistributionCard(uiState.statusCounts)
                 PriorityDistributionCard(uiState.priorityCounts)
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(navBarClearance))
             }
         }
     }
