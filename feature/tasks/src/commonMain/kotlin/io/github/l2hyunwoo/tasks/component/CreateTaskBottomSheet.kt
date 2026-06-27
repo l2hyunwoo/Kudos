@@ -39,7 +39,7 @@ import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.tasks.DueOption
 import io.github.l2hyunwoo.tasks.dueOptionToIso
-import io.github.l2hyunwoo.tasks.isoFromEpochDayDue
+import io.github.l2hyunwoo.tasks.isoFromEpochDay
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.launch
 import kudos.feature.tasks.generated.resources.Res
@@ -308,7 +308,7 @@ fun CreateTaskBottomSheet(
                         datePickerState.selectedDateMillis?.let { millis ->
                             // selectedDateMillis is the start-of-day in UTC, so integer division by a
                             // day's millis yields the exact epoch day.
-                            pickedIso = isoFromEpochDayDue(millis / 86_400_000L)
+                            pickedIso = isoFromEpochDay(millis / 86_400_000L)
                             selectedDue = DueOption.PICK
                         }
                         showDatePicker = false
