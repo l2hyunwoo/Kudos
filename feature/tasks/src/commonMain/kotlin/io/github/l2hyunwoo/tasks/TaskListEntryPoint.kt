@@ -52,8 +52,8 @@ fun TaskListEntryPoint(
         )
 
         TaskListScreen(
-            categories = uiState.categories,
-            searchQuery = uiState.searchQuery,
+            uiState = uiState,
+            eventFlow = actualEventFlow,
             sky = sky,
             onTaskClick = onNavigateToTaskDetail,
         )

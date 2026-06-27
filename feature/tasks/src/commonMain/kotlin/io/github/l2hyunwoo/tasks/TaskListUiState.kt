@@ -11,4 +11,9 @@ data class TaskListUiState(
     val isLoading: Boolean = false,
     val error: Throwable? = null,
     val searchQuery: String = "",
+    // Set while the undo snackbar is showing for a swipe-deleted row, before the delete commits.
+    val pendingDelete: PendingDelete? = null,
 )
+
+@Immutable
+data class PendingDelete(val taskId: String, val id: String)
