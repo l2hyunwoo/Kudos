@@ -175,7 +175,6 @@ private class SkyModifierNode(var sky: Sky) :
 
   override fun ContentDrawScope.draw() {
     val context = requireGraphicsContext()
-    val newlyCreated = graphicsLayer == null
     val layer = graphicsLayer ?: context.createGraphicsLayer().also {
       graphicsLayer = it
     }
@@ -184,27 +183,19 @@ private class SkyModifierNode(var sky: Sky) :
     // blurs. `sky.capturing` marks the sky as recording so its overlays draw nothing during this
     // pass: an overlay must be ABSENT from the blur source. Otherwise the overlay would draw its
     // blur layer into the layer being recorded, and that blur layer in turn samples a backdrop
-    // layer — a cyclic RenderNode/picture graph that overflows the render thread stack
+    // layer — a cyclic picture graph that overflows the render thread stack
     // (https://github.com/skydoves/Cloudy/issues/112).
-    //
-    // A depth counter (not a flag) because the SAME hoisted sky can drive `Modifier.sky` at more
-    // than one nesting level at once (e.g. an outer screen container and the inner list container).
-    // Those recorders nest; the counter stays > 0 until the outermost one finishes, so an overlay
-    // is never exposed while an enclosing recorder of the same sky is still capturing. Scoped to
-    // this `Sky`, so an independent sky's overlay is never suppressed.
     sky.capturing {
       layer.record {
         this@draw.drawContent()
       }
     }
 
-    // Publish the just-captured backdrop. Assign ONCE (first draw): re-assigning the same instance
-    // as snapshot state per draw is what created the original idle redraw loop (the descendant
-    // overlay observed the write and forced a frame). The overlay re-reads the same instance each
-    // draw; the frame driver is what re-runs the overlay after a fresh capture.
-    if (newlyCreated) {
-      sky.backgroundLayer = layer
-    }
+    // Publish the just-captured backdrop. A PLAIN (non-snapshot) field, so re-assigning the same
+    // instance each draw is free and never re-invalidates the overlay (that snapshot-write loop was
+    // the original idle redraw bug). The overlay re-reads it each draw; the frame driver re-runs the
+    // overlay after a fresh capture.
+    sky.backgroundLayer = layer
 
     // Draw the subtree to the window. `isCapturing` is now false, so the overlay paints its
     // blurred backdrop (sampling `layer`, which contains no reference back to the overlay) and
@@ -329,20 +320,20 @@ private class CloudyBackgroundModifierNode(
   }
 
   override fun ContentDrawScope.draw() {
-    // While THIS sky is being recorded (by any of its `Modifier.sky` recorders), this overlay must
-    // keep its BLUR absent from the blur source: if it drew the blur layer here, that layer (which
-    // samples a backdrop layer of this sky) would be recorded into the layer being captured, forming
-    // a cyclic RenderNode/picture graph that crashes the render thread
-    // (https://github.com/skydoves/Cloudy/issues/112). So skip ONLY the blur during capture.
+    // While THIS sky is being recorded (by any of its `Modifier.sky` recorders), this overlay draws
+    // NOTHING and returns. Two reasons it must be fully absent from the blur source:
     //
-    // We still call `drawContent()` so the overlay's FOREGROUND children (e.g. a glass top bar's
-    // title text, nav-bar labels/icons) are recorded into the backdrop and remain visible. Plain
-    // content does not reference `backgroundLayer`, so it forms no cycle — only the blur draw does.
-    // Returning early here (skipping `drawContent()` too) made any child of a `cloudy` surface vanish
-    // during/after a capture pass, leaving an empty glass box with no foreground.
+    // 1. Cycle prevention (https://github.com/skydoves/Cloudy/issues/112): drawing the blur layer
+    //    here would record a layer that samples a backdrop layer of this sky INTO the layer being
+    //    captured — a cyclic picture graph that overflows the render thread stack.
+    // 2. Backdrop purity: a `cloudy` surface is a BACKGROUND-only material; its foreground (a glass
+    //    bar's title, nav-bar labels) lives OUTSIDE the `Modifier.sky` recorder, as a sibling of the
+    //    recorded content (see glassSurface KDoc). So during capture there is no foreground here to
+    //    preserve — calling `drawContent()` would only fold this overlay's own pixels back into the
+    //    backdrop it blurs, producing a brighter non-uniform "band" where its content sits.
+    //
     // The capture counter is per-`Sky`, so independent skys are unaffected.
     if (sky.isCapturing) {
-      drawContent()
       return
     }
 

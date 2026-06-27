@@ -21,8 +21,21 @@ import io.github.l2hyunwoo.core.design.KudosTheme
  * (Android 31+ RenderEffect, iOS Skia BlurEffect, API24-30 translucent scrim) shares an identical
  * box and produces zero layout shift. Only the blurred fill differs per platform, driven by [cloudy].
  *
+ * ## Contract: this is a BACKGROUND-ONLY material — do NOT put meaningful foreground children here
+ *
+ * The `cloudy` step samples the sky's recorded backdrop and blurs it. A glass surface must therefore
+ * be ABSENT from that backdrop, otherwise its own pixels fold back into the blur source. Concretely:
+ * any `Text`/`Icon` placed as a child of a node carrying `glassSurface` is recorded into the same
+ * `Modifier.sky` layer the blur samples, so it shows up as a brighter, non-uniform "band" in the
+ * blurred fill (Cloudy #112-adjacent backdrop pollution).
+ *
+ * So a glass chrome is built in two pieces:
+ *  1. a content-less Box carrying `glassSurface(sky)` — the blurred background + shadow/clip/border;
+ *  2. its foreground (title text, nav labels/icons) drawn as a SIBLING overlaid on top, placed
+ *     OUTSIDE the `Modifier.sky(sky)` recorder (e.g. as a sibling of the recorded content Box).
+ *
  * The caller hoists [rememberSky] at the screen root, puts `Modifier.sky(sky)` on the scrollable
- * content container, and each chrome surface calls `glassSurface(sky = ...)`.
+ * content container, and places each glass chrome (background + sibling foreground) outside it.
  *
  * @param sky backdrop recorder shared with the content's `Modifier.sky(sky)`.
  * @param shape clip + shadow + border outline; reuse the same [Shape] for all three to stay aligned.
