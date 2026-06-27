@@ -43,7 +43,6 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
-import androidx.compose.ui.graphics.RenderEffect as ComposeRenderEffect
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScrollModifierNode
@@ -70,6 +69,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
+import androidx.compose.ui.graphics.RenderEffect as ComposeRenderEffect
 
 private const val TAG = "CloudyBackground"
 
@@ -484,20 +484,23 @@ private class CloudyBackgroundModifierNode(
    * Following the Haze library approach.
    */
   private fun ContentDrawScope.drawScrimFallback(layer: GraphicsLayer, snapshot: SkySnapshot) {
-    // 1. Draw the background region without blur
-    drawContext.canvas.save()
-    drawContext.canvas.translate(-snapshot.offsetX, -snapshot.offsetY)
-    drawLayer(layer)
-    drawContext.canvas.restore()
-
-    // 2. Apply scrim overlay (use tint if specified, otherwise use default scrim color)
     val scrimColor = if (snapshot.tintColor == Color.Transparent) {
       CloudyDefaults.DefaultScrimColor
     } else {
       snapshot.tintColor
     }
 
+    // Clip BOTH the sampled backdrop and the scrim to the shape: otherwise a rounded shape leaks the
+    // unblurred rectangular backdrop outside the corners (the scrim alone would be clipped, the
+    // backdrop under it would not).
     clipToShape {
+      // 1. Draw the background region without blur.
+      drawContext.canvas.save()
+      drawContext.canvas.translate(-snapshot.offsetX, -snapshot.offsetY)
+      drawLayer(layer)
+      drawContext.canvas.restore()
+
+      // 2. Apply scrim overlay (use tint if specified, otherwise use default scrim color).
       drawRect(color = scrimColor, blendMode = BlendMode.SrcOver)
     }
 
