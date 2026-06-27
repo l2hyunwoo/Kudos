@@ -15,8 +15,8 @@
  */
 package com.skydoves.cloudy
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,15 +70,21 @@ public class Sky internal constructor() {
    * Set by [Modifier.sky] and read by [Modifier.cloudy].
    *
    * This is `null` initially and when the sky modifier is detached.
+   *
+   * Published as a plain (non-snapshot) reference: an overlay re-reads the current layer every
+   * time it draws (the recorder always records into the SAME instance per recorder), and the
+   * per-frame refresh is driven by [SkyFrameDriver], not by a snapshot read. Writing this as
+   * snapshot state during the recorder's draw is what created the original idle redraw loop —
+   * the descendant overlay read the state, got invalidated, and forced another frame forever.
    */
-  internal var backgroundLayer: GraphicsLayer? by mutableStateOf(null)
+  internal var backgroundLayer: GraphicsLayer? = null
 
   /**
-   * Bounds of the sky container in local coordinates.
-   * Used to calculate relative positioning for child composables
-   * that apply background blur.
+   * Bounds of the sky container in local coordinates. Updated from [Modifier.sky]'s
+   * `onGloballyPositioned`. Plain field: read during the overlay's draw, which the frame driver
+   * already re-runs each frame, so no snapshot observation is needed.
    */
-  internal var sourceBounds: Rect by mutableStateOf(Rect.Zero)
+  internal var sourceBounds: Rect = Rect.Zero
 
   /**
    * Number of [Modifier.sky] recorders of THIS sky that are currently recording the blur source
@@ -131,20 +137,33 @@ public class Sky internal constructor() {
   }
 
   /**
-   * Content version counter that increments every time the background
-   * content is re-captured. Used by child modifiers to detect when
-   * cached blur results should be invalidated.
+   * Per-frame refresh driver that keeps the blur tracking the backdrop while content moves.
    *
-   * This counter enables proper cache invalidation during scrolling
-   * on devices that use bitmap-based blur (API < 31).
+   * Why this exists: a `Modifier.sky` recorder placed on a NON-scrolling container (the common and
+   * recommended layout — putting it on the scrolling list itself eats scroll gestures) is never
+   * draw-invalidated by the list scrolling underneath it. Its captured [backgroundLayer] would
+   * freeze at the pre-scroll content while the list moves, so the glass overlay would blur a stale
+   * backdrop (or keep a frozen composited blur while sharp rows scroll behind it). The driver
+   * invalidates the recorder + overlays each frame so the capture and the blur stay current.
+   *
+   * It runs ONLY while a window frame is being produced for some other reason (scroll, animation):
+   * it parks on [withFrameNanos] and stops requesting frames once the backdrop settles, so the app
+   * still goes fully idle (zero frames) when untouched. @see SkyFrameDriver.
+   */
+  internal val frameDriver: SkyFrameDriver = SkyFrameDriver()
+
+  /**
+   * Content version counter that increments every time [invalidate] (or the legacy capture path)
+   * signals a background change. Used by the API < 31 bitmap blur to key its cache.
+   *
+   * NOT bumped per-draw anymore: an unconditional per-draw bump wrote snapshot state read during
+   * the overlay's draw, re-invalidating it and self-perpetuating the idle redraw loop. The frame
+   * driver now drives per-frame refresh, and this counter only marks discrete, explicit changes.
    */
   internal var contentVersion: Long by mutableStateOf(0L)
     private set
 
-  /**
-   * Increments the content version, signaling that the background
-   * content has changed. Called by [Modifier.sky] after capturing.
-   */
+  /** Increments the content version, signaling a discrete background-content change. */
   internal fun incrementContentVersion() {
     contentVersion++
   }
@@ -155,7 +174,7 @@ public class Sky internal constructor() {
    * Call this method when the background content changes and needs
    * to be re-captured for blur rendering. This increments [contentVersion],
    * which triggers dependent [Modifier.cloudy] modifiers to invalidate
-   * their cached blur results.
+   * their cached blur results, and requests a refresh frame from the driver.
    *
    * ## Example
    *
@@ -177,6 +196,7 @@ public class Sky internal constructor() {
    */
   public fun invalidate() {
     incrementContentVersion()
+    frameDriver.requestRefresh()
   }
 }
 
