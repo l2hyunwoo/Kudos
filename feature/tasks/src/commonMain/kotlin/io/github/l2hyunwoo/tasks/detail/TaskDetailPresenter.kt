@@ -12,7 +12,9 @@ import io.github.l2hyunwoo.data.tasks.model.UpdateTaskParams
 import io.github.l2hyunwoo.data.tasks.model.UpdateTaskRequest
 import io.github.l2hyunwoo.kudos.core.common.compose.EventEffect
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
+import kotlinx.collections.immutable.toImmutableList
 import soil.query.compose.rememberMutation
+import soil.query.compose.rememberQuery
 
 @Composable
 context(context: TaskDetailContext)
@@ -29,6 +31,19 @@ fun taskDetailPresenter(
 ): TaskDetailUiState {
     val updateTaskMutation = rememberMutation(context.updateTaskMutation)
     val deleteTaskMutation = rememberMutation(context.deleteTaskMutation)
+
+    // Subtasks are children in the same cached list, matched by parent_task_id == this task's UUID.
+    val tasksQuery = rememberQuery(context.tasksQuery)
+    val subtasks = remember(tasksQuery.data, id) {
+        tasksQuery.data
+            .orEmpty()
+            .asSequence()
+            .flatMap { it.tasks.asSequence() }
+            .filter { it.parentTaskId == id }
+            .map { SubtaskItem(id = it.id, taskId = it.taskId, title = it.title, status = it.status) }
+            .toList()
+            .toImmutableList()
+    }
 
     var title by remember { mutableStateOf(initialTitle) }
     var description by remember { mutableStateOf(initialDescription) }
@@ -97,6 +112,7 @@ fun taskDetailPresenter(
         status = status,
         priority = priority,
         dueDate = dueDate,
+        subtasks = subtasks,
         showEditSheet = showEditSheet,
         isMutating = updateTaskMutation.isPending || deleteTaskMutation.isPending,
         pendingDelete = pendingDelete,

@@ -51,11 +51,11 @@ import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.component.moon.MoonProgress
 import io.github.l2hyunwoo.core.design.component.moon.MoonToggle
 import io.github.l2hyunwoo.core.design.component.surface.glassSurface
-import io.github.l2hyunwoo.core.design.token.KudosShapes
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
 import io.github.l2hyunwoo.tasks.detail.component.EditTaskBottomSheet
+import kotlinx.collections.immutable.ImmutableList
 
 // Advances the status one phase along the fraction order (waxing). DONE wraps back to BACKLOG.
 private val PhaseOrder = listOf(
@@ -134,7 +134,7 @@ fun TaskDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                modifier = Modifier.glassSurface(sky = sky, shape = KudosShapes().card),
+                modifier = Modifier.glassSurface(sky = sky, shape = KudosTheme.shapes.card),
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -198,7 +198,11 @@ fun TaskDetailScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                SubtaskSection(parentFraction = uiState.status.fraction)
+                SubtaskSection(
+                    subtasks = uiState.subtasks,
+                    done = uiState.subtaskDone,
+                    total = uiState.subtaskTotal,
+                )
             }
 
             if (uiState.isMutating) {
@@ -254,7 +258,7 @@ private fun PriorityRow(priority: TaskPriority, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .width(4.dp)
                 .height(16.dp)
-                .clip(KudosShapes().pill)
+                .clip(KudosTheme.shapes.pill)
                 .background(dot),
         )
         Text(
@@ -262,7 +266,7 @@ private fun PriorityRow(priority: TaskPriority, modifier: Modifier = Modifier) {
             style = KudosTheme.typography.labelSmallM,
             color = fg,
             modifier = Modifier
-                .clip(KudosShapes().chipSmall)
+                .clip(KudosTheme.shapes.chipSmall)
                 .background(bg)
                 .padding(horizontal = 10.dp, vertical = 4.dp),
         )
@@ -316,7 +320,7 @@ private fun PhasePickerSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = KudosShapes().sheet,
+        shape = KudosTheme.shapes.sheet,
         containerColor = KudosTheme.colors.surface.surface,
     ) {
         Column(
@@ -353,7 +357,7 @@ private fun PhasePickerRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(KudosShapes().row)
+            .clip(KudosTheme.shapes.row)
             .background(
                 if (isSelected) KudosTheme.colors.brand.primary050 else Color.Transparent,
             )
@@ -371,11 +375,15 @@ private fun PhasePickerRow(
     }
 }
 
-// Subtask section. TaskDetailUiState carries no subtask data yet, so this is visual-only:
-// an empty-state plus a MoonProgress ring seeded at the parent status fraction.
-// TODO(data): expose real subtask done/total on TaskDetailUiState and drive parent k from it.
+// Subtask section: a progress ring driven by real done/total, then the child rows. The ring's
+// fraction (done/total) is the same value that would advance the parent moon as children complete.
 @Composable
-private fun SubtaskSection(parentFraction: Float, modifier: Modifier = Modifier) {
+private fun SubtaskSection(
+    subtasks: ImmutableList<SubtaskItem>,
+    done: Int,
+    total: Int,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -387,33 +395,74 @@ private fun SubtaskSection(parentFraction: Float, modifier: Modifier = Modifier)
                 style = KudosTheme.typography.eyebrow,
                 color = KudosTheme.colors.ink.ink3,
             )
-            // Parent fraction stands in until subtask done/total is wired (see TODO above).
-            MoonProgress(
-                done = (parentFraction * 100).toInt(),
-                total = 100,
-                size = 24.dp,
-            )
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(KudosShapes().card)
-                .background(KudosTheme.colors.surface.surface2)
-                .padding(20.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Moon(k = 0f, size = 36.dp)
-                Text(
-                    text = "하위 작업이 아직 없어요",
-                    style = KudosTheme.typography.bodyMediumR,
-                    color = KudosTheme.colors.ink.ink3,
-                )
+                if (total > 0) {
+                    Text(
+                        text = "$done / $total",
+                        style = KudosTheme.typography.labelLargeM,
+                        color = KudosTheme.colors.ink.ink2,
+                    )
+                }
+                MoonProgress(done = done, total = total, size = 24.dp)
             }
         }
+        if (subtasks.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(KudosTheme.shapes.card)
+                    .background(KudosTheme.colors.surface.surface2)
+                    .padding(20.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Moon(k = 0f, size = 36.dp)
+                    Text(
+                        text = "하위 작업이 아직 없어요",
+                        style = KudosTheme.typography.bodyMediumR,
+                        color = KudosTheme.colors.ink.ink3,
+                    )
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(KudosTheme.shapes.card)
+                    .background(KudosTheme.colors.surface.surface2)
+                    .padding(vertical = 4.dp),
+            ) {
+                subtasks.forEach { subtask ->
+                    SubtaskRow(subtask)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SubtaskRow(subtask: SubtaskItem, modifier: Modifier = Modifier) {
+    val isDone = subtask.status == TaskStatus.DONE
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Moon(k = subtask.status.fraction, size = 22.dp)
+        Text(
+            text = subtask.title,
+            style = KudosTheme.typography.rowTitle,
+            color = if (isDone) KudosTheme.colors.ink.ink3 else KudosTheme.colors.ink.ink,
+            textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
+        )
     }
 }
 
