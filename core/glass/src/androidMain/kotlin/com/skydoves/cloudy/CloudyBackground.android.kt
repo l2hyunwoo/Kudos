@@ -350,12 +350,19 @@ private class CloudyBackgroundModifierNode(
 
   override fun ContentDrawScope.draw() {
     // While THIS sky is being recorded (by any of its `Modifier.sky` recorders), this overlay must
-    // be ABSENT from the blur source: if it drew here, its blur layer (which samples a backdrop
-    // layer of this sky) would be recorded into the layer being captured, forming a cyclic
-    // RenderNode graph that crashes the render thread (https://github.com/skydoves/Cloudy/issues/112).
-    // Draw nothing during capture; the overlay paints itself in the sky's on-screen pass, when the
-    // capture counter is back at zero. The counter is per-`Sky`, so independent skys are unaffected.
+    // keep its BLUR absent from the blur source: if it drew the blur layer here, that layer (which
+    // samples a backdrop layer of this sky) would be recorded into the layer being captured, forming
+    // a cyclic RenderNode graph that crashes the render thread
+    // (https://github.com/skydoves/Cloudy/issues/112). So skip ONLY the blur during capture.
+    //
+    // We still call `drawContent()` so the overlay's FOREGROUND children (e.g. a glass top bar's
+    // title text, nav-bar labels/icons) are recorded into the backdrop and remain visible. Plain
+    // content does not reference `backgroundLayer`, so it forms no cycle — only the blur draw does.
+    // Returning early here (skipping `drawContent()` too) made any child of a `cloudy` surface vanish
+    // during/after a capture pass, leaving an empty glass box with no foreground.
+    // The capture counter is per-`Sky`, so independent skys are unaffected.
     if (sky.isCapturing) {
+      drawContent()
       return
     }
 

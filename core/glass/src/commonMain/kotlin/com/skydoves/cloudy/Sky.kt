@@ -86,16 +86,19 @@ public class Sky internal constructor() {
    *
    * A backdrop [Modifier.cloudy] overlay is, by design, a descendant of the [Modifier.sky]
    * container, so the sky's capture pass re-enters the overlay's own draw. If the overlay drew
-   * its backdrop (which samples [backgroundLayer]) during that capture, the recorded display
+   * its BLUR (which samples [backgroundLayer]) during that capture, the recorded display
    * list of the layer being recorded would contain a reference back to a layer that samples it —
    * a cyclic `RenderNode` graph that makes the platform render thread recurse until the stack
    * overflows (see https://github.com/skydoves/Cloudy/issues/112).
    *
-   * The overlay reads [isCapturing] and draws nothing while this sky is being captured, so it is
-   * absent from the blur source. [Modifier.sky] then draws its subtree to the window in a second
-   * pass with the counter back at zero, during which the overlay paints its blurred backdrop
-   * (sampling the now-overlay-free [backgroundLayer]) straight to the window canvas. The blur layer
-   * is therefore never recorded into a capture layer, so no cycle can form.
+   * The overlay reads [isCapturing] and skips ONLY its blur draw while this sky is being captured,
+   * so the blur is absent from the blur source. It still draws its foreground children during the
+   * capture (plain content does not reference [backgroundLayer], so no cycle forms); otherwise a
+   * `cloudy` surface's foreground — e.g. a glass top bar's title — would vanish whenever a capture
+   * pass ran. [Modifier.sky] then draws its subtree to the window in a second pass with the counter
+   * back at zero, during which the overlay paints its blurred backdrop (sampling the now-blur-free
+   * [backgroundLayer]) plus its foreground straight to the window canvas. The blur layer is
+   * therefore never recorded into a capture layer, so no cycle can form.
    *
    * A COUNTER, not a boolean: the same hoisted [Sky] can be applied to [Modifier.sky] at more than
    * one nesting level at once (e.g. an outer screen container and an inner list container both
