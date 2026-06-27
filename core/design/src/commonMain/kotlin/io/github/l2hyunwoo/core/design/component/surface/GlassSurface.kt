@@ -49,5 +49,7 @@ public fun Modifier.glassSurface(
     .clip(shape)
     // cpuBlurEnabled=false: native CPU-blur .so is not vendored, so API<31 uses the static
     // translucent scrim fallback. saturate is omitted (tint-only material for now).
-    .cloudy(sky = sky, radius = blurRadius, tint = tint, cpuBlurEnabled = false)
+    // Pass `shape` so the blurred fill is clipped to the rounded surface instead of a hard
+    // rectangle, eliminating the inner "white box" seam at the rounded corners.
+    .cloudy(sky = sky, radius = blurRadius, tint = tint, cpuBlurEnabled = false, shape = shape)
     .border(border, shape)
