@@ -4,6 +4,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -16,7 +17,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.category.component.CategorySection
@@ -41,11 +42,9 @@ import androidx.compose.material3.Text
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
-import io.github.l2hyunwoo.kudos.core.soil.appbar.AnimatedTextTopAppBar
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kudos.feature.category.generated.resources.Res
-import kudos.feature.category.generated.resources.categories
 import kudos.feature.category.generated.resources.project_deleted
 import kudos.feature.category.generated.resources.undo
 import org.jetbrains.compose.resources.stringResource
@@ -57,9 +56,12 @@ fun CategoryListScreen(
     uiState: CategoryListUiState,
     eventFlow: EventFlow<CategoryListEvent>,
     onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> },
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // Top contentPadding so the first section clears the glass header owned by the parent
+    // (MainScreen) OUTSIDE the backdrop recorder; the rest scrolls under it. Standalone usage
+    // passes 0. The screen draws no top app bar of its own — the glass header carries the title.
+    topContentPadding: Dp = 0.dp,
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
 
     var showCreateCategoryDialog by remember { mutableStateOf(false) }
@@ -110,25 +112,11 @@ fun CategoryListScreen(
     }
 
     Scaffold(
-        topBar = {
-            // Transparent app-bar containers so the scrolling content shows through behind the title.
-            // NOTE: this is a plain transparent bar, not a real backdrop-blur "glass" surface — a
-            // frosted bar would need `glassSurface` support added to AnimatedTextTopAppBar in
-            // core/soil (the topBar slot is a Scaffold sibling of the content, not a descendant of a
-            // sky-recording container, so a backdrop Modifier.cloudy cannot sample it here).
-            AnimatedTextTopAppBar(
-                title = stringResource(Res.string.categories),
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = Color.Transparent,
-                ),
-                textColor = KudosTheme.colors.ink.ink,
-                scrolledTextColor = KudosTheme.colors.ink.ink,
-            )
-        },
+        // No top app bar: the parent's glass header carries the title. Transparent container so the
+        // list is the only thing recorded into MainScreen's blur source (the screen background shows
+        // through from the Scaffold behind it), and the rows scroll under the glass header.
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = KudosTheme.colors.surface.bg,
+        containerColor = Color.Transparent,
         modifier = modifier
     ) { paddingValues ->
         Box(
@@ -143,6 +131,11 @@ fun CategoryListScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(
+                    // Clear the glass header owned by the parent; sections beyond it scroll under it.
+                    top = topContentPadding,
+                    bottom = 16.dp,
+                ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 uiState.categories.forEachIndexed { categoryIndex, category ->

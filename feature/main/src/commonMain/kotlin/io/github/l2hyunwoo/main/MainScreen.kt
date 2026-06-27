@@ -56,6 +56,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.skydoves.cloudy.Sky
@@ -118,8 +120,17 @@ fun MainScreen(
     val categoriesEventFlow = rememberEventFlow<CategoryListEvent>()
 
     // Single backdrop recorder for the screen. The swappable tab content records via Modifier.sky;
-    // the glass chrome (top bar, nav bar) sits OUTSIDE that recorder and blurs it via glassSurface.
+    // the glass chrome (header, nav bar) sits OUTSIDE that recorder and blurs it via glassSurface.
     val sky = rememberSky()
+
+    // Measured height of the glass header overlay. The header floats over the full-screen list, so
+    // the list reserves this as top contentPadding to start its first row below the header (the rest
+    // scrolls UNDER the translucent header, which is what makes the frosting visible). The header
+    // height is variable (status-bar inset + greeting + title + date + search), so it is measured
+    // rather than hard-coded.
+    var headerHeightPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    val headerHeight = with(density) { headerHeightPx.toDp() }
 
     val onAddCurrentTab: () -> Unit = remember(selectedTab) {
         {
@@ -142,69 +153,64 @@ fun MainScreen(
         containerColor = KudosTheme.colors.surface.bg,
     ) { _ ->
         Box(Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxSize()) {
-                TodayHeader(
-                    selectedTab = selectedTab,
-                    searchQuery = searchQuery,
-                    onSearchChange = { searchQuery = it },
-                    darkTheme = darkTheme,
-                    onToggleTheme = onToggleTheme,
-                )
-                // Content area: the swappable tab subtree is the ONLY thing recorded into the
-                // backdrop (Modifier.sky). The glass chrome (top bar, nav bar) is layered OUTSIDE
-                // this recorder so its own foreground never pollutes the blur source.
-                Box(Modifier.fillMaxSize()) {
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .sky(sky)
-                    ) {
-                        // Cross-fade the tab subtree instead of hard-swapping it (the reported
-                        // tab-switch flicker). standard is a Float spec, so reduce-motion collapses
-                        // it for free.
-                        Crossfade(
-                            targetState = selectedTab,
-                            animationSpec = KudosTheme.motion.standard,
-                            label = "tabContent",
-                        ) { tab ->
-                            when (tab) {
-                                MainTab.TASKS -> {
-                                    with(tasksContext) {
-                                        TaskListEntryPoint(
-                                            eventFlow = tasksEventFlow,
-                                            onAddTask = { showCreateTaskSheet = true },
-                                            onNavigateToCategories = { selectedTab = MainTab.CATEGORIES },
-                                            onNavigateToTaskDetail = onNavigateToTaskDetail,
-                                            searchQuery = searchQuery,
-                                            topBarClearance = TopBarClearance,
-                                        )
-                                    }
-                                }
+            // Full-screen backdrop recorder: the swappable tab subtree is the ONLY thing recorded
+            // into the blur source (Modifier.sky). The list spans the whole screen and scrolls UNDER
+            // the glass header/nav bar, which are layered OUTSIDE this recorder so their own
+            // foreground never pollutes the blur source.
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .sky(sky)
+            ) {
+                // Cross-fade the tab subtree instead of hard-swapping it (the reported tab-switch
+                // flicker). standard is a Float spec, so reduce-motion collapses it for free.
+                Crossfade(
+                    targetState = selectedTab,
+                    animationSpec = KudosTheme.motion.standard,
+                    label = "tabContent",
+                ) { tab ->
+                    when (tab) {
+                        MainTab.TASKS -> {
+                            with(tasksContext) {
+                                TaskListEntryPoint(
+                                    eventFlow = tasksEventFlow,
+                                    onAddTask = { showCreateTaskSheet = true },
+                                    onNavigateToCategories = { selectedTab = MainTab.CATEGORIES },
+                                    onNavigateToTaskDetail = onNavigateToTaskDetail,
+                                    searchQuery = searchQuery,
+                                    topContentPadding = headerHeight,
+                                )
+                            }
+                        }
 
-                                MainTab.CATEGORIES -> {
-                                    with(categoryContext) {
-                                        CategoryListEntryPoint(
-                                            eventFlow = categoriesEventFlow,
-                                            searchQuery = searchQuery,
-                                            onNavigateToProjectDetail = onNavigateToProjectDetail
-                                        )
-                                    }
-                                }
+                        MainTab.CATEGORIES -> {
+                            with(categoryContext) {
+                                CategoryListEntryPoint(
+                                    eventFlow = categoriesEventFlow,
+                                    searchQuery = searchQuery,
+                                    topContentPadding = headerHeight,
+                                    onNavigateToProjectDetail = onNavigateToProjectDetail
+                                )
                             }
                         }
                     }
-
-                    // Floating frosted top bar, hoisted OUT of the recorder (a sibling of the
-                    // recorded content), so its title blurs the tab content behind it with no band.
-                    GlassTopBar(
-                        title = stringResource(
-                            if (selectedTab == MainTab.TASKS) Res.string.tasks else Res.string.categories
-                        ),
-                        sky = sky,
-                        modifier = Modifier.align(Alignment.TopCenter),
-                    )
                 }
             }
+
+            // Frosted glass header, pinned to the top and hoisted OUT of the recorder (a sibling of
+            // the recorded content), so the list scrolling behind it is blurred with no band. The
+            // header's text/search are its own children (drawn to the window, never recorded), so the
+            // search field stays crisp and interactive.
+            TodayHeader(
+                selectedTab = selectedTab,
+                searchQuery = searchQuery,
+                onSearchChange = { searchQuery = it },
+                darkTheme = darkTheme,
+                onToggleTheme = onToggleTheme,
+                sky = sky,
+                onHeightChanged = { headerHeightPx = it },
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
 
             GlassNavBar(
                 selectedTab = selectedTab,
@@ -250,6 +256,12 @@ fun MainScreen(
     }
 }
 
+// Frosted glass header pinned to the top of the screen. Carries `glassSurface` on its root so the
+// full-screen list scrolling behind it is blurred; its own text/search are CHILDREN, which is safe
+// because the whole header is hoisted OUTSIDE the `Modifier.sky` recorder by the caller (so they are
+// drawn straight to the window, never folded into the blur source — no white band). The glass fill
+// extends edge-to-edge, including under the status bar, with the inset applied to the inner content
+// so the text never sits under the system clock.
 @Composable
 private fun TodayHeader(
     selectedTab: MainTab,
@@ -257,13 +269,18 @@ private fun TodayHeader(
     onSearchChange: (String) -> Unit,
     darkTheme: Boolean,
     onToggleTheme: () -> Unit,
+    sky: Sky,
+    onHeightChanged: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier
             .fillMaxWidth()
+            .onSizeChanged { onHeightChanged(it.height) }
+            // Meets the screen top edge, so only the bottom corners are rounded.
+            .glassSurface(sky = sky, shape = HeaderShape)
             .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 12.dp)
+            .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -377,39 +394,6 @@ private fun SearchField(
                     .clickable { onQueryChange("") },
             )
         }
-    }
-}
-
-// Floating frosted top bar shared by both tabs. Built as a content-less glassSurface (the blurred
-// background) with the title drawn as a SIBLING overlaid on top — the glassSurface itself carries no
-// foreground, so nothing of the bar leaks into the blur source it samples. Rendered OUTSIDE the
-// `Modifier.sky` recorder by the caller.
-@Composable
-private fun GlassTopBar(
-    title: String,
-    sky: Sky,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
-            .height(TopBarHeight),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        // Background: blurred fill + shadow/clip/border, no children.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .glassSurface(sky = sky, shape = KudosTheme.shapes.card),
-        )
-        // Foreground sibling: the title, overlaid on (not a child of) the glass background.
-        Text(
-            text = title,
-            style = KudosTheme.typography.bodyLargeXB,
-            color = KudosTheme.colors.ink.ink,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
     }
 }
 
@@ -574,10 +558,9 @@ private fun CenterAddButton(
 // Full pill: PillRadius (999dp) caps to half the smaller dimension for any chrome height.
 private val PillShape = RoundedCornerShape(KudosShapes.PillRadius)
 
-// Floating glass top bar geometry. Height of the bar itself; clearance = bar + its vertical padding,
-// reserved as top contentPadding by the tab list so the first row clears the floating bar.
-private val TopBarHeight = 56.dp
-private val TopBarClearance = TopBarHeight + 16.dp + 24.dp
+// Glass header outline: meets the screen top edge (square top), soft-rounded bottom so the frosted
+// panel reads as a sheet hanging from the top rather than a free-floating card.
+private val HeaderShape = RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp)
 
 // Monday-first to match a Korean calendar header.
 private val KoreanWeekdays = listOf("월", "화", "수", "목", "금", "토", "일")
@@ -631,23 +614,19 @@ private fun ChromePreviewScaffold() {
             .fillMaxSize()
             .background(KudosTheme.colors.surface.bg)
     ) {
-        Column(Modifier.fillMaxSize()) {
-            TodayHeader(
-                selectedTab = tab,
-                searchQuery = "",
-                onSearchChange = {},
-                darkTheme = false,
-                onToggleTheme = {},
-            )
-            Box(Modifier.fillMaxSize()) {
-                Box(Modifier.fillMaxSize().sky(sky))
-                GlassTopBar(
-                    title = if (tab == MainTab.TASKS) "Tasks" else "Categories",
-                    sky = sky,
-                    modifier = Modifier.align(Alignment.TopCenter),
-                )
-            }
-        }
+        // Full-screen recorder (the list would live here at runtime).
+        Box(Modifier.fillMaxSize().sky(sky))
+        // Glass header overlay, pinned to the top, outside the recorder.
+        TodayHeader(
+            selectedTab = tab,
+            searchQuery = "",
+            onSearchChange = {},
+            darkTheme = false,
+            onToggleTheme = {},
+            sky = sky,
+            onHeightChanged = {},
+            modifier = Modifier.align(Alignment.TopCenter),
+        )
         GlassNavBar(
             selectedTab = tab,
             onSelectTab = { tab = it },

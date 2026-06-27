@@ -24,8 +24,9 @@ fun TaskListEntryPoint(
     onNavigateToCategories: () -> Unit = {},
     onNavigateToTaskDetail: (Task) -> Unit = {},
     searchQuery: String = "",
-    // Top padding so the list clears the floating glass top bar owned by the parent (MainScreen).
-    topBarClearance: Dp = 0.dp,
+    // Top contentPadding so the list starts below the glass header owned by the parent (MainScreen)
+    // and the rest scrolls under it. Standalone usage passes 0.
+    topContentPadding: Dp = 0.dp,
 ) {
     val actualEventFlow = eventFlow ?: rememberEventFlow()
 
@@ -54,7 +55,7 @@ fun TaskListEntryPoint(
         TaskListScreen(
             uiState = uiState,
             eventFlow = actualEventFlow,
-            topBarClearance = topBarClearance,
+            topContentPadding = topContentPadding,
             onTaskClick = onNavigateToTaskDetail,
         )
     }

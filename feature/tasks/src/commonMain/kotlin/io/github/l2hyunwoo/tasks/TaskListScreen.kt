@@ -55,10 +55,10 @@ fun TaskListScreen(
     uiState: TaskListUiState,
     eventFlow: EventFlow<TaskListEvent>,
     modifier: Modifier = Modifier,
-    // Top padding to clear the floating glass top bar, which is hoisted to and owned by the parent
-    // (MainScreen) OUTSIDE the backdrop recorder. The list reserves room for it but no longer draws
-    // or records it. Standalone usage passes 0.
-    topBarClearance: Dp = 0.dp,
+    // Top contentPadding so the first row clears the glass header, which is hoisted to and owned by
+    // the parent (MainScreen) OUTSIDE the backdrop recorder. The list spans the full screen and the
+    // rest of its rows scroll UNDER the translucent header. Standalone usage passes 0.
+    topContentPadding: Dp = 0.dp,
     onTaskClick: (Task) -> Unit = {},
 ) {
     val groups = uiState.groups
@@ -97,15 +97,15 @@ fun TaskListScreen(
                 EmptyState()
             } else {
                 // The list is already inside MainScreen's single `Modifier.sky` recorder (this
-                // screen draws no glass chrome of its own — the floating glass top bar is hoisted to
-                // MainScreen, outside the recorder, so its title never pollutes the blur source).
+                // screen draws no glass chrome of its own — the glass header is hoisted to
+                // MainScreen, outside the recorder, so its foreground never pollutes the blur source).
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),
                     contentPadding = PaddingValues(
-                        // Clear the floating glass top bar owned by the parent.
-                        top = topBarClearance,
+                        // Clear the glass header owned by the parent; rows beyond it scroll under it.
+                        top = topContentPadding,
                         bottom = 16.dp,
                     ),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
