@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import io.github.l2hyunwoo.kudos.AppGraph
 import io.github.l2hyunwoo.kudos.core.common.navigation.ProjectDetail
+import io.github.l2hyunwoo.kudos.core.common.navigation.TaskDetail
 import io.github.l2hyunwoo.project.ProjectDetailEntryPoint
 import io.github.l2hyunwoo.project.rememberProjectContextRetained
 
@@ -21,7 +22,20 @@ fun NavGraphBuilder.projectDetailGraph(navController: NavHostController) {
                 categoryColor = args.categoryColor,
                 initialTitle = args.title,
                 initialDescription = args.description,
-                onNavigateBack = { navController.navigateUp() }
+                onNavigateBack = { navController.navigateUp() },
+                onNavigateToTaskDetail = { task ->
+                    navController.navigate(
+                        TaskDetail(
+                            id = task.id,
+                            taskId = task.taskId,
+                            title = task.title,
+                            description = task.description,
+                            status = task.status.name,
+                            priority = task.priority.name,
+                            dueDate = task.dueDate,
+                        )
+                    )
+                }
             )
         }
     }

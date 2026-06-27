@@ -14,6 +14,7 @@ import io.github.l2hyunwoo.kudos.core.common.navigation.Main
 import io.github.l2hyunwoo.kudos.navigation.categoryListGraph
 import io.github.l2hyunwoo.kudos.navigation.mainScreenGraph
 import io.github.l2hyunwoo.kudos.navigation.projectDetailGraph
+import io.github.l2hyunwoo.kudos.navigation.taskDetailGraph
 import io.github.l2hyunwoo.kudos.navigation.taskListGraph
 import androidx.compose.ui.tooling.preview.Preview
 import soil.query.SwrCachePlus
@@ -44,6 +45,7 @@ fun App() {
                     taskListGraph(navController)
                     categoryListGraph(navController)
                     projectDetailGraph(navController)
+                    taskDetailGraph(navController)
                 }
             }
         }
