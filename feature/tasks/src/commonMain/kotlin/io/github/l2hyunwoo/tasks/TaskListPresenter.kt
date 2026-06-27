@@ -83,8 +83,17 @@ fun taskListPresenter(
         }
     }
 
+    // Group the SAME filtered task set so search + time-grouping compose: flatten the surviving
+    // tasks across categories, then bucket by due date relative to today. Recomputed only when the
+    // filtered set changes (todayIso is stable across a composition / day).
+    val filteredTasks = visibleCategories.flatMap { it.tasks }
+    val groups = remember(filteredTasks) {
+        groupTasksByDueDate(filteredTasks, todayIso())
+    }
+
     return TaskListUiState(
         categories = visibleCategories.toImmutableList(),
+        groups = groups,
         isLoading = createTaskMutation.isPending ||
             updateTaskMutation.isPending ||
             deleteTaskMutation.isPending,

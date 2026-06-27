@@ -8,6 +8,9 @@ import kotlinx.collections.immutable.persistentListOf
 @Immutable
 data class TaskListUiState(
     val categories: ImmutableList<TasksResponse.CategoryWithTasks> = persistentListOf(),
+    // Time-based grouping (Overdue/Today/Upcoming/...) rendered by the Tasks tab; computed from the
+    // same filtered task set as [categories]. Empty when there are no (matching) tasks.
+    val groups: ImmutableList<TaskGroup> = persistentListOf(),
     val isLoading: Boolean = false,
     val error: Throwable? = null,
     val searchQuery: String = "",
