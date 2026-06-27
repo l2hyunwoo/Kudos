@@ -35,6 +35,7 @@ include(
     ":core:common",
     ":core:datastore",
     ":core:design",
+    ":core:glass",
     ":core:network",
     ":core:soil",
 )
