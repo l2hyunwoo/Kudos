@@ -7,77 +7,85 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-// 기본 색상 정의
-private val Gray121212 = Color(0xFF121212)
-private val GrayD9D9D9 = Color(0xFFD9D9D9)
-private val Gray9F9F9F = Color(0xFF9F9F9F)
-private val Gray222222 = Color(0xFF222222)
-private val Gray393433 = Color(0xFF393433)
+// Lunar palette — periwinkle brand over cool neutrals.
+private val Periwinkle600 = Color(0xFF6C63E6)
+private val Periwinkle500 = Color(0xFF7A72EA)
+private val Periwinkle400 = Color(0xFF948DF2)
+private val Periwinkle100 = Color(0xFFECEBFB)
 private val White = Color(0xFFFFFFFF)
-private val OffWhite = Color(0xFFF3EFEE)
-private val Black = Color(0xFF000000)
-private val Peach = Color(0xFFD1A28B)
-private val LightPeach = Color(0xFFE6D9CB)
-private val LightGray = Color(0xFFF9F5F4)
+private val Ink = Color(0xFF1B1A24)
+private val Ink2 = Color(0xFF52505F)
+private val Ink3 = Color(0xFF9A98A8)
+private val Surface2Light = Color(0xFFFBFAFF)
+private val OutlineVariantLight = Color(0xFFEAE9F2)
+private val LunarError = Color(0xFFF2555A)
+
+private val DarkBg = Color(0xFF100F16)
+private val DarkSurface = Color(0xFF1A1922)
+private val DarkSurfaceVariant = Color(0xFF222230)
+private val DarkOnSurface = Color(0xFFF3F2FA)
+private val DarkOnSurfaceVariant = Color(0xFFB4B2C4)
+private val DarkOutline = Color(0xFF3A3950)
+private val DarkOutlineVariant = Color(0xFF2B2A38)
 
 // Light Theme ColorScheme
 val LightColorScheme = lightColorScheme(
-    primary = Gray121212,
+    primary = Periwinkle600,
     onPrimary = White,
-    primaryContainer = GrayD9D9D9,
-    onPrimaryContainer = Gray121212,
+    primaryContainer = Periwinkle100,
+    onPrimaryContainer = Ink,
 
-    secondary = Peach,
+    secondary = Periwinkle500,
     onSecondary = White,
-    secondaryContainer = LightPeach,
-    onSecondaryContainer = Gray121212,
+    secondaryContainer = Periwinkle100,
+    onSecondaryContainer = Ink,
 
-    tertiary = Gray9F9F9F,
+    tertiary = Ink3,
     onTertiary = White,
 
     background = White,
-    onBackground = Gray121212,
+    onBackground = Ink,
 
-    surface = OffWhite,
-    onSurface = Gray121212,
-    surfaceVariant = LightGray,
-    onSurfaceVariant = Gray222222,
+    surface = White,
+    onSurface = Ink,
+    surfaceVariant = Surface2Light,
+    onSurfaceVariant = Ink2,
 
-    outline = Gray9F9F9F,
-    outlineVariant = GrayD9D9D9,
+    outline = Ink3,
+    outlineVariant = OutlineVariantLight,
 
-    error = Color(0xFFBA1A1A),
+    error = LunarError,
     onError = White,
 )
 
 // Dark Theme ColorScheme
 val DarkColorScheme = darkColorScheme(
-    primary = GrayD9D9D9,
-    onPrimary = Gray121212,
-    primaryContainer = Gray393433,
-    onPrimaryContainer = GrayD9D9D9,
+    primary = Periwinkle400,
+    onPrimary = Ink,
+    primaryContainer = DarkSurfaceVariant,
+    onPrimaryContainer = DarkOnSurface,
 
-    secondary = Peach,
-    onSecondary = Gray121212,
-    secondaryContainer = Gray222222,
-    onSecondaryContainer = LightPeach,
+    secondary = Periwinkle500,
+    onSecondary = Ink,
+    secondaryContainer = DarkSurfaceVariant,
+    onSecondaryContainer = DarkOnSurface,
 
-    tertiary = Gray9F9F9F,
-    onTertiary = Gray121212,
+    tertiary = Ink3,
+    onTertiary = Ink,
 
-    background = Gray121212,
-    onBackground = White,
+    background = DarkBg,
+    onBackground = DarkOnSurface,
 
-    surface = Gray121212,
-    onSurface = OffWhite,
-    surfaceVariant = Gray222222,
-    onSurfaceVariant = GrayD9D9D9,
+    surface = DarkSurface,
+    onSurface = DarkOnSurface,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = DarkOnSurfaceVariant,
 
-    outline = Gray9F9F9F,
-    outlineVariant = Gray393433,
+    outline = DarkOutline,
+    outlineVariant = DarkOutlineVariant,
 
-    error = Color(0xFFFFB4AB),
-    onError = Color(0xFF690005),
+    error = LunarError,
+    onError = White,
 )
 
 val LocalColorScheme = staticCompositionLocalOf { LightColorScheme }
