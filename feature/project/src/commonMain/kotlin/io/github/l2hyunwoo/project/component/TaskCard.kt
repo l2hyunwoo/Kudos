@@ -1,7 +1,10 @@
 package io.github.l2hyunwoo.project.component
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,10 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,16 +41,29 @@ fun TaskCard(
     modifier: Modifier = Modifier
 ) {
     val colors = KudosTheme.colors
-    val cardShape = RoundedCornerShape(20.dp)
+    val cardShape = remember { RoundedCornerShape(20.dp) }
     val done = task.status.fraction >= 1f
 
+    // Subtle press-scale; read inside graphicsLayer (draw phase) so press transitions skip
+    // composition/layout. micro is a Float spec, so reduce-motion collapses it automatically.
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        animationSpec = KudosTheme.motion.micro,
+        label = "taskCardPressScale",
+    )
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(cardShape)
             .background(color = colors.surface.surface, shape = cardShape)
-            .clickable(onClick = onClick)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
     ) {
         // Left priority bar
         Box(

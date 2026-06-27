@@ -1,5 +1,12 @@
 package io.github.l2hyunwoo.tasks.detail
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +58,8 @@ import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.component.moon.MoonProgress
 import io.github.l2hyunwoo.core.design.component.moon.MoonToggle
 import io.github.l2hyunwoo.core.design.component.surface.glassSurface
+import io.github.l2hyunwoo.core.design.token.LunarDurationMicro
+import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
@@ -296,11 +305,19 @@ private fun StatusHero(
             onLongPress = onOpenPicker,
             size = 64.dp,
         )
-        Text(
-            text = status.label(),
-            style = KudosTheme.typography.titleMediumB,
-            color = KudosTheme.colors.ink.ink,
-        )
+        // Cross-fade the hero label when the status changes instead of snapping. standard is a Float
+        // spec, so reduce-motion collapses it for free.
+        Crossfade(
+            targetState = status,
+            animationSpec = KudosTheme.motion.standard,
+            label = "statusLabel",
+        ) { phase ->
+            Text(
+                text = phase.label(),
+                style = KudosTheme.typography.titleMediumB,
+                color = KudosTheme.colors.ink.ink,
+            )
+        }
         Text(
             text = "탭하여 다음 단계로 · 길게 눌러 선택",
             style = KudosTheme.typography.bodySmallR,
@@ -317,6 +334,10 @@ private fun PhasePickerSheet(
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    // Flip true on first composition so the rows animate in once; the per-row enter delay (below)
+    // produces the stagger. Held as state so it survives recomposition during the sheet's lifetime.
+    var rowsVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { rowsVisible = true }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -336,10 +357,14 @@ private fun PhasePickerSheet(
                 color = KudosTheme.colors.ink.ink,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
-            PhaseOrder.forEach { status ->
+            PhaseOrder.forEachIndexed { index, status ->
                 PhasePickerRow(
                     status = status,
                     isSelected = status == selected,
+                    visible = rowsVisible,
+                    // Light stagger: each row trails the previous by one micro step. Easing/duration
+                    // come from the Lunar tokens; only the per-index delay is computed here.
+                    enterDelayMillis = index * PhaseStaggerStepMillis,
                     onClick = { onSelect(status) },
                 )
             }
@@ -347,8 +372,49 @@ private fun PhasePickerSheet(
     }
 }
 
+// One micro step between staggered phase rows; kept small so 4 rows settle inside ~one standard beat.
+private const val PhaseStaggerStepMillis = LunarDurationMicro / 2
+
 @Composable
 private fun PhasePickerRow(
+    status: TaskStatus,
+    isSelected: Boolean,
+    visible: Boolean,
+    enterDelayMillis: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // Quick fade + small upward slide as each row enters, offset per row for the stagger. The exit is
+    // a no-op (the sheet itself slides away), so we only animate the appearance.
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(
+            animationSpec = tween(
+                durationMillis = LunarDurationMicro,
+                delayMillis = enterDelayMillis,
+                easing = LunarStandardEasing,
+            ),
+        ) + slideInVertically(
+            animationSpec = tween(
+                durationMillis = LunarDurationMicro,
+                delayMillis = enterDelayMillis,
+                easing = LinearOutSlowInEasing,
+            ),
+            initialOffsetY = { it / 4 },
+        ),
+        exit = fadeOut(animationSpec = tween(LunarDurationMicro)),
+    ) {
+        PhasePickerRowContent(
+            status = status,
+            isSelected = isSelected,
+            onClick = onClick,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun PhasePickerRowContent(
     status: TaskStatus,
     isSelected: Boolean,
     onClick: () -> Unit,

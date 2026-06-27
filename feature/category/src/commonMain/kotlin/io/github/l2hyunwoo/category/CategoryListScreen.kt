@@ -1,5 +1,6 @@
 package io.github.l2hyunwoo.category
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,12 +28,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.category.component.CategorySection
 import io.github.l2hyunwoo.category.component.CreateCategoryBottomSheet
 import io.github.l2hyunwoo.category.component.CreateProjectBottomSheet
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.Moon
+import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
+import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import androidx.compose.material3.Text
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
@@ -185,7 +189,21 @@ fun CategoryListScreen(
 
                     if (categoryIndex < uiState.categories.lastIndex) {
                         item(key = "spacer_${category.id}") {
-                            Spacer(modifier = Modifier.height(32.dp))
+                            // When search filters whole categories out, the remaining sections reflow
+                            // instead of snapping. The sticky header itself stays pinned (unanimated);
+                            // animating the spacer is enough to smooth the gap collapse.
+                            Spacer(
+                                modifier = Modifier
+                                    .height(32.dp)
+                                    .animateItem(
+                                        fadeInSpec = KudosTheme.motion.standard,
+                                        placementSpec = tween<IntOffset>(
+                                            LunarDurationStandard,
+                                            easing = LunarStandardEasing,
+                                        ),
+                                        fadeOutSpec = KudosTheme.motion.micro,
+                                    ),
+                            )
                         }
                     }
                 }

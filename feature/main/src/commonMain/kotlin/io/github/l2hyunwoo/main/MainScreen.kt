@@ -1,10 +1,18 @@
 package io.github.l2hyunwoo.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,11 +34,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ListAlt
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,6 +68,7 @@ import io.github.l2hyunwoo.category.rememberCategoryContextRetained
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.surface.glassSurface
 import io.github.l2hyunwoo.core.design.token.KudosShapes
+import io.github.l2hyunwoo.core.design.token.LunarDurationMicro
 import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
@@ -82,6 +95,8 @@ enum class MainTab {
 fun MainScreen(
     tasksContextFactory: TasksContext.Factory,
     categoryContextFactory: CategoryContext.Factory,
+    darkTheme: Boolean = false,
+    onToggleTheme: () -> Unit = {},
     onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> }
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.TASKS) }
@@ -126,27 +141,40 @@ fun MainScreen(
                     selectedTab = selectedTab,
                     searchQuery = searchQuery,
                     onSearchChange = { searchQuery = it },
+                    darkTheme = darkTheme,
+                    onToggleTheme = onToggleTheme,
                 )
                 Box(Modifier.fillMaxSize()) {
-                    when (selectedTab) {
-                        MainTab.TASKS -> {
-                            with(tasksContext) {
-                                TaskListEntryPoint(
-                                    eventFlow = tasksEventFlow,
-                                    onAddTask = { showCreateTaskSheet = true },
-                                    onNavigateToCategories = { selectedTab = MainTab.CATEGORIES },
-                                    searchQuery = searchQuery,
-                                )
+                    // Cross-fade the tab subtree instead of hard-swapping it (the reported tab-switch
+                    // flicker). standard is a Float spec, so reduce-motion collapses it for free.
+                    Crossfade(
+                        targetState = selectedTab,
+                        animationSpec = KudosTheme.motion.standard,
+                        label = "tabContent",
+                    ) { tab ->
+                        when (tab) {
+                            MainTab.TASKS -> {
+                                with(tasksContext) {
+                                    TaskListEntryPoint(
+                                        eventFlow = tasksEventFlow,
+                                        onAddTask = { showCreateTaskSheet = true },
+                                        onNavigateToCategories = { selectedTab = MainTab.CATEGORIES },
+                                        searchQuery = searchQuery,
+                                        // Reuse MainScreen's hoisted sky instead of letting the inner
+                                        // screen create a second one (stacked capture+blur).
+                                        sky = sky,
+                                    )
+                                }
                             }
-                        }
 
-                        MainTab.CATEGORIES -> {
-                            with(categoryContext) {
-                                CategoryListEntryPoint(
-                                    eventFlow = categoriesEventFlow,
-                                    searchQuery = searchQuery,
-                                    onNavigateToProjectDetail = onNavigateToProjectDetail
-                                )
+                            MainTab.CATEGORIES -> {
+                                with(categoryContext) {
+                                    CategoryListEntryPoint(
+                                        eventFlow = categoriesEventFlow,
+                                        searchQuery = searchQuery,
+                                        onNavigateToProjectDetail = onNavigateToProjectDetail
+                                    )
+                                }
                             }
                         }
                     }
@@ -202,6 +230,8 @@ private fun TodayHeader(
     selectedTab: MainTab,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
+    darkTheme: Boolean,
+    onToggleTheme: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -210,11 +240,18 @@ private fun TodayHeader(
             .windowInsetsPadding(WindowInsets.statusBars)
             .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 12.dp)
     ) {
-        Text(
-            text = "좋은 아침 ☾",
-            style = KudosTheme.typography.eyebrow,
-            color = KudosTheme.colors.brand.primary500,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "좋은 아침 ☾",
+                style = KudosTheme.typography.eyebrow,
+                color = KudosTheme.colors.brand.primary500,
+                modifier = Modifier.weight(1f),
+            )
+            ThemeToggleButton(darkTheme = darkTheme, onToggle = onToggleTheme)
+        }
         Spacer(Modifier.height(6.dp))
         Text(
             text = stringResource(
@@ -232,6 +269,36 @@ private fun TodayHeader(
         Spacer(Modifier.height(16.dp))
         // Search filters the task list (TASKS tab); on the categories tab it stays a passive field.
         SearchField(query = searchQuery, onQueryChange = onSearchChange)
+    }
+}
+
+@Composable
+private fun ThemeToggleButton(
+    darkTheme: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier
+            .size(36.dp)
+            // clip precedes clickable so the bounded ripple is masked to the circle.
+            .clip(PillShape)
+            .background(KudosTheme.colors.brand.primary050)
+            .clickable(
+                interactionSource = interaction,
+                indication = ripple(bounded = true),
+                onClick = onToggle,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        // Icon shows the mode the tap switches TO: a sun while dark, a moon while light.
+        Icon(
+            imageVector = if (darkTheme) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
+            contentDescription = if (darkTheme) "밝은 테마로 전환" else "어두운 테마로 전환",
+            tint = KudosTheme.colors.brand.primary500,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 
@@ -300,7 +367,10 @@ private fun GlassNavBar(
         modifier
             .fillMaxWidth()
             .height(64.dp)
-            .glassSurface(sky = sky, shape = PillShape),
+            .glassSurface(sky = sky, shape = PillShape)
+            // Inner inset so a selected item's pill never reaches the glass bar's rounded edge;
+            // without it the parent pill clip shears the item-pill's outer corner ("squished").
+            .padding(horizontal = 6.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
@@ -349,24 +419,60 @@ private fun NavBarItem(
         animationSpec = colorSpec,
     )
     val interaction = remember { MutableInteractionSource() }
-    Row(
-        modifier
-            .clip(PillShape)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .background(pillBg)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
+    val pressed by interaction.collectIsPressedAsState()
+    // Subtle press feedback: dip the pill on press, settle on release. micro is a Float spec so
+    // reduce-motion collapses it automatically.
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.94f else 1f,
+        animationSpec = KudosTheme.motion.micro,
+        label = "navPillScale",
+    )
+    // Outer = the weighted slot; an inner horizontal margin keeps the highlighted pill off the
+    // slot edge so its rounded corners stay intact. clip precedes clickable so the ripple is
+    // bounded to the pill shape, not the raw rectangular slot.
+    Box(
+        modifier.padding(horizontal = 4.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = content,
-            modifier = Modifier.size(22.dp),
-        )
-        if (selected) {
-            Spacer(Modifier.width(8.dp))
-            Text(text = label, style = KudosTheme.typography.labelLargeM, color = content)
+        Row(
+            Modifier
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .clip(PillShape)
+                .background(pillBg)
+                .clickable(
+                    interactionSource = interaction,
+                    indication = ripple(bounded = true),
+                    onClick = onClick,
+                )
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = content,
+                modifier = Modifier.size(22.dp),
+            )
+            // The label expands+fades in on selection instead of snapping, so the pill grows into
+            // its selected width. Typed specs rebuilt from the micro duration + standard easing.
+            AnimatedVisibility(
+                visible = selected,
+                enter = expandHorizontally(
+                    animationSpec = tween(LunarDurationStandard, easing = LunarStandardEasing),
+                ) + fadeIn(animationSpec = tween(LunarDurationStandard, easing = LunarStandardEasing)),
+                exit = shrinkHorizontally(
+                    animationSpec = tween(LunarDurationMicro, easing = LunarStandardEasing),
+                ) + fadeOut(animationSpec = tween(LunarDurationMicro, easing = LunarStandardEasing)),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = label, style = KudosTheme.typography.labelLargeM, color = content)
+                }
+            }
         }
     }
 }
@@ -380,9 +486,14 @@ private fun CenterAddButton(
     Box(
         modifier
             .size(48.dp)
+            // clip precedes clickable so the bounded ripple is masked to the circle.
             .clip(PillShape)
             .background(KudosTheme.colors.brand.primary600)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+            .clickable(
+                interactionSource = interaction,
+                indication = ripple(bounded = true),
+                onClick = onClick,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -450,7 +561,13 @@ private fun ChromePreviewScaffold() {
             .background(KudosTheme.colors.surface.bg)
     ) {
         Column(Modifier.fillMaxSize().sky(sky)) {
-            TodayHeader(selectedTab = tab, searchQuery = "", onSearchChange = {})
+            TodayHeader(
+                selectedTab = tab,
+                searchQuery = "",
+                onSearchChange = {},
+                darkTheme = false,
+                onToggleTheme = {},
+            )
         }
         GlassNavBar(
             selectedTab = tab,

@@ -1,7 +1,10 @@
 package io.github.l2hyunwoo.category.component
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,11 +27,13 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -49,14 +54,26 @@ fun ProjectRow(
     searchQuery: String = ""
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
-    val rowShape = RoundedCornerShape(16.dp)
-    val accent = Color(categoryColor.removePrefix("#").toLong(16) or 0xFF000000)
+    val rowShape = remember { RoundedCornerShape(16.dp) }
+    val accent = remember(categoryColor) {
+        Color(categoryColor.removePrefix("#").toLong(16) or 0xFF000000)
+    }
 
     // Resolve the periwinkle span color outside remember (theme read), then key on (title, query, color).
     val highlightColor = KudosTheme.colors.brand.primary600
     val titleText = remember(project.title, searchQuery, highlightColor) {
         highlighted(project.title, searchQuery, highlightColor)
     }
+
+    // Subtle press-scale on the solid row; read inside graphicsLayer (draw phase) so press
+    // transitions skip composition/layout. micro is a Float spec, so reduce-motion collapses it.
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        animationSpec = KudosTheme.motion.micro,
+        label = "projectRowPressScale",
+    )
 
     SwipeToDismissBox(
         state = dismissState,
@@ -88,9 +105,13 @@ fun ProjectRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
                 .background(color = KudosTheme.colors.surface.surface, shape = rowShape)
                 .clip(rowShape)
-                .clickable(onClick = onClick)
+                .clickable(interactionSource = interaction, indication = null, onClick = onClick)
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)

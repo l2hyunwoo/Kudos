@@ -1,7 +1,10 @@
 package io.github.l2hyunwoo.tasks.component
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,12 +28,14 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -100,13 +105,27 @@ private fun TaskRowContent(
     val title = remember(task.title, searchQuery, highlightColor) {
         highlightedTitle(task.title, searchQuery, highlightColor)
     }
+    // Subtle press-scale on the solid card (a ripple would read as heavy on a colored surface). The
+    // scale is read inside graphicsLayer (draw phase), so press transitions skip composition/layout.
+    // micro is a Float spec, so reduce-motion collapses it automatically.
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        animationSpec = KudosTheme.motion.micro,
+        label = "taskRowPressScale",
+    )
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .background(KudosTheme.colors.surface.surface, KudosTheme.shapes.row)
             .clip(KudosTheme.shapes.row)
-            .clickable(onClick = onClick)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
             // Done rows recede; the moon stays full to read the completion at a glance.
             .alpha(if (isDone) 0.6f else 1f),
         verticalAlignment = Alignment.CenterVertically,

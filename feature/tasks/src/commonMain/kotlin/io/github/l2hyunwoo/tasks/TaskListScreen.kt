@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
@@ -20,12 +21,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.skydoves.cloudy.Sky
 import com.skydoves.cloudy.rememberSky
 import com.skydoves.cloudy.sky
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.component.surface.glassSurface
+import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
+import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
 import io.github.l2hyunwoo.data.tasks.model.fixture
 import io.github.l2hyunwoo.tasks.component.TaskRow
@@ -40,11 +45,11 @@ fun TaskListScreen(
     categories: ImmutableList<TasksResponse.CategoryWithTasks>,
     modifier: Modifier = Modifier,
     searchQuery: String = "",
+    // Reuse the backdrop recorder hoisted by the parent (MainScreen) so a single sky records+blurs
+    // per visible screen. The default makes standalone usage (own nav route) self-contained.
+    sky: Sky = rememberSky(),
     onTaskClick: (String) -> Unit = {},
 ) {
-    // Hoist the backdrop recorder once at the screen root; the scroll container records it and the
-    // glass top bar (a descendant) blurs it.
-    val sky = rememberSky()
     val isEmpty = categories.all { it.tasks.isEmpty() }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -85,6 +90,16 @@ fun TaskListScreen(
                             task = task,
                             searchQuery = searchQuery,
                             onClick = { onTaskClick(task.id) },
+                            // Filtered/reordered rows fade+slide instead of snapping. fade specs are
+                            // Float (reduce-motion free); placement is rebuilt as an IntOffset spec.
+                            modifier = Modifier.animateItem(
+                                fadeInSpec = KudosTheme.motion.standard,
+                                placementSpec = tween<IntOffset>(
+                                    LunarDurationStandard,
+                                    easing = LunarStandardEasing,
+                                ),
+                                fadeOutSpec = KudosTheme.motion.micro,
+                            ),
                         )
                     }
                     if (categoryIndex < categories.lastIndex) {

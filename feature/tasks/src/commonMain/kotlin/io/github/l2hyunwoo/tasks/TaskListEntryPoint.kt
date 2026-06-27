@@ -6,6 +6,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import com.skydoves.cloudy.Sky
+import com.skydoves.cloudy.rememberSky
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
 import io.github.l2hyunwoo.kudos.core.soil.SoilBoundary
@@ -20,6 +22,8 @@ fun TaskListEntryPoint(
     onAddTask: () -> Unit = {},
     onNavigateToCategories: () -> Unit = {},
     searchQuery: String = "",
+    // Reuse the parent's backdrop recorder when given (MainScreen tab); standalone routes create one.
+    sky: Sky = rememberSky(),
 ) {
     val actualEventFlow = eventFlow ?: rememberEventFlow()
 
@@ -48,6 +52,7 @@ fun TaskListEntryPoint(
         TaskListScreen(
             categories = uiState.categories,
             searchQuery = uiState.searchQuery,
+            sky = sky,
         )
     }
 }

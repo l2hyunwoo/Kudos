@@ -1,5 +1,7 @@
 package io.github.l2hyunwoo.category.component
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,8 +34,11 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
+import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
 import kudos.feature.category.generated.resources.Res
@@ -128,7 +133,18 @@ fun CategorySection(
                 modifier = Modifier.padding(start = 16.dp)
             )
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Projects live in a plain Column (not LazyColumn), so animateItem is unavailable here.
+            // animateContentSize smooths the section's height when search filters projects in/out,
+            // instead of snapping. Spec rebuilt from the standard duration + easing tokens (IntSize).
+            Column(
+                modifier = Modifier.animateContentSize(
+                    animationSpec = tween<IntSize>(
+                        LunarDurationStandard,
+                        easing = LunarStandardEasing,
+                    ),
+                ),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 category.projects.forEach { project ->
                     key(project.id) {
                         ProjectRow(
