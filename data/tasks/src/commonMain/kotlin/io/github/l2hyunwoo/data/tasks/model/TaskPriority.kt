@@ -9,14 +9,14 @@ enum class TaskPriority(
     val color: Long
 ) {
     @SerialName("urgent")
-    URGENT("Urgent", 0xFFE53E3E),
+    URGENT("Urgent", 0xFFF2555A),
 
     @SerialName("high")
-    HIGH("High", 0xFFFFA500),
+    HIGH("High", 0xFFF2994A),
 
     @SerialName("medium")
-    MEDIUM("Medium", 0xFFFDD835),
+    MEDIUM("Medium", 0xFFEAC44E),
 
     @SerialName("low")
-    LOW("Low", 0xFF4CAF50),
+    LOW("Low", 0xFF54C08A),
 }
