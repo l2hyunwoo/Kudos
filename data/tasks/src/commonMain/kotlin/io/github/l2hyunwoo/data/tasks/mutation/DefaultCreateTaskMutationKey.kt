@@ -5,9 +5,13 @@ import dev.zacsweers.metro.Inject
 import io.github.l2hyunwoo.data.tasks.api.TasksApiClient
 import io.github.l2hyunwoo.data.tasks.cache.TasksCacheDataStore
 import io.github.l2hyunwoo.data.tasks.model.CreateTaskMutationKey
+import io.github.l2hyunwoo.data.tasks.model.CreateTaskRequest
+import io.github.l2hyunwoo.data.tasks.query.TasksQueryId
 import io.github.l2hyunwoo.kudos.core.common.DataScope
 import soil.query.MutationId
 import soil.query.buildMutationKey
+import soil.query.core.Effect
+import soil.query.queryClient
 
 @ContributesBinding(DataScope::class)
 @Inject
@@ -21,4 +25,10 @@ class DefaultCreateTaskMutationKey(
 
         cacheDataStore.clear()
     }
-)
+) {
+    // clear() above only wipes the DataStore preload; it does not touch Soil's in-memory query cache.
+    // Invalidate tasks_query so active rememberQuery subscribers refetch and the new subtask appears.
+    override fun onMutateEffect(variable: CreateTaskRequest, data: Unit): Effect = {
+        queryClient.invalidateQueriesBy(TasksQueryId)
+    }
+}

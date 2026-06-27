@@ -11,13 +11,17 @@ import soil.query.QueryKey
 import soil.query.QueryPreloadData
 import soil.query.buildQueryKey
 
+// Single source of truth for the tasks query id, shared with the mutation keys so their
+// onMutateEffect invalidations target exactly this query (and the type argument matches).
+val TasksQueryId = QueryId<List<TasksResponse.CategoryWithTasks>>("tasks_query")
+
 @ContributesBinding(DataScope::class)
 @Inject
 class DefaultTasksQueryKey(
     private val apiClient: TasksApiClient,
     private val dataStore: TasksCacheDataStore,
 ) : QueryKey<List<TasksResponse.CategoryWithTasks>> by buildQueryKey(
-    id = QueryId("tasks_query"),
+    id = TasksQueryId,
     fetch = {
         val response = apiClient.getTasks()
         dataStore.save(response)
