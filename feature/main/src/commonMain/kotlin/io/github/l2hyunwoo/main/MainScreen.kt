@@ -126,8 +126,9 @@ fun MainScreen(
     // Categories is no longer a nav tab (option c-1): it is reached from a header action and shown as
     // a full-screen in-place overlay that keeps the glass chrome, so no new nav route is needed.
     var showCategories by rememberSaveable { mutableStateOf(false) }
-    var showCreateTaskSheet by remember { mutableStateOf(false) }
-    var showCreateCategorySheet by remember { mutableStateOf(false) }
+    // Saveable so an open sheet (and the in-progress form state it holds) survives config changes.
+    var showCreateTaskSheet by rememberSaveable { mutableStateOf(false) }
+    var showCreateCategorySheet by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
 
     val tasksContext = with(tasksContextFactory) {

@@ -21,10 +21,12 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -33,14 +35,17 @@ import io.github.l2hyunwoo.core.design.component.button.GhostButton
 import io.github.l2hyunwoo.core.design.component.button.PrimaryButton
 import io.github.l2hyunwoo.core.design.component.sheet.KudosBottomSheet
 import io.github.l2hyunwoo.data.categories.model.Category
-import io.github.l2hyunwoo.data.categories.model.Project
 import io.github.l2hyunwoo.data.tasks.model.CreateTaskRequest
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.tasks.DueOption
 import io.github.l2hyunwoo.tasks.dueOptionToIso
+import io.github.l2hyunwoo.tasks.formatDueLabel
 import io.github.l2hyunwoo.tasks.isoFromEpochDay
+import io.github.l2hyunwoo.tasks.todayIso
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import kudos.feature.tasks.generated.resources.Res
 import kudos.feature.tasks.generated.resources.add_description
@@ -78,27 +83,40 @@ fun CreateTaskBottomSheet(
         skipPartiallyExpanded = true
     )
     val scope = rememberCoroutineScope()
-    var selectedCategory by remember { mutableStateOf<Category?>(null) }
-    var selectedProject by remember { mutableStateOf<Project?>(null) }
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var selectedPriority by remember { mutableStateOf(TaskPriority.MEDIUM) }
-    var selectedStatus by remember { mutableStateOf(TaskStatus.TODO) }
-    var selectedDue by remember { mutableStateOf(DueOption.NONE) }
-    var pickedIso by remember { mutableStateOf<String?>(null) }
-    var showDatePicker by remember { mutableStateOf(false) }
+    // Selection is persisted by id (a Saveable String) rather than the Category/Project object, so the
+    // in-progress form survives config changes (rotation, theme toggle). The objects are resolved from
+    // the live [categories] each composition.
+    var selectedCategoryId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedProjectId by rememberSaveable { mutableStateOf<String?>(null) }
+    var title by rememberSaveable { mutableStateOf("") }
+    var description by rememberSaveable { mutableStateOf("") }
+    var selectedPriority by rememberSaveable { mutableStateOf(TaskPriority.MEDIUM) }
+    var selectedStatus by rememberSaveable { mutableStateOf(TaskStatus.TODO) }
+    var selectedDue by rememberSaveable { mutableStateOf(DueOption.NONE) }
+    var pickedIso by rememberSaveable { mutableStateOf<String?>(null) }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
 
+    val selectedCategory = remember(selectedCategoryId, categories) {
+        categories.find { it.id == selectedCategoryId }
+    }
     val availableProjects = remember(selectedCategory) {
-        selectedCategory?.projects ?: emptyList()
+        selectedCategory?.projects?.toImmutableList() ?: persistentListOf()
+    }
+    val selectedProject = remember(selectedProjectId, availableProjects) {
+        availableProjects.find { it.id == selectedProjectId }
     }
 
+    // Clear a stale project id when the chosen category no longer contains it.
     LaunchedEffect(selectedCategory) {
-        if (selectedProject != null && !availableProjects.contains(selectedProject)) {
-            selectedProject = null
+        if (selectedProjectId != null && availableProjects.none { it.id == selectedProjectId }) {
+            selectedProjectId = null
         }
     }
 
-    val isValid = selectedCategory != null && title.isNotBlank()
+    // derivedStateOf confines title-driven recomposition to the create button's enabled read.
+    val isValid by remember {
+        derivedStateOf { selectedCategoryId != null && title.isNotBlank() }
+    }
 
     KudosBottomSheet(
         onDismissRequest = onDismiss,
@@ -156,8 +174,8 @@ fun CreateTaskBottomSheet(
                         categories.forEach { category ->
                             LunarSelectableChip(
                                 label = "${category.prefix} · ${category.title}",
-                                selected = selectedCategory == category,
-                                onClick = { selectedCategory = category }
+                                selected = selectedCategoryId == category.id,
+                                onClick = { selectedCategoryId = category.id }
                             )
                         }
                     }
@@ -172,14 +190,14 @@ fun CreateTaskBottomSheet(
                     ) {
                         LunarSelectableChip(
                             label = stringResource(Res.string.no_project),
-                            selected = selectedProject == null,
-                            onClick = { selectedProject = null }
+                            selected = selectedProjectId == null,
+                            onClick = { selectedProjectId = null }
                         )
                         availableProjects.forEach { project ->
                             LunarSelectableChip(
                                 label = project.title,
-                                selected = selectedProject == project,
-                                onClick = { selectedProject = project }
+                                selected = selectedProjectId == project.id,
+                                onClick = { selectedProjectId = project.id }
                             )
                         }
                     }
@@ -189,7 +207,9 @@ fun CreateTaskBottomSheet(
 
                 LunarFormSection(title = stringResource(Res.string.status).uppercase()) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TaskStatus.entries.forEach { status ->
+                        // Waxing phase order (new -> full) so the moon glyphs read as a progression,
+                        // not the enum's declaration order (which puts Backlog/new-moon last).
+                        StatusCardOrder.forEach { status ->
                             LunarStatusCard(
                                 fraction = status.fraction,
                                 label = stringResource(status.labelRes()),
@@ -231,8 +251,10 @@ fun CreateTaskBottomSheet(
                             onClick = { selectedDue = DueOption.THIS_WEEK }
                         )
                         LunarSelectableChip(
-                            // Show the chosen date on the Pick chip once one exists.
-                            label = pickedIso ?: stringResource(Res.string.due_pick),
+                            // Once a date is chosen, show it as a friendly relative label (오늘/내일/N일 후/
+                            // M월 d일) via the same formatter the task rows use, instead of the raw ISO.
+                            label = pickedIso?.let { formatDueLabel(it, todayIso()) }
+                                ?: stringResource(Res.string.due_pick),
                             selected = selectedDue == DueOption.PICK,
                             onClick = {
                                 selectedDue = DueOption.PICK
@@ -327,6 +349,14 @@ fun CreateTaskBottomSheet(
         }
     }
 }
+
+// Status cards in waxing-moon order (new -> full): Backlog, To Do, In Progress, Done.
+private val StatusCardOrder = listOf(
+    TaskStatus.BACKLOG,
+    TaskStatus.TODO,
+    TaskStatus.IN_PROGRESS,
+    TaskStatus.DONE,
+)
 
 // Status enum -> localized label resource.
 private fun TaskStatus.labelRes(): StringResource = when (this) {
