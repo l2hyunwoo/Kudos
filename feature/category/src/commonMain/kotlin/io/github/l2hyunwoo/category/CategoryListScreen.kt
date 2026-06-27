@@ -6,8 +6,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
@@ -89,7 +92,6 @@ fun CategoryListScreen(
 
             when (result) {
                 SnackbarResult.ActionPerformed -> {
-                    // Undo clicked: restore the project
                     eventFlow.tryEmit(
                         CategoryListEvent.UndoDeleteProject(
                             deleted.categoryId,
@@ -132,9 +134,11 @@ fun CategoryListScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
                 contentPadding = PaddingValues(
-                    // Clear the glass header owned by the parent; sections beyond it scroll under it.
+                    // Clear the glass header (top) and the floating glass nav bar (bottom: 64dp bar +
+                    // 32dp margin + system inset + 16dp), so the last section isn't hidden under it.
                     top = topContentPadding,
-                    bottom = 16.dp,
+                    bottom = 64.dp + 32.dp +
+                        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {

@@ -40,6 +40,7 @@ import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.tasks.model.Task
@@ -192,7 +193,9 @@ private fun ColumnHeader(status: TaskStatus, count: Int) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(text = status.text, style = KudosTheme.typography.bodyMediumR)
+        // Drawn Moon (not status.text emoji) so the phase glyph renders on iOS too — raw moon emoji
+        // show as tofu on iOS/skiko.
+        Moon(k = status.fraction, size = 16.dp)
         Text(
             text = status.koLabel(),
             style = KudosTheme.typography.eyebrow,

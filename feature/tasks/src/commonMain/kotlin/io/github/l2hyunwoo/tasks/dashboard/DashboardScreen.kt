@@ -9,12 +9,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,12 +34,8 @@ import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.component.moon.MoonProgress
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
+import io.github.l2hyunwoo.tasks.rememberNavBarClearance
 import kotlin.math.roundToInt
-
-// Mirrors MainScreen's GlassNavBar footprint (height + vertical margin) so the scroll content can
-// reserve room to clear the floating bar at the bottom.
-private val NavBarHeight = 64.dp
-private val NavBarVerticalMargin = 16.dp
 
 // Read-only summary screen rendered by the Tasks feature. Embedded-style: no chrome of its own —
 // MainScreen owns the glass header/nav, so this only reserves [topContentPadding] up top and scrolls
@@ -57,11 +50,9 @@ fun DashboardScreen(
         if (uiState.totalCount == 0) {
             EmptyDashboard(topContentPadding = topContentPadding)
         } else {
-            // The floating glass nav bar (64dp + 16dp vertical margin each side, over the system nav
-            // inset) is a MainScreen sibling drawn ON TOP of this scroll area, so reserve its full
-            // footprint at the bottom — otherwise the last card scrolls under it and can't be reached.
-            val navBarClearance = NavBarHeight + NavBarVerticalMargin * 2 +
-                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp
+            // Reserve the floating glass nav bar's footprint at the bottom — it's a MainScreen sibling
+            // drawn ON TOP of this scroll area, so without this the last card scrolls under it.
+            val navBarClearance = rememberNavBarClearance()
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -146,7 +137,7 @@ private fun StatusDistributionCard(statusCounts: Map<TaskStatus, Int>) {
             // Stable key by enum: the row identity never reorders, only the fraction animates.
             StatBar(
                 key = status,
-                leading = status.text,
+                leadingMoonPhase = status.fraction,
                 label = status.koLabel(),
                 count = count,
                 fraction = count.toFloat() / maxCount.toFloat(),
@@ -171,7 +162,7 @@ private fun PriorityDistributionCard(priorityCounts: Map<TaskPriority, Int>) {
         ordered.forEachIndexed { index, (priority, count) ->
             StatBar(
                 key = priority,
-                leading = null,
+                leadingMoonPhase = null,
                 label = priority.koLabel(),
                 count = count,
                 fraction = count.toFloat() / maxCount.toFloat(),
@@ -188,7 +179,9 @@ private fun PriorityDistributionCard(priorityCounts: Map<TaskPriority, Int>) {
 @Composable
 private fun StatBar(
     key: Any,
-    leading: String?,
+    // Moon phase for a leading glyph, or null for none. A drawn Moon (not an emoji) so it renders
+    // identically on Android and iOS — raw moon emoji show as tofu on iOS/skiko.
+    leadingMoonPhase: Float?,
     label: String,
     count: Int,
     fraction: Float,
@@ -204,8 +197,8 @@ private fun StatBar(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (leading != null) {
-                Text(text = leading, style = KudosTheme.typography.bodyMediumR)
+            if (leadingMoonPhase != null) {
+                Moon(k = leadingMoonPhase, size = 16.dp)
                 Spacer(Modifier.width(8.dp))
             }
             Text(

@@ -161,9 +161,10 @@ fun TaskListScreen(
                     state = lazyListState,
                     modifier = listModifier,
                     contentPadding = PaddingValues(
-                        // Clear the glass header owned by the parent; rows beyond it scroll under it.
+                        // Clear the glass header (top) and the floating glass nav bar (bottom); rows
+                        // beyond them scroll under the translucent chrome.
                         top = topContentPadding,
-                        bottom = 16.dp,
+                        bottom = rememberNavBarClearance(),
                     ),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
