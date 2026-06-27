@@ -18,5 +18,8 @@ data class CreateTaskRequest(
     @SerialName("status")
     val status: TaskStatus = TaskStatus.TODO,
     @SerialName("due_date")
-    val dueDate: String? = null
+    val dueDate: String? = null,
+    // Parent task UUID for subtasks; absent (omitted via explicitNulls=false) for top-level tasks.
+    @SerialName("parent_task_id")
+    val parentTaskId: String? = null,
 )
