@@ -17,10 +17,8 @@ class DefaultCreateTaskMutationKey(
 ) : CreateTaskMutationKey by buildMutationKey(
     id = MutationId("create_task"),
     mutate = { request ->
-        // 1. Create task via API
         apiClient.createTask(request)
 
-        // 2. Invalidate cache to trigger refresh
         cacheDataStore.clear()
     }
 )

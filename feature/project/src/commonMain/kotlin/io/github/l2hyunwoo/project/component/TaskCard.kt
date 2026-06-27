@@ -65,7 +65,6 @@ fun TaskCard(
             .background(color = colors.surface.surface, shape = cardShape)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
     ) {
-        // Left priority bar
         Box(
             modifier = Modifier
                 .width(4.dp)

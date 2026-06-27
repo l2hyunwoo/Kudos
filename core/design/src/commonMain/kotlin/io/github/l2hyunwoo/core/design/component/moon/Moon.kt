@@ -109,7 +109,7 @@ private fun buildShadowPath(
     circleBounds: Rect,
 ) {
     path.rewind()
-    path.moveTo(cx, cy - r) // top
+    path.moveTo(cx, cy - r)
     path.arcTo(circleBounds, startAngleDegrees = 270f, sweepAngleDegrees = -180f, forceMoveTo = false)
     val rx = r * abs(1f - 2f * k)
     if (rx < 0.01f) {

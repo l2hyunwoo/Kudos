@@ -59,7 +59,6 @@ fun EditProjectBottomSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Title TextField
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },

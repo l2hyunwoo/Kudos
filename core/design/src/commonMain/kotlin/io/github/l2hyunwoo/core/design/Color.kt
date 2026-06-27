@@ -28,7 +28,6 @@ private val DarkOnSurfaceVariant = Color(0xFFB4B2C4)
 private val DarkOutline = Color(0xFF3A3950)
 private val DarkOutlineVariant = Color(0xFF2B2A38)
 
-// Light Theme ColorScheme
 val LightColorScheme = lightColorScheme(
     primary = Periwinkle600,
     onPrimary = White,
@@ -58,7 +57,6 @@ val LightColorScheme = lightColorScheme(
     onError = White,
 )
 
-// Dark Theme ColorScheme
 val DarkColorScheme = darkColorScheme(
     primary = Periwinkle400,
     onPrimary = Ink,

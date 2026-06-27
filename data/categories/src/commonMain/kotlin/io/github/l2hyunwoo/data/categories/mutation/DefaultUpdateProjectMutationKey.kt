@@ -19,7 +19,6 @@ class DefaultUpdateProjectMutationKey(
     mutate = { params ->
         val previousCache = cacheDataStore.getCacheSync()
 
-        // Optimistic update: update project in the category
         val optimisticList = previousCache?.map { category ->
             if (category.id == params.categoryId) {
                 category.copy(
@@ -42,7 +41,6 @@ class DefaultUpdateProjectMutationKey(
                 return@buildMutationKey optimisticList
             }
 
-            // API call → returns updated list
             val updatedCategories = apiClient.updateProject(
                 params.categoryId,
                 params.projectId,

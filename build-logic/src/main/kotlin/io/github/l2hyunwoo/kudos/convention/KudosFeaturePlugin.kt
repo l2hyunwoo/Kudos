@@ -32,7 +32,6 @@ class KudosFeaturePlugin : Plugin<Project> {
 
         composeMultiplatformDependencies()
 
-        // Configure BuildConfig
         extensions.configure<BuildConfigExtension> {
             val supabaseUrl = getLocalProperty("SUPABASE_URL", "")
             val supabaseAnonKey = getLocalProperty("SUPABASE_ANON_KEY", "")
@@ -48,7 +47,6 @@ class KudosFeaturePlugin : Plugin<Project> {
                         implementation(project(":core:common"))
                         implementation(project(":core:design"))
                         implementation(project(":core:soil"))
-                        // implementation(project(":core:navigation"))
                         implementation(libs.library("androidx-navigation-compose"))
                         implementation(libs.library("androidx-lifecycle-runtimeCompose"))
                     }

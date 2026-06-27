@@ -29,7 +29,6 @@ class DefaultDeleteCategoryMutationKey(
                 return@buildMutationKey optimisticList
             }
 
-            // API call → returns updated list
             val updatedCategories = apiClient.deleteCategory(categoryId)
             cacheDataStore.save(updatedCategories)
             updatedCategories

@@ -44,7 +44,6 @@ class DefaultCreateProjectMutationKey(
                 return@buildMutationKey optimisticList
             }
 
-            // API call → returns updated list
             val updatedCategories = apiClient.createProject(params.categoryId, params.request)
             cacheDataStore.save(updatedCategories)
             updatedCategories

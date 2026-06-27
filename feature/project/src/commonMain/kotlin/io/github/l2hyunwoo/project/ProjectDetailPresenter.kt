@@ -25,11 +25,9 @@ fun projectDetailPresenter(
     eventFlow: EventFlow<ProjectDetailEvent>,
     onNavigateBack: () -> Unit
 ): ProjectDetailUiState {
-    // Query for project tasks
     val tasksQueryKey = remember(projectId) { context.projectTasksQueryKeyFactory.create(projectId) }
     val tasksQuery = rememberQuery(tasksQueryKey)
 
-    // Mutation for updating project
     val updateProjectMutation = rememberMutation(context.updateProjectMutation)
 
     var title by remember { mutableStateOf(initialTitle) }

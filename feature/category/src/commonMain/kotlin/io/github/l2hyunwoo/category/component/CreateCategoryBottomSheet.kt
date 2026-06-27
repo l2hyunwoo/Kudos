@@ -64,7 +64,6 @@ fun CreateCategoryBottomSheet(
                 .fillMaxSize()
                 .imePadding()
         ) {
-            // Scrollable content area
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -109,7 +108,6 @@ fun CreateCategoryBottomSheet(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Fixed action buttons at bottom
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

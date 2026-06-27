@@ -198,7 +198,6 @@ data class KudosTypography(
         lineHeight = 16.sp,
     ),
 
-    // Lunar additions.
     // Small uppercase section label (Space Grotesk), wide tracking.
     val eyebrow: TextStyle = displayDefault.copy(
         fontSize = 12.5.sp,

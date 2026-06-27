@@ -316,7 +316,6 @@ fun MainScreen(
         }
     }
 
-    // Create Task Bottom Sheet
     if (showCreateTaskSheet) {
         with(categoryContext) {
             val categoriesQuery = rememberQuery(categoriesQuery)
@@ -333,7 +332,6 @@ fun MainScreen(
         }
     }
 
-    // Create Category Bottom Sheet
     if (showCreateCategorySheet) {
         with(categoryContext) {
             CreateCategoryBottomSheet(

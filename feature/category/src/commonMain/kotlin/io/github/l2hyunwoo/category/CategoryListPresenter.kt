@@ -45,11 +45,9 @@ fun categoryListPresenter(
                 deletedProject = DeletedProjectInfo(event.categoryId, event.project)
             }
             is CategoryListEvent.UndoDeleteProject -> {
-                // Clear the deletedProject state (cancel deletion)
                 deletedProject = null
             }
             is CategoryListEvent.ConfirmDeleteProject -> {
-                // Actually delete via API
                 deleteProjectMutation.mutate(
                     DeleteProjectParams(event.categoryId, event.projectId)
                 )

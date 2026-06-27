@@ -21,7 +21,6 @@ class DefaultCreateCategoryMutationKey(
 ) : CreateCategoryMutationKey by buildMutationKey(
     id = MutationId("create_category"),
     mutate = { request ->
-        // 1. Backup current cache
         val previousCache = cacheDataStore.getCacheSync()
 
         // 2. Optimistic update: add immediately with temp ID
@@ -38,13 +37,10 @@ class DefaultCreateCategoryMutationKey(
         cacheDataStore.save(optimisticList)
 
         try {
-            // 3. API call → returns updated list
             val updatedCategories = apiClient.createCategory(request)
 
-            // 4. Update cache with server response
             cacheDataStore.save(updatedCategories)
 
-            // 5. Return as mutation result
             updatedCategories
         } catch (e: Exception) {
             // 6. Rollback on failure

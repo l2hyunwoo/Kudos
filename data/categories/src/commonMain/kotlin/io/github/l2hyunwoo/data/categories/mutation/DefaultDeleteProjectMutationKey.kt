@@ -19,7 +19,6 @@ class DefaultDeleteProjectMutationKey(
     mutate = { params ->
         val previousCache = cacheDataStore.getCacheSync()
 
-        // Optimistic update: remove project from the category
         val optimisticList = previousCache?.map { category ->
             if (category.id == params.categoryId) {
                 category.copy(projects = category.projects.filterNot { it.id == params.projectId })
@@ -33,7 +32,6 @@ class DefaultDeleteProjectMutationKey(
                 return@buildMutationKey optimisticList
             }
 
-            // API call → returns updated list
             val updatedCategories = apiClient.deleteProject(params.categoryId, params.projectId)
             cacheDataStore.save(updatedCategories)
             updatedCategories

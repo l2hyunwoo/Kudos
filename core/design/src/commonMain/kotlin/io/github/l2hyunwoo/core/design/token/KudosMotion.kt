@@ -7,12 +7,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 
-// Lunar easing curves.
 val LunarStandardEasing: Easing = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 val LunarEmphasizedEasing: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 val LunarOvershootEasing: Easing = CubicBezierEasing(0.34f, 1.4f, 0.64f, 1f)
 
-// Durations (ms).
 const val LunarDurationMicro = 120
 const val LunarDurationStandard = 240
 const val LunarDurationScreenPush = 360

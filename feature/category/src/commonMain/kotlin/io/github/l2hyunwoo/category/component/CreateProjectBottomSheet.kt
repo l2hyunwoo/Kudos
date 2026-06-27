@@ -63,7 +63,6 @@ fun CreateProjectBottomSheet(
                 .fillMaxSize()
                 .imePadding()
         ) {
-            // Scrollable content area
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -101,7 +100,6 @@ fun CreateProjectBottomSheet(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Fixed action buttons at bottom
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

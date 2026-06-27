@@ -74,7 +74,6 @@ fun CategorySection(
     }
 
     Column(modifier = modifier.fillMaxWidth()) {
-        // Category Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -124,7 +123,6 @@ fun CategorySection(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Projects List
         if (category.projects.isEmpty()) {
             Text(
                 text = stringResource(Res.string.no_projects_yet),
