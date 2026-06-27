@@ -153,7 +153,15 @@ private class SkyModifierNode(var sky: Sky) :
   private var positionInRoot: Offset = Offset.Zero
 
   // Stable invalidator the frame driver pumps each scroll frame to re-capture the moved backdrop.
-  private val recapture: () -> Unit = { if (isAttached) invalidateDraw() }
+  // Also advances contentVersion so the API < 31 bitmap-blur cache (keyed on it) recomputes while
+  // scrolling. Safe from the original idle loop: this runs ONLY inside the driver's active refresh
+  // window (which self-terminates), never on an idle draw, so the snapshot write cannot self-sustain.
+  private val recapture: () -> Unit = {
+    if (isAttached) {
+      sky.incrementContentVersion()
+      invalidateDraw()
+    }
+  }
 
   // Forward descendant scroll/fling deltas to the frame driver: this is the precise "the backdrop is
   // moving now" signal the draw phase lacks (a LazyColumn scroll does not re-invoke this recorder's
@@ -371,19 +379,11 @@ private class CloudyBackgroundModifierNode(
   }
 
   override fun ContentDrawScope.draw() {
-    // While THIS sky is being recorded (by any of its `Modifier.sky` recorders), this overlay draws
-    // NOTHING and returns. Two reasons it must be fully absent from the blur source:
-    //
-    // 1. Cycle prevention (https://github.com/skydoves/Cloudy/issues/112): drawing the blur layer
-    //    here would record a layer that samples a backdrop layer of this sky INTO the layer being
-    //    captured — a cyclic RenderNode graph that overflows the render thread stack.
-    // 2. Backdrop purity: a `cloudy` surface is a BACKGROUND-only material; its foreground (a glass
-    //    bar's title, nav-bar labels) lives OUTSIDE the `Modifier.sky` recorder, as a sibling of the
-    //    recorded content (see glassSurface KDoc). So during capture there is no foreground here to
-    //    preserve — calling `drawContent()` would only fold this overlay's own pixels back into the
-    //    backdrop it blurs, producing a brighter non-uniform "band" where its content sits.
-    //
-    // The capture counter is per-`Sky`, so independent skys are unaffected.
+    // Draw nothing while this sky is recording: the overlay must be absent from the blur source,
+    // else its blur layer (which samples the backdrop) is recorded into the backdrop — a cyclic
+    // RenderNode graph that crashes the render thread (issues/112). A `cloudy` surface is
+    // background-only; its foreground lives outside the recorder, so nothing is lost here. See
+    // [Sky.isCapturing].
     if (sky.isCapturing) {
       return
     }

@@ -15,8 +15,8 @@
  */
 package com.skydoves.cloudy
 
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -87,30 +87,17 @@ public class Sky internal constructor() {
   internal var sourceBounds: Rect = Rect.Zero
 
   /**
-   * `true` while THIS sky's single [Modifier.sky] recorder is recording the blur source into a
-   * [GraphicsLayer].
+   * `true` while this sky's [Modifier.sky] recorder is recording the blur source.
    *
-   * A backdrop [Modifier.cloudy] overlay is, by design, a descendant of the [Modifier.sky]
-   * container, so the sky's capture pass re-enters the overlay's own draw. The overlay reads
-   * [isCapturing] and draws NOTHING during the capture, so it is fully absent from the blur source:
-   * if it drew its BLUR (which samples [backgroundLayer]) into the layer being recorded, that layer
-   * would reference a layer that samples it — a cyclic `RenderNode` graph that overflows the render
-   * thread stack (https://github.com/skydoves/Cloudy/issues/112). [Modifier.sky] then draws its
-   * subtree to the window in a second pass with the flag back to `false`, during which the overlay
-   * paints its blurred backdrop straight to the window canvas (its foreground lives OUTSIDE the
-   * recorder — see [Modifier.sky]).
+   * A backdrop [Modifier.cloudy] overlay is a descendant of the recorder, so the capture pass
+   * re-enters the overlay's draw. The overlay reads this and draws NOTHING during capture: if it
+   * drew its blur (which samples [backgroundLayer]) into the layer being recorded, that layer would
+   * sample a layer that samples it — a cyclic `RenderNode` graph that overflows the render thread
+   * stack (https://github.com/skydoves/Cloudy/issues/112).
    *
-   * A boolean, not a counter: a [Sky] drives exactly ONE [Modifier.sky] recorder — the single
-   * backdrop-recording container per screen. Nesting two recorders of the same sky is unsupported
-   * (it would also fold an inner recorder's content into the outer's blur source). Verified on this
-   * app: the recorder depth never exceeds 1 across tab swaps and nav push/pop.
-   *
-   * Scoped to this [Sky] instance (not process-global): an overlay of a *different*, independent
-   * sky is never suppressed by this sky's capture, so concurrent independent skys (e.g. two screens
-   * mid-navigation) keep blurring with no false positives.
-   *
-   * Plain (non-snapshot) [Boolean]: capture and the nested draws it triggers run synchronously on
-   * the same draw pass on one thread, so no recomposition or cross-thread visibility is needed.
+   * Scoped to this instance, so an overlay of a different sky is never suppressed. Supports exactly
+   * ONE recorder per sky (the single backdrop container per screen). Plain (non-snapshot): capture
+   * and the nested draws run synchronously on one draw pass, so no snapshot observation is needed.
    */
   internal var isCapturing: Boolean = false
 
@@ -127,16 +114,10 @@ public class Sky internal constructor() {
   /**
    * Per-frame refresh driver that keeps the blur tracking the backdrop while content moves.
    *
-   * Why this exists: a `Modifier.sky` recorder placed on a NON-scrolling container (the common and
-   * recommended layout — putting it on the scrolling list itself eats scroll gestures) is never
-   * draw-invalidated by the list scrolling underneath it. Its captured [backgroundLayer] would
-   * freeze at the pre-scroll content while the list moves, so the glass overlay would blur a stale
-   * backdrop (or keep a frozen composited blur while sharp rows scroll behind it). The driver
-   * invalidates the recorder + overlays each frame so the capture and the blur stay current.
-   *
-   * It runs ONLY while a window frame is being produced for some other reason (scroll, animation):
-   * it parks on [withFrameNanos] and stops requesting frames once the backdrop settles, so the app
-   * still goes fully idle (zero frames) when untouched. @see SkyFrameDriver.
+   * A `Modifier.sky` recorder on a non-scrolling container is not draw-invalidated by a list
+   * scrolling underneath it, so its [backgroundLayer] would freeze while the list moves. The driver
+   * re-invalidates the recorder + overlays while scrolling, then parks so the app idles at zero
+   * frames when untouched. @see SkyFrameDriver.
    */
   internal val frameDriver: SkyFrameDriver = SkyFrameDriver()
 
@@ -185,6 +166,17 @@ public class Sky internal constructor() {
   public fun invalidate() {
     incrementContentVersion()
     frameDriver.requestRefresh()
+  }
+
+  /**
+   * Invalidates the background content for an ANIMATED change lasting [durationMillis], keeping the
+   * blur refreshing for that whole duration. A plain [invalidate] only arms a short settle tail, so
+   * a longer animation (e.g. a cross-fade between two backdrops) would freeze the blur partway once
+   * the tail elapses. Pass the animation's duration so the blur tracks it to completion.
+   */
+  public fun invalidate(durationMillis: Long) {
+    incrementContentVersion()
+    frameDriver.requestRefresh(durationMillis)
   }
 }
 

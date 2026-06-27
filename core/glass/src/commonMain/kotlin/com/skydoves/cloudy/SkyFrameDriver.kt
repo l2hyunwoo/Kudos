@@ -22,32 +22,24 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
- * Keeps a [Sky]'s captured backdrop and its [Modifier.cloudy] overlays refreshing WHILE content
- * behind the glass is scrolling, then parks so the app reaches zero frames at idle.
- *
- * ## Why a driver is needed
+ * Keeps a [Sky]'s captured backdrop and its [Modifier.cloudy] overlays refreshing while content
+ * behind the glass moves (scroll, animation), then parks so the app idles at zero frames.
  *
  * A `Modifier.sky` recorder re-records the backdrop only when its own `draw()` runs, and an overlay
- * re-blurs only when its draw runs. A `LazyColumn` scroll does NOT draw-invalidate either node (the
- * list repaints its own items, but the recorder's and overlays' `draw()` are not re-invoked —
- * verified on this app). So the captured backdrop and the composited blur freeze at the pre-scroll
- * content while sharp rows scroll behind the glass — the reported intermittent "blur disappears".
+ * re-blurs only when its draw runs. A scroll or a cross-fade of the recorded subtree repaints the
+ * subtree but does NOT re-invoke the recorder's or overlays' `draw()`, so the captured backdrop and
+ * the composited blur would freeze while sharp content moves behind the glass. The recorder forwards
+ * scroll/fling deltas (via a nested-scroll connection) to [onScrollActivity], and the app forwards
+ * discrete content changes to [requestRefresh]; both arm a short refresh window during which the
+ * driver re-invalidates the recorder (re-capture) and the overlays (re-blur) each frame.
  *
- * ## The scroll signal
+ * The window is measured in TIME, not frame count, so it covers a fixed-duration animation
+ * identically at 60Hz and 120Hz (a frame count would halve the wall-clock tail on a 120Hz display).
  *
- * The recorder modifier delegates to a nested-scroll node and forwards every scroll/fling delta from
- * descendant scrollables to [onScrollActivity]. That is the precise "the backdrop is moving now"
- * signal the draw phase lacks. While scrolling, the driver re-invalidates the recorder (re-capture)
- * and the overlays (re-blur) each frame; a short [COAST_FRAMES] tail keeps refreshing through the
- * very end of a fling so the final settled frame is captured. When scrolling stops the coast counts
- * down and the loop parks.
- *
- * ## Why idle stays at zero frames
- *
- * The loop runs only while [coastFrames] is positive, and the coast is re-armed ONLY by real scroll
- * activity (or an explicit [requestRefresh]) — never by the loop's own invalidations. [withFrameNanos]
- * never posts a frame itself, so once the coast is spent the loop exits and nothing keeps the window
- * producing frames. No scroll, no animation → zero frames.
+ * Idle stays at zero frames: the window is re-armed ONLY by real activity ([onScrollActivity] /
+ * [requestRefresh]), never by the loop's own invalidations, so it always elapses and the loop exits.
+ * [withFrameNanos] does post a Choreographer frame to resume the loop, but once the window has
+ * elapsed the loop stops calling it, so nothing keeps the window producing frames.
  */
 internal class SkyFrameDriver {
 
@@ -57,13 +49,13 @@ internal class SkyFrameDriver {
   private var recorderInvalidate: (() -> Unit)? = null
   private var pumpJob: Job? = null
 
-  // Frames the loop should still run. Re-armed by scroll activity; counted down by the loop.
-  private var coastFrames: Int = 0
+  // Wall-clock (frame-time) nanos until which the loop should keep refreshing. Re-armed by activity.
+  private var refreshUntilNanos: Long = 0L
 
   private companion object {
-    // Tail of frames to keep refreshing after the last scroll delta, so the settled post-fling frame
-    // is captured. Small, so the app idles within ~tens of ms of the scroll stopping.
-    const val COAST_FRAMES = 4
+    // Tail kept refreshing after the last activity, so the settled post-fling/post-animation frame
+    // is captured. Small, so the app idles within ~tens of ms of the motion stopping.
+    const val SETTLE_TAIL_MS = 80L
   }
 
   /** Registers the `Modifier.sky` recorder: [scope] hosts the loop, [invalidate] forces a capture. */
@@ -78,7 +70,7 @@ internal class SkyFrameDriver {
       pumpJob = null
       recorderScope = null
       recorderInvalidate = null
-      coastFrames = 0
+      refreshUntilNanos = 0L
     }
   }
 
@@ -92,24 +84,37 @@ internal class SkyFrameDriver {
     if (overlays.isEmpty()) {
       pumpJob?.cancel()
       pumpJob = null
-      coastFrames = 0
+      refreshUntilNanos = 0L
     }
   }
 
   /**
    * Reports scroll/fling activity behind the glass (forwarded from the recorder's nested-scroll
-   * connection). Re-arms the refresh coast and starts the loop if it had parked.
+   * connection). Re-arms the settle tail and starts the loop if it had parked.
    */
   fun onScrollActivity() {
-    coastFrames = COAST_FRAMES
+    extendWindow(SETTLE_TAIL_MS)
+  }
+
+  /**
+   * Requests a refresh window of at least [durationMs] (default the settle tail). The app passes the
+   * duration of a discrete content change — e.g. a cross-fade between tabs — so the blur tracks the
+   * whole animation instead of freezing partway once a short tail elapses ([Sky.invalidate]).
+   */
+  fun requestRefresh(durationMs: Long = SETTLE_TAIL_MS) {
+    extendWindow(durationMs)
+  }
+
+  // Extends the refresh window to at least [durationMs] and (re)starts the loop. The deadline is set
+  // off the loop's own frame time (folded in on the next frame), so it is always a real frame clock.
+  private fun extendWindow(durationMs: Long) {
+    pendingExtensionMs = maxOf(pendingExtensionMs, durationMs)
     ensurePump()
   }
 
-  /** Explicit one-off refresh ([Sky.invalidate]). */
-  fun requestRefresh() {
-    coastFrames = COAST_FRAMES
-    ensurePump()
-  }
+  // Set by extendWindow, folded into refreshUntilNanos by the loop on its next frame (the only place
+  // frame-time "now" is known). Cleared once applied.
+  private var pendingExtensionMs: Long = 0L
 
   private fun ensurePump() {
     if (pumpJob?.isActive == true) return
@@ -117,14 +122,24 @@ internal class SkyFrameDriver {
     val scope = recorderScope ?: return
     pumpJob = scope.launch {
       try {
-        while (isActive && coastFrames > 0) {
-          coastFrames--
-          // Re-capture the moved backdrop, then re-blur the overlays against it, in this frame.
-          recorderInvalidate?.invoke()
-          for (i in overlays.indices) overlays[i]()
-          // Parks for free at idle; resumes on the frame our invalidations just scheduled. When the
-          // coast is spent (scroll stopped COAST_FRAMES ago) the loop exits and schedules no more.
-          withFrameNanos { }
+        var keepGoing = true
+        while (isActive && keepGoing) {
+          // withFrameNanos parks until the next window frame and hands back its frame time. It is the
+          // only clock the loop trusts: deadline math and the exit test both use this `now`.
+          keepGoing = withFrameNanos { now ->
+            if (pendingExtensionMs > 0L) {
+              refreshUntilNanos = maxOf(refreshUntilNanos, now + pendingExtensionMs * 1_000_000L)
+              pendingExtensionMs = 0L
+            }
+            val active = now < refreshUntilNanos
+            if (active) {
+              // Re-capture the moved backdrop, then re-blur the overlays against it, this frame.
+              recorderInvalidate?.invoke()
+              for (i in overlays.indices) overlays[i]()
+            }
+            // Stay in the loop while still inside the window; the work above schedules the next frame.
+            active
+          }
         }
       } finally {
         pumpJob = null
