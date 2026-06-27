@@ -8,6 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import com.skydoves.cloudy.Sky
 import com.skydoves.cloudy.rememberSky
+import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
 import io.github.l2hyunwoo.kudos.core.soil.SoilBoundary
@@ -21,6 +22,7 @@ fun TaskListEntryPoint(
     eventFlow: EventFlow<TaskListEvent>? = null,
     onAddTask: () -> Unit = {},
     onNavigateToCategories: () -> Unit = {},
+    onNavigateToTaskDetail: (Task) -> Unit = {},
     searchQuery: String = "",
     // Reuse the parent's backdrop recorder when given (MainScreen tab); standalone routes create one.
     sky: Sky = rememberSky(),
@@ -53,6 +55,7 @@ fun TaskListEntryPoint(
             categories = uiState.categories,
             searchQuery = uiState.searchQuery,
             sky = sky,
+            onTaskClick = onNavigateToTaskDetail,
         )
     }
 }

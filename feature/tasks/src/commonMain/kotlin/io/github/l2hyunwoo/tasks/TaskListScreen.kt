@@ -31,6 +31,7 @@ import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.component.surface.glassSurface
 import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
+import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.data.tasks.model.TasksResponse
 import io.github.l2hyunwoo.data.tasks.model.fixture
 import io.github.l2hyunwoo.tasks.component.TaskRow
@@ -48,7 +49,7 @@ fun TaskListScreen(
     // Reuse the backdrop recorder hoisted by the parent (MainScreen) so a single sky records+blurs
     // per visible screen. The default makes standalone usage (own nav route) self-contained.
     sky: Sky = rememberSky(),
-    onTaskClick: (String) -> Unit = {},
+    onTaskClick: (Task) -> Unit = {},
 ) {
     val isEmpty = categories.all { it.tasks.isEmpty() }
 
@@ -89,7 +90,7 @@ fun TaskListScreen(
                         TaskRow(
                             task = task,
                             searchQuery = searchQuery,
-                            onClick = { onTaskClick(task.id) },
+                            onClick = { onTaskClick(task) },
                             // Filtered/reordered rows fade+slide instead of snapping. fade specs are
                             // Float (reduce-motion free); placement is rebuilt as an IntOffset spec.
                             modifier = Modifier.animateItem(

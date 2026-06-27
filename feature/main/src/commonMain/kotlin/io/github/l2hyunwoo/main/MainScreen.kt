@@ -72,6 +72,7 @@ import io.github.l2hyunwoo.core.design.token.LunarDurationMicro
 import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
+import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.tasks.TaskListEntryPoint
 import io.github.l2hyunwoo.tasks.TaskListEvent
 import io.github.l2hyunwoo.tasks.TasksContext
@@ -97,6 +98,7 @@ fun MainScreen(
     categoryContextFactory: CategoryContext.Factory,
     darkTheme: Boolean = false,
     onToggleTheme: () -> Unit = {},
+    onNavigateToTaskDetail: (Task) -> Unit = {},
     onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> }
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.TASKS) }
@@ -159,6 +161,7 @@ fun MainScreen(
                                         eventFlow = tasksEventFlow,
                                         onAddTask = { showCreateTaskSheet = true },
                                         onNavigateToCategories = { selectedTab = MainTab.CATEGORIES },
+                                        onNavigateToTaskDetail = onNavigateToTaskDetail,
                                         searchQuery = searchQuery,
                                         // Reuse MainScreen's hoisted sky instead of letting the inner
                                         // screen create a second one (stacked capture+blur).
