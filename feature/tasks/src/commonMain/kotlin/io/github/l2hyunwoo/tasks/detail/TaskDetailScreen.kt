@@ -71,6 +71,9 @@ import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.data.tasks.model.next
 import io.github.l2hyunwoo.kudos.core.common.compose.EventFlow
 import io.github.l2hyunwoo.tasks.detail.component.EditTaskBottomSheet
+import io.github.l2hyunwoo.tasks.formatDueLabel
+import io.github.l2hyunwoo.tasks.isOverdue
+import io.github.l2hyunwoo.tasks.todayIso
 import kotlinx.collections.immutable.ImmutableList
 
 // Phase order for the picker sheet (waxing). The single-step advance uses TaskStatus.next() from the
@@ -195,10 +198,15 @@ fun TaskDetailScreen(
 
                 uiState.dueDate?.let { due ->
                     Spacer(modifier = Modifier.height(12.dp))
+                    val today = todayIso()
+                    val overdue = isOverdue(due, today)
                     Text(
-                        text = "Due: $due",
+                        // Verbose form for the detail: "오늘 마감" / "2일 지남" / "6월 29일 마감".
+                        text = formatDueLabel(due, today).let { label ->
+                            if (overdue) label else "$label 마감"
+                        },
                         style = KudosTheme.typography.bodySmallR,
-                        color = KudosTheme.colors.ink.ink3,
+                        color = if (overdue) KudosTheme.colors.priority.urgent else KudosTheme.colors.ink.ink3,
                     )
                 }
 

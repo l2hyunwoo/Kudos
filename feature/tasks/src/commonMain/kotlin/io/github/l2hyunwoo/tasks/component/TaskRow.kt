@@ -46,6 +46,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.MoonToggle
+import io.github.l2hyunwoo.tasks.formatDueLabel
+import io.github.l2hyunwoo.tasks.isOverdue
+import io.github.l2hyunwoo.tasks.todayIso
 import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
@@ -216,10 +219,15 @@ private fun TaskMeta(task: Task) {
             TagChip(label = project, dot = KudosTheme.colors.pastels.lilac)
         }
         task.dueDate?.let { due ->
+            // todayIso() is a cheap epoch-day computation; recomputing per row keeps the helper pure
+            // and avoids threading "today" through the row signature. Overdue labels tint red to match
+            // the Lunar spec.
+            val today = todayIso()
+            val overdue = isOverdue(due, today)
             Text(
-                text = due,
+                text = formatDueLabel(due, today),
                 style = KudosTheme.typography.labelLargeM,
-                color = KudosTheme.colors.ink.ink2,
+                color = if (overdue) KudosTheme.colors.priority.urgent else KudosTheme.colors.ink.ink2,
                 maxLines = 1,
             )
         }
