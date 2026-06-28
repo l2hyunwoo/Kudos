@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.MoonToggle
+import io.github.l2hyunwoo.core.design.transition.sharedTask
 import io.github.l2hyunwoo.tasks.formatDueLabel
 import io.github.l2hyunwoo.tasks.isOverdue
 import io.github.l2hyunwoo.tasks.todayIso
@@ -141,6 +142,7 @@ private fun TaskRowContent(
             onTap = onAdvanceStatus,
             onLongPress = onPickPhase,
             size = 28.dp,
+            modifier = Modifier.sharedTask("task-moon-${task.id}"),
         )
         Spacer(Modifier.width(12.dp))
 
@@ -154,6 +156,8 @@ private fun TaskRowContent(
                 overflow = TextOverflow.Ellipsis,
                 // Strikethrough (done) applies to the whole Text, on top of any highlight spans.
                 textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
+                // bounds: the title differs in size/style between row and detail, so tween the bounds.
+                modifier = Modifier.sharedTask("task-title-${task.id}", bounds = true),
             )
             Spacer(Modifier.height(2.dp))
             TaskMeta(task)
@@ -214,6 +218,7 @@ private fun TaskMeta(task: Task) {
             style = KudosTheme.typography.identifier,
             color = KudosTheme.colors.ink.ink3,
             maxLines = 1,
+            modifier = Modifier.sharedTask("task-id-${task.id}"),
         )
         task.projectTitle?.let { project ->
             TagChip(label = project, dot = KudosTheme.colors.pastels.lilac)

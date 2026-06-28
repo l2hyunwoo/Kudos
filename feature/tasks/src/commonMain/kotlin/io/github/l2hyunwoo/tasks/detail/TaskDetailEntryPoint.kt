@@ -33,6 +33,10 @@ fun TaskDetailEntryPoint(
 
     TaskDetailScreen(
         uiState = uiState,
-        eventFlow = eventFlow
+        eventFlow = eventFlow,
+        // The route UUID is the shared-element identity; it matches the list row's task.id so the
+        // moon/title/id morph across the navigation. Not part of uiState (it's navigation identity,
+        // not presented state).
+        sharedKeyId = id,
     )
 }

@@ -4,9 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -15,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.transition.LocalSharedTransitionScope
 import io.github.l2hyunwoo.kudos.core.common.navigation.Main
 import io.github.l2hyunwoo.kudos.navigation.categoryListGraph
 import io.github.l2hyunwoo.kudos.navigation.mainScreenGraph
@@ -27,7 +31,7 @@ import soil.query.SwrCacheScope
 import soil.query.annotation.ExperimentalSoilQueryApi
 import soil.query.compose.SwrClientProvider
 
-@OptIn(ExperimentalSoilQueryApi::class)
+@OptIn(ExperimentalSoilQueryApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 context(appGraph: AppGraph)
 @Preview
@@ -42,23 +46,30 @@ fun App() {
             Scaffold(
                 modifier = Modifier.fillMaxSize()
             ) {
-                NavHost(
-                    navController = navController,
-                    startDestination = Main,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .imePadding()
-                        .background(MaterialTheme.colorScheme.background)
-                ) {
-                    mainScreenGraph(
-                        navController = navController,
-                        darkTheme = dark,
-                        onToggleTheme = { userDark = !dark },
-                    )
-                    taskListGraph(navController)
-                    categoryListGraph(navController)
-                    projectDetailGraph(navController)
-                    taskDetailGraph(navController)
+                // SharedTransitionLayout is `this: SharedTransitionScope`. Expose it via the local so
+                // leaf composables in the row and the detail screen can opt into shared elements; each
+                // destination additionally provides its own AnimatedContentScope (see the graphs).
+                SharedTransitionLayout {
+                    CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                        NavHost(
+                            navController = navController,
+                            startDestination = Main,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .imePadding()
+                                .background(MaterialTheme.colorScheme.background)
+                        ) {
+                            mainScreenGraph(
+                                navController = navController,
+                                darkTheme = dark,
+                                onToggleTheme = { userDark = !dark },
+                            )
+                            taskListGraph(navController)
+                            categoryListGraph(navController)
+                            projectDetailGraph(navController)
+                            taskDetailGraph(navController)
+                        }
+                    }
                 }
             }
         }

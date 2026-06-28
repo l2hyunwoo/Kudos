@@ -64,6 +64,7 @@ import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.component.moon.MoonProgress
 import io.github.l2hyunwoo.core.design.component.moon.MoonToggle
 import io.github.l2hyunwoo.core.design.component.surface.glassSurface
+import io.github.l2hyunwoo.core.design.transition.sharedTask
 import io.github.l2hyunwoo.core.design.token.LunarDurationMicro
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
@@ -90,7 +91,10 @@ private val PhaseOrder = listOf(
 fun TaskDetailScreen(
     uiState: TaskDetailUiState,
     eventFlow: EventFlow<TaskDetailEvent>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // Shared-element identity (route UUID). Defaults to "" so standalone/preview usage compiles; the
+    // sharedTask modifiers no-op anyway when no SharedTransitionScope is provided.
+    sharedKeyId: String = "",
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val sky = rememberSky()
@@ -121,7 +125,11 @@ fun TaskDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(uiState.taskId, style = KudosTheme.typography.identifier)
+                    Text(
+                        uiState.taskId,
+                        style = KudosTheme.typography.identifier,
+                        modifier = Modifier.sharedTask("task-id-$sharedKeyId"),
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = { eventFlow.tryEmit(TaskDetailEvent.NavigateBack) }) {
@@ -185,6 +193,7 @@ fun TaskDetailScreen(
                     } else {
                         TextDecoration.None
                     },
+                    modifier = Modifier.sharedTask("task-title-$sharedKeyId", bounds = true),
                 )
 
                 uiState.description?.let { description ->
@@ -218,6 +227,7 @@ fun TaskDetailScreen(
                         eventFlow.tryEmit(TaskDetailEvent.ChangeStatus(uiState.status.next()))
                     },
                     onOpenPicker = { showPhasePicker = true },
+                    sharedKeyId = sharedKeyId,
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -306,6 +316,7 @@ private fun StatusHero(
     onAdvance: () -> Unit,
     onOpenPicker: () -> Unit,
     modifier: Modifier = Modifier,
+    sharedKeyId: String = "",
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -317,11 +328,14 @@ private fun StatusHero(
             style = KudosTheme.typography.eyebrow,
             color = KudosTheme.colors.ink.ink3,
         )
+        // Share the MoonToggle instance (not MoonProgress): the 28.dp row moon morphs into this 64.dp
+        // hero. sharedElement tweens position+size between the matched endpoints.
         MoonToggle(
             k = status.fraction,
             onTap = onAdvance,
             onLongPress = onOpenPicker,
             size = 64.dp,
+            modifier = Modifier.sharedTask("task-moon-$sharedKeyId"),
         )
         // Cross-fade the hero label when the status changes instead of snapping. standard is a Float
         // spec, so reduce-motion collapses it for free.
