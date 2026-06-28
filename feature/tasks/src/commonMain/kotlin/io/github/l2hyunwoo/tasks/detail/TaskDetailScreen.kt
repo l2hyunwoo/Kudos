@@ -328,14 +328,11 @@ private fun StatusHero(
             style = KudosTheme.typography.eyebrow,
             color = KudosTheme.colors.ink.ink3,
         )
-        // Share the MoonToggle instance (not MoonProgress): the 28.dp row moon morphs into this 64.dp
-        // hero. sharedElement tweens position+size between the matched endpoints.
         MoonToggle(
             k = status.fraction,
             onTap = onAdvance,
             onLongPress = onOpenPicker,
             size = 64.dp,
-            modifier = Modifier.sharedTask("task-moon-$sharedKeyId"),
         )
         // Cross-fade the hero label when the status changes instead of snapping. standard is a Float
         // spec, so reduce-motion collapses it for free.

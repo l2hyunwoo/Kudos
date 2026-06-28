@@ -142,7 +142,6 @@ private fun TaskRowContent(
             onTap = onAdvanceStatus,
             onLongPress = onPickPhase,
             size = 28.dp,
-            modifier = Modifier.sharedTask("task-moon-${task.id}"),
         )
         Spacer(Modifier.width(12.dp))
 
