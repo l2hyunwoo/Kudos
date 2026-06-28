@@ -4,7 +4,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class TaskStatus(val text: String, val fraction: Float) {
+enum class TaskStatus(
+    val text: String,
+    val fraction: Float,
+) {
     @SerialName("todo")
     TODO("\uD83C\uDF13", 0.5f),
 
@@ -20,12 +23,13 @@ enum class TaskStatus(val text: String, val fraction: Float) {
 
 // Waxing phase order used by both the list and detail screens: each tap advances one phase along the
 // lit fraction. DONE wraps back to BACKLOG.
-private val PhaseOrder = listOf(
-    TaskStatus.BACKLOG,
-    TaskStatus.TODO,
-    TaskStatus.IN_PROGRESS,
-    TaskStatus.DONE,
-)
+private val PhaseOrder =
+    listOf(
+        TaskStatus.BACKLOG,
+        TaskStatus.TODO,
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.DONE,
+    )
 
 fun TaskStatus.next(): TaskStatus {
     val i = PhaseOrder.indexOf(this)

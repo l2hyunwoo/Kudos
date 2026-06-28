@@ -7,9 +7,9 @@ import io.github.l2hyunwoo.data.categories.cache.CategoriesCacheDataStore
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.CreateCategoryMutationKey
 import io.github.l2hyunwoo.kudos.core.common.DataScope
-import kotlin.time.Clock
 import soil.query.MutationId
 import soil.query.buildMutationKey
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
@@ -19,33 +19,34 @@ class DefaultCreateCategoryMutationKey(
     private val apiClient: CategoriesApiClient,
     private val cacheDataStore: CategoriesCacheDataStore,
 ) : CreateCategoryMutationKey by buildMutationKey(
-    id = MutationId("create_category"),
-    mutate = { request ->
-        val previousCache = cacheDataStore.getCacheSync()
+        id = MutationId("create_category"),
+        mutate = { request ->
+            val previousCache = cacheDataStore.getCacheSync()
 
-        // 2. Optimistic update: add immediately with temp ID
-        val optimisticCategory = Category(
-            id = "temp-${Clock.System.now().toEpochMilliseconds()}",
-            prefix = request.prefix,
-            title = request.title,
-            color = request.color ?: "#FF6B6B",
-            createdAt = Clock.System.now().toString(),
-            updatedAt = Clock.System.now().toString(),
-            projects = emptyList()
-        )
-        val optimisticList = (previousCache ?: emptyList()) + optimisticCategory
-        cacheDataStore.save(optimisticList)
+            // 2. Optimistic update: add immediately with temp ID
+            val optimisticCategory =
+                Category(
+                    id = "temp-${Clock.System.now().toEpochMilliseconds()}",
+                    prefix = request.prefix,
+                    title = request.title,
+                    color = request.color ?: "#FF6B6B",
+                    createdAt = Clock.System.now().toString(),
+                    updatedAt = Clock.System.now().toString(),
+                    projects = emptyList(),
+                )
+            val optimisticList = (previousCache ?: emptyList()) + optimisticCategory
+            cacheDataStore.save(optimisticList)
 
-        try {
-            val updatedCategories = apiClient.createCategory(request)
+            try {
+                val updatedCategories = apiClient.createCategory(request)
 
-            cacheDataStore.save(updatedCategories)
+                cacheDataStore.save(updatedCategories)
 
-            updatedCategories
-        } catch (e: Exception) {
-            // 6. Rollback on failure
-            previousCache?.let { cacheDataStore.save(it) }
-            throw e
-        }
-    }
-)
+                updatedCategories
+            } catch (e: Exception) {
+                // 6. Rollback on failure
+                previousCache?.let { cacheDataStore.save(it) }
+                throw e
+            }
+        },
+    )

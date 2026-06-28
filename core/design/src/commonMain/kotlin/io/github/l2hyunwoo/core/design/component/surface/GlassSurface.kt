@@ -55,14 +55,15 @@ public fun Modifier.glassSurface(
     shadowColor: Color = KudosTheme.colors.glass.shadowTint,
     elevation: Dp = 6.dp,
     blurRadius: Int = 18,
-): Modifier = this
-    // Pass the periwinkle shadow token as both ambient and spot color; the default overload uses
-    // DefaultShadowColor (neutral), which on a light backdrop renders as the muddy gray box.
-    .shadow(elevation, shape, ambientColor = shadowColor, spotColor = shadowColor)
-    .clip(shape)
-    // cpuBlurEnabled=false: native CPU-blur .so is not vendored, so API<31 uses the static
-    // translucent scrim fallback. saturate is omitted (tint-only material for now).
-    // Pass `shape` so the blurred fill is clipped to the rounded surface instead of a hard
-    // rectangle, eliminating the inner "white box" seam at the rounded corners.
-    .cloudy(sky = sky, radius = blurRadius, tint = tint, cpuBlurEnabled = false, shape = shape)
-    .border(border, shape)
+): Modifier =
+    this
+        // Pass the periwinkle shadow token as both ambient and spot color; the default overload uses
+        // DefaultShadowColor (neutral), which on a light backdrop renders as the muddy gray box.
+        .shadow(elevation, shape, ambientColor = shadowColor, spotColor = shadowColor)
+        .clip(shape)
+        // cpuBlurEnabled=false: native CPU-blur .so is not vendored, so API<31 uses the static
+        // translucent scrim fallback. saturate is omitted (tint-only material for now).
+        // Pass `shape` so the blurred fill is clipped to the rounded surface instead of a hard
+        // rectangle, eliminating the inner "white box" seam at the rounded corners.
+        .cloudy(sky = sky, radius = blurRadius, tint = tint, cpuBlurEnabled = false, shape = shape)
+        .border(border, shape)

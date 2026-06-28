@@ -14,7 +14,14 @@ fun NavGraphBuilder.categoryListGraph(navController: NavHostController) {
     composable<CategoryList> {
         with(rememberCategoryContextRetained()) {
             CategoryListEntryPoint(
-                onNavigateToProjectDetail = { projectId, categoryId, title, description, categoryColor, categoryPrefix ->
+                onNavigateToProjectDetail = {
+                    projectId,
+                    categoryId,
+                    title,
+                    description,
+                    categoryColor,
+                    categoryPrefix,
+                    ->
                     navController.navigate(
                         ProjectDetail(
                             projectId = projectId,
@@ -22,10 +29,10 @@ fun NavGraphBuilder.categoryListGraph(navController: NavHostController) {
                             title = title,
                             description = description,
                             categoryColor = categoryColor,
-                            categoryPrefix = categoryPrefix
-                        )
+                            categoryPrefix = categoryPrefix,
+                        ),
                     )
-                }
+                },
             )
         }
     }

@@ -13,7 +13,7 @@ import io.github.l2hyunwoo.kudos.core.common.ScreenContext
 import soil.query.QueryKey
 
 @GraphExtension(CategoryScope::class)
-interface CategoryContext: ScreenContext {
+interface CategoryContext : ScreenContext {
     val categoriesQuery: QueryKey<List<Category>>
     val categoriesSubscription: CategoriesSubscriptionKey
 

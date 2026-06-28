@@ -54,10 +54,11 @@ fun DashboardScreen(
             // drawn ON TOP of this scroll area, so without this the last card scrolls under it.
             val navBarClearance = rememberNavBarClearance()
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Spacer(Modifier.height(topContentPadding))
@@ -78,11 +79,12 @@ private fun DashboardCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(KudosTheme.shapes.card)
-            .background(KudosTheme.colors.surface.surface)
-            .padding(20.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(KudosTheme.shapes.card)
+                .background(KudosTheme.colors.surface.surface)
+                .padding(20.dp),
         content = content,
     )
 }
@@ -215,18 +217,20 @@ private fun StatBar(
         }
         Spacer(Modifier.height(6.dp))
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(KudosTheme.shapes.pill)
-                .background(KudosTheme.colors.surface.surface2),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(animatedFraction)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
                     .height(8.dp)
                     .clip(KudosTheme.shapes.pill)
-                    .background(color),
+                    .background(KudosTheme.colors.surface.surface2),
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth(animatedFraction)
+                        .height(8.dp)
+                        .clip(KudosTheme.shapes.pill)
+                        .background(color),
             )
         }
     }
@@ -235,9 +239,10 @@ private fun StatBar(
 @Composable
 private fun EmptyDashboard(topContentPadding: Dp) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = topContentPadding),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(top = topContentPadding),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -253,33 +258,37 @@ private fun EmptyDashboard(topContentPadding: Dp) {
     }
 }
 
-private val StatusOrder = listOf(
-    TaskStatus.BACKLOG,
-    TaskStatus.TODO,
-    TaskStatus.IN_PROGRESS,
-    TaskStatus.DONE,
-)
+private val StatusOrder =
+    listOf(
+        TaskStatus.BACKLOG,
+        TaskStatus.TODO,
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.DONE,
+    )
 
-private val PriorityOrder = listOf(
-    TaskPriority.URGENT,
-    TaskPriority.HIGH,
-    TaskPriority.MEDIUM,
-    TaskPriority.LOW,
-)
+private val PriorityOrder =
+    listOf(
+        TaskPriority.URGENT,
+        TaskPriority.HIGH,
+        TaskPriority.MEDIUM,
+        TaskPriority.LOW,
+    )
 
-private fun TaskStatus.koLabel(): String = when (this) {
-    TaskStatus.BACKLOG -> "백로그"
-    TaskStatus.TODO -> "할 일"
-    TaskStatus.IN_PROGRESS -> "진행 중"
-    TaskStatus.DONE -> "완료"
-}
+private fun TaskStatus.koLabel(): String =
+    when (this) {
+        TaskStatus.BACKLOG -> "백로그"
+        TaskStatus.TODO -> "할 일"
+        TaskStatus.IN_PROGRESS -> "진행 중"
+        TaskStatus.DONE -> "완료"
+    }
 
-private fun TaskPriority.koLabel(): String = when (this) {
-    TaskPriority.URGENT -> "긴급"
-    TaskPriority.HIGH -> "높음"
-    TaskPriority.MEDIUM -> "보통"
-    TaskPriority.LOW -> "낮음"
-}
+private fun TaskPriority.koLabel(): String =
+    when (this) {
+        TaskPriority.URGENT -> "긴급"
+        TaskPriority.HIGH -> "높음"
+        TaskPriority.MEDIUM -> "보통"
+        TaskPriority.LOW -> "낮음"
+    }
 
 @Composable
 private fun TaskPriority.barColor(): Color {
@@ -297,22 +306,25 @@ private fun TaskPriority.barColor(): Color {
 private fun DashboardScreenPreview() {
     KudosTheme {
         DashboardScreen(
-            uiState = DashboardUiState(
-                completionRatio = 0.4f,
-                statusCounts = kotlinx.collections.immutable.persistentMapOf(
-                    TaskStatus.BACKLOG to 2,
-                    TaskStatus.TODO to 4,
-                    TaskStatus.IN_PROGRESS to 1,
-                    TaskStatus.DONE to 3,
+            uiState =
+                DashboardUiState(
+                    completionRatio = 0.4f,
+                    statusCounts =
+                        kotlinx.collections.immutable.persistentMapOf(
+                            TaskStatus.BACKLOG to 2,
+                            TaskStatus.TODO to 4,
+                            TaskStatus.IN_PROGRESS to 1,
+                            TaskStatus.DONE to 3,
+                        ),
+                    priorityCounts =
+                        kotlinx.collections.immutable.persistentMapOf(
+                            TaskPriority.URGENT to 1,
+                            TaskPriority.HIGH to 3,
+                            TaskPriority.MEDIUM to 4,
+                            TaskPriority.LOW to 2,
+                        ),
+                    totalCount = 10,
                 ),
-                priorityCounts = kotlinx.collections.immutable.persistentMapOf(
-                    TaskPriority.URGENT to 1,
-                    TaskPriority.HIGH to 3,
-                    TaskPriority.MEDIUM to 4,
-                    TaskPriority.LOW to 2,
-                ),
-                totalCount = 10,
-            ),
         )
     }
 }

@@ -18,7 +18,7 @@ data class ProjectDetail(
     val title: String,
     val description: String?,
     val categoryColor: String,
-    val categoryPrefix: String
+    val categoryPrefix: String,
 )
 
 @Serializable

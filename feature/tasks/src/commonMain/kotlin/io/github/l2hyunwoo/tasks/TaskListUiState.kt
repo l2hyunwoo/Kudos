@@ -19,4 +19,7 @@ data class TaskListUiState(
 )
 
 @Immutable
-data class PendingDelete(val taskId: String, val id: String)
+data class PendingDelete(
+    val taskId: String,
+    val id: String,
+)

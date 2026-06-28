@@ -17,14 +17,12 @@ class DefaultCategoriesQueryKey(
     private val apiClient: CategoriesApiClient,
     private val dataStore: CategoriesCacheDataStore,
 ) : QueryKey<List<Category>> by buildQueryKey(
-    id = QueryId("categories_query"),
-    fetch = {
-        val response = apiClient.getCategories()
-        dataStore.save(response)
-        response
-    }
-) {
-    override fun onPreloadData(): QueryPreloadData<List<Category>>? {
-        return { dataStore.getCache() }
-    }
+        id = QueryId("categories_query"),
+        fetch = {
+            val response = apiClient.getCategories()
+            dataStore.save(response)
+            response
+        },
+    ) {
+    override fun onPreloadData(): QueryPreloadData<List<Category>>? = { dataStore.getCache() }
 }

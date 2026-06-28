@@ -39,21 +39,21 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.MoonToggle
 import io.github.l2hyunwoo.core.design.transition.sharedTask
-import io.github.l2hyunwoo.tasks.formatDueLabel
-import io.github.l2hyunwoo.tasks.isOverdue
-import io.github.l2hyunwoo.tasks.todayIso
 import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.data.tasks.model.fixture
+import io.github.l2hyunwoo.tasks.formatDueLabel
+import io.github.l2hyunwoo.tasks.isOverdue
+import io.github.l2hyunwoo.tasks.todayIso
 
 // The list atom: priority bar · moon toggle · title + meta · chevron. Swipe-left reveals done/delete.
 // Visual-only redesign — interaction callbacks are hoisted and default to no-ops so the screen can
@@ -67,7 +67,7 @@ fun TaskRow(
     onClick: () -> Unit = {},
     onAdvanceStatus: () -> Unit = {},
     onPickPhase: () -> Unit = {},
-    onMarkDone: () -> Unit = {},
+    onComplete: () -> Unit = {},
     onDelete: () -> Unit = {},
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
@@ -77,7 +77,7 @@ fun TaskRow(
         onDismiss = { value ->
             when (value) {
                 SwipeToDismissBoxValue.EndToStart -> onDelete()
-                SwipeToDismissBoxValue.StartToEnd -> onMarkDone()
+                SwipeToDismissBoxValue.StartToEnd -> onComplete()
                 SwipeToDismissBoxValue.Settled -> Unit
             }
         },
@@ -106,9 +106,10 @@ private fun TaskRowContent(
     // Resolve the periwinkle span color outside remember (it's a theme/CompositionLocal read), then
     // key the AnnotatedString on (title, query, color) so it isn't rebuilt on every scroll frame.
     val highlightColor = KudosTheme.colors.brand.primary600
-    val title = remember(task.title, searchQuery, highlightColor) {
-        highlightedTitle(task.title, searchQuery, highlightColor)
-    }
+    val title =
+        remember(task.title, searchQuery, highlightColor) {
+            highlightedTitle(task.title, searchQuery, highlightColor)
+        }
     // Subtle press-scale on the solid card (a ripple would read as heavy on a colored surface). The
     // scale is read inside graphicsLayer (draw phase), so press transitions skip composition/layout.
     // micro is a Float spec, so reduce-motion collapses it automatically.
@@ -120,18 +121,18 @@ private fun TaskRowContent(
         label = "taskRowPressScale",
     )
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(72.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .background(KudosTheme.colors.surface.surface, KudosTheme.shapes.row)
-            .clip(KudosTheme.shapes.row)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            // Done rows recede; the moon stays full to read the completion at a glance.
-            .alpha(if (isDone) 0.6f else 1f),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(72.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }.background(KudosTheme.colors.surface.surface, KudosTheme.shapes.row)
+                .clip(KudosTheme.shapes.row)
+                .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+                // Done rows recede; the moon stays full to read the completion at a glance.
+                .alpha(if (isDone) 0.6f else 1f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PriorityBar(task.priority)
@@ -239,7 +240,10 @@ private fun TaskMeta(task: Task) {
 }
 
 @Composable
-private fun TagChip(label: String, dot: Color) {
+private fun TagChip(
+    label: String,
+    dot: Color,
+) {
     val (bg, fg) = KudosTheme.colors.pastelChip(dot)
     Text(
         text = label,
@@ -247,10 +251,11 @@ private fun TagChip(label: String, dot: Color) {
         color = fg,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier
-            .clip(KudosTheme.shapes.chipSmall)
-            .background(bg)
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+        modifier =
+            Modifier
+                .clip(KudosTheme.shapes.chipSmall)
+                .background(bg)
+                .padding(horizontal = 8.dp, vertical = 2.dp),
     )
 }
 
@@ -261,24 +266,26 @@ private fun TagChip(label: String, dot: Color) {
 private fun PriorityBar(priority: TaskPriority) {
     val color = priority.toColor()
     Box(
-        modifier = Modifier
-            .padding(start = 4.dp)
-            .width(4.dp)
-            .fillMaxHeight()
-            .padding(vertical = priority.barInset())
-            .clip(KudosTheme.shapes.pill)
-            .background(color),
+        modifier =
+            Modifier
+                .padding(start = 4.dp)
+                .width(4.dp)
+                .fillMaxHeight()
+                .padding(vertical = priority.barInset())
+                .clip(KudosTheme.shapes.pill)
+                .background(color),
     )
 }
 
 // Symmetric vertical inset that trims the bar to encode priority by length. The row is 72.dp tall, so
 // these values keep URGENT near-full and taper LOW down to a short stub while staying subtle.
-private fun TaskPriority.barInset() = when (this) {
-    TaskPriority.URGENT -> 8.dp
-    TaskPriority.HIGH -> 16.dp
-    TaskPriority.MEDIUM -> 24.dp
-    TaskPriority.LOW -> 30.dp
-}
+private fun TaskPriority.barInset() =
+    when (this) {
+        TaskPriority.URGENT -> 8.dp
+        TaskPriority.HIGH -> 16.dp
+        TaskPriority.MEDIUM -> 24.dp
+        TaskPriority.LOW -> 30.dp
+    }
 
 @Composable
 private fun TaskPriority.toColor(): Color {
@@ -297,11 +304,12 @@ private fun SwipeBackground(target: SwipeToDismissBoxValue) {
     val color = if (isDelete) KudosTheme.colors.priority.urgent else KudosTheme.colors.priority.low
     val alignment = if (isDelete) Alignment.CenterEnd else Alignment.CenterStart
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(KudosTheme.shapes.row)
-            .background(color)
-            .padding(horizontal = 24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .clip(KudosTheme.shapes.row)
+                .background(color)
+                .padding(horizontal = 24.dp),
         contentAlignment = alignment,
     ) {
         Icon(

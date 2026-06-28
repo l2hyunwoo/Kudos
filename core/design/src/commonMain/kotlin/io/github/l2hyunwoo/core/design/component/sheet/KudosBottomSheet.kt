@@ -76,9 +76,10 @@ fun KudosBottomSheet(
 private fun GlassDragHandle() {
     val handleDescription = "Drag handle"
     Surface(
-        modifier = Modifier
-            .padding(vertical = 12.dp)
-            .semantics { contentDescription = handleDescription },
+        modifier =
+            Modifier
+                .padding(vertical = 12.dp)
+                .semantics { contentDescription = handleDescription },
         color = KudosTheme.colors.brand.primary200,
         shape = RoundedCornerShape(999.dp),
     ) {

@@ -14,24 +14,25 @@ fun ProjectDetailEntryPoint(
     initialTitle: String,
     initialDescription: String?,
     onNavigateBack: () -> Unit,
-    onNavigateToTaskDetail: (Task) -> Unit = {}
+    onNavigateToTaskDetail: (Task) -> Unit = {},
 ) {
     val eventFlow = rememberEventFlow<ProjectDetailEvent>()
 
-    val uiState = projectDetailPresenter(
-        projectId = projectId,
-        categoryId = categoryId,
-        categoryPrefix = categoryPrefix,
-        categoryColor = categoryColor,
-        initialTitle = initialTitle,
-        initialDescription = initialDescription,
-        eventFlow = eventFlow,
-        onNavigateBack = onNavigateBack
-    )
+    val uiState =
+        projectDetailPresenter(
+            projectId = projectId,
+            categoryId = categoryId,
+            categoryPrefix = categoryPrefix,
+            categoryColor = categoryColor,
+            initialTitle = initialTitle,
+            initialDescription = initialDescription,
+            eventFlow = eventFlow,
+            onNavigateBack = onNavigateBack,
+        )
 
     ProjectDetailScreen(
         uiState = uiState,
         eventFlow = eventFlow,
-        onTaskClick = onNavigateToTaskDetail
+        onTaskClick = onNavigateToTaskDetail,
     )
 }

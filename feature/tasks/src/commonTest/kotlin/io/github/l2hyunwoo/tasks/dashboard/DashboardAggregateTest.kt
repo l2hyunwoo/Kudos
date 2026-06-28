@@ -8,7 +8,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class DashboardAggregateTest {
-
     private fun task(
         id: String,
         status: TaskStatus,
@@ -24,14 +23,15 @@ class DashboardAggregateTest {
         updatedAt = "2024-01-01T00:00:00Z",
     )
 
-    private val fixture = listOf(
-        task("1", TaskStatus.BACKLOG, TaskPriority.LOW),
-        task("2", TaskStatus.TODO, TaskPriority.HIGH),
-        task("3", TaskStatus.TODO, TaskPriority.MEDIUM),
-        task("4", TaskStatus.IN_PROGRESS, TaskPriority.URGENT),
-        task("5", TaskStatus.DONE, TaskPriority.HIGH),
-        task("6", TaskStatus.DONE, TaskPriority.MEDIUM),
-    )
+    private val fixture =
+        listOf(
+            task("1", TaskStatus.BACKLOG, TaskPriority.LOW),
+            task("2", TaskStatus.TODO, TaskPriority.HIGH),
+            task("3", TaskStatus.TODO, TaskPriority.MEDIUM),
+            task("4", TaskStatus.IN_PROGRESS, TaskPriority.URGENT),
+            task("5", TaskStatus.DONE, TaskPriority.HIGH),
+            task("6", TaskStatus.DONE, TaskPriority.MEDIUM),
+        )
 
     @Test
     fun totalCountIsTaskCount() {
@@ -91,10 +91,11 @@ class DashboardAggregateTest {
 
     @Test
     fun allDoneIsFullyComplete() {
-        val tasks = listOf(
-            task("a", TaskStatus.DONE, TaskPriority.LOW),
-            task("b", TaskStatus.DONE, TaskPriority.HIGH),
-        )
+        val tasks =
+            listOf(
+                task("a", TaskStatus.DONE, TaskPriority.LOW),
+                task("b", TaskStatus.DONE, TaskPriority.HIGH),
+            )
         assertEquals(1f, aggregate(tasks).completionRatio)
     }
 }

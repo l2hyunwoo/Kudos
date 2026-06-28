@@ -11,26 +11,21 @@ import io.github.l2hyunwoo.kudos.core.common.DataScope
 
 @ContributesBinding(DataScope::class)
 @Inject
-class DefaultTasksApiClient internal constructor(ktorfit: Ktorfit) : TasksApiClient {
+class DefaultTasksApiClient internal constructor(
+    ktorfit: Ktorfit,
+) : TasksApiClient {
     val tasksApi = ktorfit.createTasksApi()
 
-    override suspend fun getTasks(): TasksResponse {
-        return tasksApi.getTasks()
-    }
+    override suspend fun getTasks(): TasksResponse = tasksApi.getTasks()
 
-    override suspend fun getProjectTasks(projectId: String): ProjectTasksResponse {
-        return tasksApi.getProjectTasks(projectId)
-    }
+    override suspend fun getProjectTasks(projectId: String): ProjectTasksResponse = tasksApi.getProjectTasks(projectId)
 
-    override suspend fun createTask(request: CreateTaskRequest) {
-        return tasksApi.createTask(request)
-    }
+    override suspend fun createTask(request: CreateTaskRequest) = tasksApi.createTask(request)
 
-    override suspend fun updateTask(taskId: String, request: UpdateTaskRequest) {
-        return tasksApi.updateTask(taskId, request)
-    }
+    override suspend fun updateTask(
+        taskId: String,
+        request: UpdateTaskRequest,
+    ) = tasksApi.updateTask(taskId, request)
 
-    override suspend fun deleteTask(taskId: String) {
-        return tasksApi.deleteTask(taskId)
-    }
+    override suspend fun deleteTask(taskId: String) = tasksApi.deleteTask(taskId)
 }

@@ -11,7 +11,11 @@ import kotlin.time.Clock
 
 // "6월 27일 (금)". Greeting-only header, so the UTC-based day is acceptable.
 internal fun todayLabel(): String {
-    val epochDays = Clock.System.now().epochSeconds.floorDiv(86_400L)
+    val epochDays =
+        Clock.System
+            .now()
+            .epochSeconds
+            .floorDiv(86_400L)
     val (month, day) = civilMonthDay(epochDays)
     // 1970-01-01 was a Thursday (index 3 in Mon=0 weekday list).
     val weekday = KoreanWeekdays[(epochDays + 3).mod(7L).toInt()]
@@ -21,9 +25,11 @@ internal fun todayLabel(): String {
 // Time-of-day greeting from the LOCAL hour. Unlike todayLabel()'s date, this needs the device time
 // zone — a UTC hour would greet the wrong part of the day.
 internal fun greetingLabel(): String {
-    val hour = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault())
-        .hour
+    val hour =
+        Clock.System
+            .now()
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .hour
     return when (hour) {
         in 5..10 -> "좋은 아침"
         in 11..13 -> "좋은 낮"

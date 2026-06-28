@@ -12,16 +12,16 @@ typealias CategoriesSubscriptionKey = SubscriptionKey<List<Category>>
 
 data class CreateProjectParams(
     val categoryId: String,
-    val request: CreateProjectRequest
+    val request: CreateProjectRequest,
 )
 
 data class UpdateProjectParams(
     val categoryId: String,
     val projectId: String,
-    val request: UpdateProjectRequest
+    val request: UpdateProjectRequest,
 )
 
 data class DeleteProjectParams(
     val categoryId: String,
-    val projectId: String
+    val projectId: String,
 )

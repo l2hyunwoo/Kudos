@@ -25,7 +25,10 @@ val LocalNavAnimatedContentScope = compositionLocalOf<AnimatedVisibilityScope?> 
 // element is the same glyph at both ends (the moon, the id label).
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun Modifier.sharedTask(key: String, bounds: Boolean = false): Modifier {
+fun Modifier.sharedTask(
+    key: String,
+    bounds: Boolean = false,
+): Modifier {
     val transition = LocalSharedTransitionScope.current ?: return this
     val animatedContent = LocalNavAnimatedContentScope.current ?: return this
     return with(transition) {

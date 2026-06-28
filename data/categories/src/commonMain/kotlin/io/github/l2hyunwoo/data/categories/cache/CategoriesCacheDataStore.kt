@@ -23,10 +23,11 @@ class CategoriesCacheDataStore(
 ) {
     suspend fun save(categories: CategoriesResponse) {
         dataStore.edit { preferences ->
-            preferences[DATA_STORE_CATEGORIES_KEY] = json.encodeToString(
-                ListSerializer(Category.serializer()),
-                categories
-            )
+            preferences[DATA_STORE_CATEGORIES_KEY] =
+                json.encodeToString(
+                    ListSerializer(Category.serializer()),
+                    categories,
+                )
         }
     }
 
@@ -37,7 +38,7 @@ class CategoriesCacheDataStore(
                 try {
                     json.decodeFromString(
                         ListSerializer(Category.serializer()),
-                        serializedCache
+                        serializedCache,
                     )
                 } catch (e: Throwable) {
                     e.printStackTrace()
@@ -46,16 +47,14 @@ class CategoriesCacheDataStore(
             }.firstOrNull()
     }
 
-    fun getCacheSync(): CategoriesResponse? {
-        return runBlocking { getCache() }
-    }
+    fun getCacheSync(): CategoriesResponse? = runBlocking { getCache() }
 
     fun getCacheStream(): Flow<CategoriesResponse> {
         return dataStore.data.mapNotNull { preferences ->
             val serializedCache = preferences[DATA_STORE_CATEGORIES_KEY] ?: return@mapNotNull null
             json.decodeFromString(
                 ListSerializer(Category.serializer()),
-                serializedCache
+                serializedCache,
             )
         }
     }

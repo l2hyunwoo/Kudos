@@ -38,7 +38,7 @@ import io.github.l2hyunwoo.data.tasks.model.fixture
 fun TaskCard(
     task: Task,
     onClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val colors = KudosTheme.colors
     val cardShape = remember { RoundedCornerShape(20.dp) }
@@ -54,22 +54,23 @@ fun TaskCard(
         label = "taskCardPressScale",
     )
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .clip(cardShape)
-            .background(color = colors.surface.surface, shape = cardShape)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .heightIn(min = 64.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }.clip(cardShape)
+                .background(color = colors.surface.surface, shape = cardShape)
+                .clickable(interactionSource = interaction, indication = null, onClick = onClick),
     ) {
         Box(
-            modifier = Modifier
-                .width(4.dp)
-                .fillMaxHeight()
-                .background(task.priority.barColor())
+            modifier =
+                Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(task.priority.barColor()),
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -77,18 +78,19 @@ fun TaskCard(
         Moon(
             k = task.status.fraction,
             size = 22.dp,
-            modifier = Modifier.align(Alignment.CenterVertically)
+            modifier = Modifier.align(Alignment.CenterVertically),
         )
 
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 12.dp)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 12.dp),
         ) {
             Text(
                 text = task.taskId,
                 style = KudosTheme.typography.identifier,
-                color = colors.ink.ink3
+                color = colors.ink.ink3,
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -98,7 +100,7 @@ fun TaskCard(
                 style = KudosTheme.typography.rowTitle,
                 color = if (done) colors.ink.ink3 else colors.ink.ink,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -106,7 +108,7 @@ fun TaskCard(
             Text(
                 text = "${task.priority.text} · ${formatStatus(task.status.name)}",
                 style = KudosTheme.typography.labelSmallM,
-                color = colors.ink.ink2
+                color = colors.ink.ink2,
             )
         }
     }
@@ -123,11 +125,11 @@ private fun TaskPriority.barColor(): Color {
     }
 }
 
-private fun formatStatus(status: String): String {
-    return status.lowercase()
+private fun formatStatus(status: String): String =
+    status
+        .lowercase()
         .split('_')
         .joinToString(" ") { it.replaceFirstChar { char -> char.uppercase() } }
-}
 
 @Preview(showBackground = true)
 @Composable

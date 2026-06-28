@@ -8,5 +8,5 @@ data class UpdateProjectRequest(
     @SerialName("title")
     val title: String,
     @SerialName("description")
-    val description: String? = null
+    val description: String? = null,
 )

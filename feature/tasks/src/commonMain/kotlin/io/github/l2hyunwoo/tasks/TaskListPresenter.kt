@@ -50,7 +50,7 @@ fun taskListPresenter(
                     UpdateTaskParams(
                         taskId = event.taskId,
                         request = UpdateTaskRequest(status = event.status),
-                    )
+                    ),
                 )
             }
 
@@ -64,7 +64,7 @@ fun taskListPresenter(
                         UpdateTaskParams(
                             taskId = event.taskId,
                             request = UpdateTaskRequest(priority = event.priority),
-                        )
+                        ),
                     )
                 } catch (e: Exception) {
                     if (e is kotlinx.coroutines.CancellationException) throw e
@@ -91,24 +91,26 @@ fun taskListPresenter(
 
     val query = searchQuery.trim()
     val pendingId = pendingDelete?.id
-    val visibleCategories = categories.mapNotNull { category ->
-        val matches = category.tasks.filter { task ->
-            // Hide the row that is pending deletion so the list reads as "already deleted" under undo.
-            if (task.id == pendingId) return@filter false
-            if (query.isEmpty()) return@filter true
-            // Substring match on title/description; categories with no match drop out so the screen's
-            // empty state ("결과 없음") shows when nothing matches.
-            task.title.contains(query, ignoreCase = true) ||
-                task.description?.contains(query, ignoreCase = true) == true
+    val visibleCategories =
+        categories.mapNotNull { category ->
+            val matches =
+                category.tasks.filter { task ->
+                    // Hide the row that is pending deletion so the list reads as "already deleted" under undo.
+                    if (task.id == pendingId) return@filter false
+                    if (query.isEmpty()) return@filter true
+                    // Substring match on title/description; categories with no match drop out so the screen's
+                    // empty state ("결과 없음") shows when nothing matches.
+                    task.title.contains(query, ignoreCase = true) ||
+                        task.description?.contains(query, ignoreCase = true) == true
+                }
+            // Keep empty categories when not searching (the screen renders headers itself); drop them
+            // under an active query so "결과 없음" shows when nothing matches.
+            when {
+                matches.isNotEmpty() -> category.copy(tasks = matches)
+                query.isEmpty() -> category.copy(tasks = matches)
+                else -> null
+            }
         }
-        // Keep empty categories when not searching (the screen renders headers itself); drop them
-        // under an active query so "결과 없음" shows when nothing matches.
-        when {
-            matches.isNotEmpty() -> category.copy(tasks = matches)
-            query.isEmpty() -> category.copy(tasks = matches)
-            else -> null
-        }
-    }
 
     // Group the SAME filtered task set so search + time-grouping compose: flatten the surviving
     // tasks across categories, then bucket by due date relative to today.
@@ -123,26 +125,30 @@ fun taskListPresenter(
     }
     // Apply the optimistic overrides for rendering. Keep id stable through the copy so animateItem
     // animates the move instead of a remove+insert.
-    val filteredTasks = if (priorityOverrides.isEmpty()) {
-        baseTasks
-    } else {
-        baseTasks.map { task ->
-            priorityOverrides[task.id]?.let { task.copy(priority = it) } ?: task
+    val filteredTasks =
+        if (priorityOverrides.isEmpty()) {
+            baseTasks
+        } else {
+            baseTasks.map { task ->
+                priorityOverrides[task.id]?.let { task.copy(priority = it) } ?: task
+            }
         }
-    }
-    val groups = remember(filteredTasks) {
-        groupTasksByDueDate(filteredTasks, todayIso())
-    }
+    val groups =
+        remember(filteredTasks) {
+            groupTasksByDueDate(filteredTasks, todayIso())
+        }
 
     return TaskListUiState(
         categories = visibleCategories.toImmutableList(),
         groups = groups,
-        isLoading = createTaskMutation.isPending ||
-            updateTaskMutation.isPending ||
-            deleteTaskMutation.isPending,
-        error = createTaskMutation.error
-            ?: updateTaskMutation.error
-            ?: deleteTaskMutation.error,
+        isLoading =
+            createTaskMutation.isPending ||
+                updateTaskMutation.isPending ||
+                deleteTaskMutation.isPending,
+        error =
+            createTaskMutation.error
+                ?: updateTaskMutation.error
+                ?: deleteTaskMutation.error,
         searchQuery = query,
         pendingDelete = pendingDelete,
     )

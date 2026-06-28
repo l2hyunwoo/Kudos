@@ -10,7 +10,11 @@ package io.github.l2hyunwoo.kudos.core.common.date
 // so the math stays cross-checkable against the source.
 
 // A civil (proleptic Gregorian) calendar date. Months and days are 1-based.
-data class CivilDate(val year: Long, val month: Int, val day: Int)
+data class CivilDate(
+    val year: Long,
+    val month: Int,
+    val day: Int,
+)
 
 // civil_from_days: epoch day count (days since 1970-01-01) -> civil (year, month, day).
 fun civilFromDays(epochDay: Long): CivilDate {
@@ -29,7 +33,11 @@ fun civilFromDays(epochDay: Long): CivilDate {
 }
 
 // days_from_civil: civil (year, month, day) -> epoch day count. Inverse of [civilFromDays].
-fun daysFromCivil(year: Long, month: Long, day: Long): Long {
+fun daysFromCivil(
+    year: Long,
+    month: Long,
+    day: Long,
+): Long {
     val y = if (month <= 2L) year - 1L else year
     val era = (if (y >= 0L) y else y - 399L) / 400L
     val yoe = y - era * 400L

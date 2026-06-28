@@ -45,9 +45,10 @@ fun KudosTheme(
     val kudosColors = remember(darkTheme) { if (darkTheme) darkKudosColors() else lightKudosColors() }
     val reduceMotion = LocalReduceMotion.current
     val motion = remember(reduceMotion) { kudosMotion(reduceMotion) }
-    val typography = remember(displayFontFamily, bodyFontFamily) {
-        materialTypography(displayFontFamily, bodyFontFamily)
-    }
+    val typography =
+        remember(displayFontFamily, bodyFontFamily) {
+            materialTypography(displayFontFamily, bodyFontFamily)
+        }
     CompositionLocalProvider(
         LocalDarkTheme provides darkTheme,
         LocalColorScheme provides colorScheme,
@@ -55,9 +56,10 @@ fun KudosTheme(
         LocalMotion provides motion,
         LocalIndication provides ripple(),
         LocalTypography provides KudosTypography.with(displayFontFamily, bodyFontFamily),
-        LocalAsyncImagePreviewHandler provides AsyncImagePreviewHandler {
-            ColorImage(Color.Red.toArgb())
-        },
+        LocalAsyncImagePreviewHandler provides
+            AsyncImagePreviewHandler {
+                ColorImage(Color.Red.toArgb())
+            },
     ) {
         // MaterialTheme drives MaterialTheme.typography/colorScheme consumers and the global
         // LocalTextStyle, so unstyled Text and MaterialTheme.typography.* pick up the app fonts.
@@ -70,7 +72,6 @@ fun KudosTheme(
 }
 
 object KudosTheme {
-
     val colorScheme: ColorScheme
         @Composable
         @ReadOnlyComposable

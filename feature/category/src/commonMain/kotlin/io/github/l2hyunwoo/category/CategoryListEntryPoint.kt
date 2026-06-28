@@ -18,7 +18,7 @@ fun CategoryListEntryPoint(
     // Top contentPadding so the list clears the glass header owned by the parent (MainScreen) and
     // the rest scrolls under it. Standalone usage passes 0.
     topContentPadding: Dp = 0.dp,
-    onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> }
+    onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> },
 ) {
     val actualEventFlow = eventFlow ?: rememberEventFlow()
 
@@ -27,16 +27,17 @@ fun CategoryListEntryPoint(
 
     val categories = categoriesSubscription.data ?: categoriesQuery.data ?: emptyList()
 
-    val uiState = categoryListPresenter(
-        eventFlow = actualEventFlow,
-        categories = categories,
-        searchQuery = searchQuery
-    )
+    val uiState =
+        categoryListPresenter(
+            eventFlow = actualEventFlow,
+            categories = categories,
+            searchQuery = searchQuery,
+        )
 
     CategoryListScreen(
         uiState = uiState,
         eventFlow = actualEventFlow,
         topContentPadding = topContentPadding,
-        onNavigateToProjectDetail = onNavigateToProjectDetail
+        onNavigateToProjectDetail = onNavigateToProjectDetail,
     )
 }

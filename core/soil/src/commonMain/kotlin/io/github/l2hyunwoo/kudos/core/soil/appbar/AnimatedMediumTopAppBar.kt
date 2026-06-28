@@ -26,7 +26,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -34,9 +34,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.kudos.core.soil.KudosSoilPreviewContainer
-import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,26 +46,28 @@ fun AnimatedMediumTopAppBar(
     modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = AnimatedMediumTopAppBarDefaults.windowInsets(),
-    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors().copy(
-        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ),
+    colors: TopAppBarColors =
+        TopAppBarDefaults.topAppBarColors().copy(
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ),
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     val density = LocalDensity.current.density
-    var navigationIconWidthDp by remember { mutableStateOf(0f) }
-    val isCenterTitle = remember(scrollBehavior?.state?.collapsedFraction) {
-        if (scrollBehavior == null) {
-            // Always left-align when scrollBehavior is not present
-            false
-        } else {
-            // Hide title position because it doesn't look smooth if it is displayed when collapsing
-            when (scrollBehavior.state.collapsedFraction) {
-                in 0.7f..1.0f -> true
-                in 0.0f..0.5f -> false
-                else -> null // Don't display while on the move.
+    var navigationIconWidthDp by remember { mutableFloatStateOf(0f) }
+    val isCenterTitle =
+        remember(scrollBehavior?.state?.collapsedFraction) {
+            if (scrollBehavior == null) {
+                // Always left-align when scrollBehavior is not present
+                false
+            } else {
+                // Hide title position because it doesn't look smooth if it is displayed when collapsing
+                when (scrollBehavior.state.collapsedFraction) {
+                    in 0.7f..1.0f -> true
+                    in 0.0f..0.5f -> false
+                    else -> null // Don't display while on the move.
+                }
             }
         }
-    }
 
     MediumTopAppBar(
         title = {
@@ -77,18 +79,24 @@ fun AnimatedMediumTopAppBar(
             ) {
                 Text(
                     text = title,
-                    modifier = Modifier.then(
-                        when (isCenterTitle) {
-                            true -> {
-                                Modifier
-                                    .padding(end = navigationIconWidthDp.dp)
-                                    .fillMaxWidth()
-                            }
+                    modifier =
+                        Modifier.then(
+                            when (isCenterTitle) {
+                                true -> {
+                                    Modifier
+                                        .padding(end = navigationIconWidthDp.dp)
+                                        .fillMaxWidth()
+                                }
 
-                            false -> Modifier
-                            null -> Modifier.alpha(0f)
-                        },
-                    ),
+                                false -> {
+                                    Modifier
+                                }
+
+                                null -> {
+                                    Modifier.alpha(0f)
+                                }
+                            },
+                        ),
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                 )
@@ -97,10 +105,11 @@ fun AnimatedMediumTopAppBar(
         modifier = modifier,
         navigationIcon = {
             IconButton(
-                modifier = Modifier
-                    .onGloballyPositioned {
-                        navigationIconWidthDp = it.size.width / density
-                    },
+                modifier =
+                    Modifier
+                        .onGloballyPositioned {
+                            navigationIconWidthDp = it.size.width / density
+                        },
                 shape = IconButtonDefaults.outlinedShape,
                 onClick = onBackClick,
             ) {
@@ -119,9 +128,10 @@ fun AnimatedMediumTopAppBar(
 
 object AnimatedMediumTopAppBarDefaults {
     @Composable
-    fun windowInsets() = WindowInsets.displayCutout.union(WindowInsets.systemBars).only(
-        WindowInsetsSides.Horizontal + WindowInsetsSides.Top,
-    )
+    fun windowInsets() =
+        WindowInsets.displayCutout.union(WindowInsets.systemBars).only(
+            WindowInsetsSides.Horizontal + WindowInsetsSides.Top,
+        )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

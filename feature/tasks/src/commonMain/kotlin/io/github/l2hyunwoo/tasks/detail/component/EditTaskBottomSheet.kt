@@ -58,30 +58,32 @@ fun EditTaskBottomSheet(
     var selectedStatus by remember { mutableStateOf(initialStatus) }
     var selectedPriority by remember { mutableStateOf(initialPriority) }
 
-    val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = KudosTheme.colors.brand.primary600,
-        unfocusedBorderColor = KudosTheme.colors.surface.outlineStrong,
-        focusedLabelColor = KudosTheme.colors.brand.primary600,
-        cursorColor = KudosTheme.colors.brand.primary600,
-    )
+    val fieldColors =
+        OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = KudosTheme.colors.brand.primary600,
+            unfocusedBorderColor = KudosTheme.colors.surface.outlineStrong,
+            focusedLabelColor = KudosTheme.colors.brand.primary600,
+            cursorColor = KudosTheme.colors.brand.primary600,
+        )
 
     KudosBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .imePadding()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .imePadding()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
         ) {
             Text(
                 text = "Edit Task",
                 style = KudosTheme.typography.titleLargeB,
                 color = KudosTheme.colors.ink.ink,
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(bottom = 24.dp),
             )
 
             OutlinedTextField(
@@ -91,7 +93,7 @@ fun EditTaskBottomSheet(
                 singleLine = true,
                 shape = KudosTheme.shapes.chipSmall,
                 colors = fieldColors,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -104,7 +106,7 @@ fun EditTaskBottomSheet(
                 maxLines = 5,
                 shape = KudosTheme.shapes.chipSmall,
                 colors = fieldColors,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -116,7 +118,7 @@ fun EditTaskBottomSheet(
                 singleLine = true,
                 shape = KudosTheme.shapes.chipSmall,
                 colors = fieldColors,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -165,7 +167,7 @@ fun EditTaskBottomSheet(
                             onDismiss()
                         }
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text("Cancel")
                 }
@@ -181,11 +183,11 @@ fun EditTaskBottomSheet(
                                 status = selectedStatus,
                                 priority = selectedPriority,
                                 dueDate = dueDate.ifBlank { null },
-                            )
+                            ),
                         )
                     },
                     enabled = title.isNotBlank(),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text("Save")
                 }
@@ -202,22 +204,24 @@ private fun PriorityChip(
     modifier: Modifier = Modifier,
 ) {
     val p = KudosTheme.colors.priority
-    val dot = when (priority) {
-        TaskPriority.URGENT -> p.urgent
-        TaskPriority.HIGH -> p.high
-        TaskPriority.MEDIUM -> p.medium
-        TaskPriority.LOW -> p.low
-    }
+    val dot =
+        when (priority) {
+            TaskPriority.URGENT -> p.urgent
+            TaskPriority.HIGH -> p.high
+            TaskPriority.MEDIUM -> p.medium
+            TaskPriority.LOW -> p.low
+        }
     val (bg, fg) = KudosTheme.colors.pastelChip(dot)
     Text(
         text = priority.text,
         style = KudosTheme.typography.labelLargeM,
         color = if (isSelected) Color.White else fg,
-        modifier = modifier
-            .clip(KudosTheme.shapes.chipSmall)
-            .background(if (isSelected) dot else bg)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+        modifier =
+            modifier
+                .clip(KudosTheme.shapes.chipSmall)
+                .background(if (isSelected) dot else bg)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 14.dp, vertical = 8.dp),
     )
 }
 
@@ -231,11 +235,12 @@ private fun StatusChip(
     val bg = if (isSelected) KudosTheme.colors.brand.primary100 else KudosTheme.colors.surface.surface2
     val fg = if (isSelected) KudosTheme.colors.brand.primary600 else KudosTheme.colors.ink.ink2
     Row(
-        modifier = modifier
-            .clip(KudosTheme.shapes.chipSmall)
-            .background(bg)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+        modifier =
+            modifier
+                .clip(KudosTheme.shapes.chipSmall)
+                .background(bg)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Moon(k = status.fraction, size = 18.dp)
@@ -247,9 +252,10 @@ private fun StatusChip(
     }
 }
 
-private fun TaskStatus.label(): String = when (this) {
-    TaskStatus.BACKLOG -> "백로그"
-    TaskStatus.TODO -> "할 일"
-    TaskStatus.IN_PROGRESS -> "진행 중"
-    TaskStatus.DONE -> "완료"
-}
+private fun TaskStatus.label(): String =
+    when (this) {
+        TaskStatus.BACKLOG -> "백로그"
+        TaskStatus.TODO -> "할 일"
+        TaskStatus.IN_PROGRESS -> "진행 중"
+        TaskStatus.DONE -> "완료"
+    }

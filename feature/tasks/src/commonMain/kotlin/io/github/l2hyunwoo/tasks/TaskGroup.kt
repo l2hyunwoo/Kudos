@@ -25,13 +25,14 @@ data class TaskGroup(
 )
 
 // Fixed display order; only non-empty groups are emitted (Overdue first per the spec).
-private val GroupOrder = listOf(
-    TaskGroupKind.OVERDUE,
-    TaskGroupKind.TODAY,
-    TaskGroupKind.UPCOMING,
-    TaskGroupKind.NO_DUE,
-    TaskGroupKind.DONE,
-)
+private val GroupOrder =
+    listOf(
+        TaskGroupKind.OVERDUE,
+        TaskGroupKind.TODAY,
+        TaskGroupKind.UPCOMING,
+        TaskGroupKind.NO_DUE,
+        TaskGroupKind.DONE,
+    )
 
 // Buckets a flat task list by due date relative to [today] (a "YYYY-MM-DD" string).
 // dueDate is a free-text ISO-8601 string (date-only "YYYY-MM-DD" or a full timestamp), so we compare
@@ -52,35 +53,44 @@ fun groupTasksByDueDate(
         // Bind to a local: dueDate is declared in another module, so smart-cast from the null check
         // wouldn't carry into the comparison.
         val due = task.dueDate
-        val kind = when {
-            task.status == TaskStatus.DONE -> TaskGroupKind.DONE
-            due.isNullOrBlank() -> TaskGroupKind.NO_DUE
-            else -> {
-                val day = due.dueDay()
-                when {
-                    day < today -> TaskGroupKind.OVERDUE
-                    day == today -> TaskGroupKind.TODAY
-                    else -> TaskGroupKind.UPCOMING
+        val kind =
+            when {
+                task.status == TaskStatus.DONE -> {
+                    TaskGroupKind.DONE
+                }
+
+                due.isNullOrBlank() -> {
+                    TaskGroupKind.NO_DUE
+                }
+
+                else -> {
+                    val day = due.dueDay()
+                    when {
+                        day < today -> TaskGroupKind.OVERDUE
+                        day == today -> TaskGroupKind.TODAY
+                        else -> TaskGroupKind.UPCOMING
+                    }
                 }
             }
-        }
         byKind.getOrPut(kind) { mutableListOf() }.add(task)
     }
-    return GroupOrder.mapNotNull { kind ->
-        byKind[kind]?.let { bucket ->
-            // Sort every non-DONE bucket by priority (URGENT=ordinal 0 first), tie-broken by
-            // taskNumber so the order is deterministic and stable across recompositions. DONE keeps
-            // input order so completed work doesn't reshuffle by urgency it no longer carries.
-            val ordered = if (kind == TaskGroupKind.DONE) {
-                bucket
-            } else {
-                bucket.sortedWith(
-                    compareBy({ it.priority.ordinal }, { it.taskNumber }),
-                )
+    return GroupOrder
+        .mapNotNull { kind ->
+            byKind[kind]?.let { bucket ->
+                // Sort every non-DONE bucket by priority (URGENT=ordinal 0 first), tie-broken by
+                // taskNumber so the order is deterministic and stable across recompositions. DONE keeps
+                // input order so completed work doesn't reshuffle by urgency it no longer carries.
+                val ordered =
+                    if (kind == TaskGroupKind.DONE) {
+                        bucket
+                    } else {
+                        bucket.sortedWith(
+                            compareBy({ it.priority.ordinal }, { it.taskNumber }),
+                        )
+                    }
+                TaskGroup(kind, ordered.toImmutableList())
             }
-            TaskGroup(kind, ordered.toImmutableList())
-        }
-    }.toImmutableList()
+        }.toImmutableList()
 }
 
 // The "YYYY-MM-DD" date portion of an ISO-8601 string: take the first 10 chars when long enough,
@@ -89,4 +99,10 @@ private fun String.dueDay(): String = if (length >= 10) substring(0, 10) else th
 
 // Today's local civil date as "YYYY-MM-DD". Uses the device's UTC-based day, which is acceptable for
 // due-date bucketing here. The epoch-day -> ISO conversion lives in core.common.date.
-fun todayIso(): String = isoFromEpochDay(Clock.System.now().epochSeconds.floorDiv(86_400L))
+fun todayIso(): String =
+    isoFromEpochDay(
+        Clock.System
+            .now()
+            .epochSeconds
+            .floorDiv(86_400L),
+    )

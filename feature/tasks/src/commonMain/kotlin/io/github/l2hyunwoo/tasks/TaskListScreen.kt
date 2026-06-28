@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.Moon
-import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
+import io.github.l2hyunwoo.core.design.token.LUNAR_DURATION_STANDARD
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
@@ -80,32 +80,35 @@ fun TaskListScreen(
 
     // Flat lookup: task id -> (its group kind, its current priority). Built from the rendered groups so
     // drag onMove can decide same-group + read the drop neighbor's grade without re-deriving buckets.
-    val rowIndex = remember(groups) {
-        buildMap {
-            groups.forEach { group ->
-                group.tasks.forEach { task -> put(task.id, group.kind to task.priority) }
+    val rowIndex =
+        remember(groups) {
+            buildMap {
+                groups.forEach { group ->
+                    group.tasks.forEach { task -> put(task.id, group.kind to task.priority) }
+                }
             }
         }
-    }
 
     val lazyListState = rememberLazyListState()
     // Drag-and-drop reorder mapped to a priority change. Key-based (never raw index) so sticky headers
     // and spacers — whose keys are Strings, not task ids — are simply absent from rowIndex and ignored.
-    val reorderState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        val fromId = from.key as? String ?: return@rememberReorderableLazyListState
-        val toId = to.key as? String ?: return@rememberReorderableLazyListState
-        val (fromGroup, _) = rowIndex[fromId] ?: return@rememberReorderableLazyListState
-        val (toGroup, toPriority) = rowIndex[toId] ?: return@rememberReorderableLazyListState
-        // Within-group only: dropping into another time-group would change the due date, which this
-        // gesture must never do (option b). Cross-group drags are rejected as a no-op.
-        if (fromGroup != toGroup) return@rememberReorderableLazyListState
-        // Map the drop to the neighbor's grade. Same grade = no-op: intra-grade order isn't persisted,
-        // the priority sort restores placement. taskId for the PATCH path is recoverable from the row.
-        val target = groups.firstNotNullOfOrNull { g -> g.tasks.firstOrNull { it.id == fromId } }
-            ?: return@rememberReorderableLazyListState
-        if (target.priority == toPriority) return@rememberReorderableLazyListState
-        eventFlow.tryEmit(TaskListEvent.ReorderPriority(target.taskId, target.id, toPriority))
-    }
+    val reorderState =
+        rememberReorderableLazyListState(lazyListState) { from, to ->
+            val fromId = from.key as? String ?: return@rememberReorderableLazyListState
+            val toId = to.key as? String ?: return@rememberReorderableLazyListState
+            val (fromGroup, _) = rowIndex[fromId] ?: return@rememberReorderableLazyListState
+            val (toGroup, toPriority) = rowIndex[toId] ?: return@rememberReorderableLazyListState
+            // Within-group only: dropping into another time-group would change the due date, which this
+            // gesture must never do (option b). Cross-group drags are rejected as a no-op.
+            if (fromGroup != toGroup) return@rememberReorderableLazyListState
+            // Map the drop to the neighbor's grade. Same grade = no-op: intra-grade order isn't persisted,
+            // the priority sort restores placement. taskId for the PATCH path is recoverable from the row.
+            val target =
+                groups.firstNotNullOfOrNull { g -> g.tasks.firstOrNull { it.id == fromId } }
+                    ?: return@rememberReorderableLazyListState
+            if (target.priority == toPriority) return@rememberReorderableLazyListState
+            eventFlow.tryEmit(TaskListEvent.ReorderPriority(target.taskId, target.id, toPriority))
+        }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
@@ -117,11 +120,12 @@ fun TaskListScreen(
     // id so each new delete shows its own snackbar.
     LaunchedEffect(uiState.pendingDelete?.id) {
         if (uiState.pendingDelete != null) {
-            val result = snackbarHostState.showSnackbar(
-                message = "Task deleted",
-                actionLabel = "Undo",
-                duration = SnackbarDuration.Short,
-            )
+            val result =
+                snackbarHostState.showSnackbar(
+                    message = "Task deleted",
+                    actionLabel = "Undo",
+                    duration = SnackbarDuration.Short,
+                )
             when (result) {
                 SnackbarResult.ActionPerformed -> eventFlow.tryEmit(TaskListEvent.UndoDelete)
                 SnackbarResult.Dismissed -> eventFlow.tryEmit(TaskListEvent.ConfirmDelete)
@@ -141,31 +145,32 @@ fun TaskListScreen(
                 // The list is already inside MainScreen's single `Modifier.sky` recorder (this
                 // screen draws no glass chrome of its own — the glass header is hoisted to
                 // MainScreen, outside the recorder, so its foreground never pollutes the blur source).
-                val listModifier = Modifier
-                    .fillMaxSize()
-                    // Pull-to-refresh gesture on the scroll container; the indicator is drawn by the
-                    // parent outside the recorder (see param doc). Only attached when PTR is enabled.
-                    .let { base ->
-                        if (pullToRefreshState != null) {
-                            base.pullToRefresh(
-                                isRefreshing = isRefreshing,
-                                state = pullToRefreshState,
-                                onRefresh = onRefresh,
-                            )
-                        } else {
-                            base
-                        }
-                    }
-                    .padding(horizontal = 16.dp)
+                val listModifier =
+                    Modifier
+                        .fillMaxSize()
+                        // Pull-to-refresh gesture on the scroll container; the indicator is drawn by the
+                        // parent outside the recorder (see param doc). Only attached when PTR is enabled.
+                        .let { base ->
+                            if (pullToRefreshState != null) {
+                                base.pullToRefresh(
+                                    isRefreshing = isRefreshing,
+                                    state = pullToRefreshState,
+                                    onRefresh = onRefresh,
+                                )
+                            } else {
+                                base
+                            }
+                        }.padding(horizontal = 16.dp)
                 LazyColumn(
                     state = lazyListState,
                     modifier = listModifier,
-                    contentPadding = PaddingValues(
-                        // Clear the glass header (top) and the floating glass nav bar (bottom); rows
-                        // beyond them scroll under the translucent chrome.
-                        top = topContentPadding,
-                        bottom = rememberNavBarClearance(),
-                    ),
+                    contentPadding =
+                        PaddingValues(
+                            // Clear the glass header (top) and the floating glass nav bar (bottom); rows
+                            // beyond them scroll under the translucent chrome.
+                            top = topContentPadding,
+                            bottom = rememberNavBarClearance(),
+                        ),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     groups.forEachIndexed { groupIndex, group ->
@@ -182,14 +187,16 @@ fun TaskListScreen(
                             val task = group.tasks[taskIndex]
                             // Carry the existing fade+slide spec as the non-dragging placement animation
                             // so reordered rows still animate to their re-sorted slot.
-                            val itemAnimation = Modifier.animateItem(
-                                fadeInSpec = KudosTheme.motion.standard,
-                                placementSpec = tween<IntOffset>(
-                                    LunarDurationStandard,
-                                    easing = LunarStandardEasing,
-                                ),
-                                fadeOutSpec = KudosTheme.motion.micro,
-                            )
+                            val itemAnimation =
+                                Modifier.animateItem(
+                                    fadeInSpec = KudosTheme.motion.standard,
+                                    placementSpec =
+                                        tween<IntOffset>(
+                                            LUNAR_DURATION_STANDARD,
+                                            easing = LunarStandardEasing,
+                                        ),
+                                    fadeOutSpec = KudosTheme.motion.micro,
+                                )
                             ReorderableItem(
                                 state = reorderState,
                                 key = task.id,
@@ -206,7 +213,7 @@ fun TaskListScreen(
                                         )
                                     },
                                     // Swipe-right: mark done directly.
-                                    onMarkDone = {
+                                    onComplete = {
                                         eventFlow.tryEmit(
                                             TaskListEvent.ChangeStatus(task.taskId, task.id, TaskStatus.DONE),
                                         )
@@ -235,23 +242,28 @@ fun TaskListScreen(
 // Sticky section header for a time group: eyebrow label + count badge. Overdue leads in warning red
 // (accent dot + red label/badge, never hidden) per DESIGN_SYSTEM_LUNAR 07-A; the rest read in ink3.
 @Composable
-private fun GroupHeader(kind: TaskGroupKind, count: Int) {
+private fun GroupHeader(
+    kind: TaskGroupKind,
+    count: Int,
+) {
     val isOverdue = kind == TaskGroupKind.OVERDUE
     val accent = if (isOverdue) KudosTheme.colors.priority.urgent else KudosTheme.colors.ink.ink3
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (isOverdue) {
             // Red accent bar: the one section the spec says must shout.
             Box(
-                modifier = Modifier
-                    .size(width = 3.dp, height = 14.dp)
-                    .clip(KudosTheme.shapes.pill)
-                    .background(accent),
+                modifier =
+                    Modifier
+                        .size(width = 3.dp, height = 14.dp)
+                        .clip(KudosTheme.shapes.pill)
+                        .background(accent),
             )
         }
         Text(
@@ -264,16 +276,20 @@ private fun GroupHeader(kind: TaskGroupKind, count: Int) {
 }
 
 @Composable
-private fun CountBadge(count: Int, isOverdue: Boolean) {
+private fun CountBadge(
+    count: Int,
+    isOverdue: Boolean,
+) {
     val container = if (isOverdue) KudosTheme.colors.priority.urgent else KudosTheme.colors.surface.surface2
     val content = if (isOverdue) Color.White else KudosTheme.colors.ink.ink2
     Box(
-        modifier = Modifier
-            .clip(KudosTheme.shapes.pill)
-            .background(container)
-            .widthIn(min = 20.dp)
-            .height(20.dp)
-            .padding(horizontal = 6.dp),
+        modifier =
+            Modifier
+                .clip(KudosTheme.shapes.pill)
+                .background(container)
+                .widthIn(min = 20.dp)
+                .height(20.dp)
+                .padding(horizontal = 6.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -285,13 +301,14 @@ private fun CountBadge(count: Int, isOverdue: Boolean) {
 }
 
 // Korean section labels matching the app's tone (cf. "결과 없음"); spec prototype used English.
-private fun TaskGroupKind.label(): String = when (this) {
-    TaskGroupKind.OVERDUE -> "지남"
-    TaskGroupKind.TODAY -> "오늘"
-    TaskGroupKind.UPCOMING -> "예정"
-    TaskGroupKind.NO_DUE -> "마감일 없음"
-    TaskGroupKind.DONE -> "완료"
-}
+private fun TaskGroupKind.label(): String =
+    when (this) {
+        TaskGroupKind.OVERDUE -> "지남"
+        TaskGroupKind.TODAY -> "오늘"
+        TaskGroupKind.UPCOMING -> "예정"
+        TaskGroupKind.NO_DUE -> "마감일 없음"
+        TaskGroupKind.DONE -> "완료"
+    }
 
 @Composable
 private fun EmptyState(modifier: Modifier = Modifier) {
@@ -317,13 +334,14 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 private fun TaskListScreenPreview() {
     // Span the buckets off a fixed "today" so the time grouping renders deterministically.
     val today = "2024-06-15"
-    val sample = listOf(
-        Task.fixture.copy(id = "o1", taskId = "kudos-1", title = "Overdue task", dueDate = "2024-06-10"),
-        Task.fixture.copy(id = "t1", taskId = "kudos-2", title = "Today task", dueDate = today),
-        Task.fixture.copy(id = "u1", taskId = "kudos-3", title = "Upcoming task", dueDate = "2024-06-20"),
-        Task.fixture.copy(id = "n1", taskId = "kudos-4", title = "No due date", dueDate = null),
-        Task.fixture.copy(id = "d1", taskId = "kudos-5", title = "Done task", status = TaskStatus.DONE),
-    )
+    val sample =
+        listOf(
+            Task.fixture.copy(id = "o1", taskId = "kudos-1", title = "Overdue task", dueDate = "2024-06-10"),
+            Task.fixture.copy(id = "t1", taskId = "kudos-2", title = "Today task", dueDate = today),
+            Task.fixture.copy(id = "u1", taskId = "kudos-3", title = "Upcoming task", dueDate = "2024-06-20"),
+            Task.fixture.copy(id = "n1", taskId = "kudos-4", title = "No due date", dueDate = null),
+            Task.fixture.copy(id = "d1", taskId = "kudos-5", title = "Done task", status = TaskStatus.DONE),
+        )
     KudosTheme {
         TaskListScreen(
             uiState = TaskListUiState(groups = groupTasksByDueDate(sample, today)),

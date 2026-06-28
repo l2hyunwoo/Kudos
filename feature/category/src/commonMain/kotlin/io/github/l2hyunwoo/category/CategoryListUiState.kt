@@ -9,10 +9,10 @@ data class CategoryListUiState(
     val isLoading: Boolean = false,
     val error: Throwable? = null,
     val deletedProject: DeletedProjectInfo? = null,
-    val searchQuery: String = ""
+    val searchQuery: String = "",
 )
 
 data class DeletedProjectInfo(
     val categoryId: String,
-    val project: Project
+    val project: Project,
 )

@@ -18,16 +18,18 @@ data class KudosShadowSpec(
 
 @Immutable
 data class KudosElevation(
-    val card: KudosShadowSpec = KudosShadowSpec(
-        offsetY = 8.dp,
-        blur = 30.dp,
-        color = Color(0x24281C5A), // rgba(40,32,90,.14)
-    ),
-    val primaryButton: KudosShadowSpec = KudosShadowSpec(
-        offsetY = 8.dp,
-        blur = 22.dp,
-        color = Color(0x806C63E6), // periwinkle glow @ 50%
-    ),
+    val card: KudosShadowSpec =
+        KudosShadowSpec(
+            offsetY = 8.dp,
+            blur = 30.dp,
+            color = Color(0x24281C5A), // rgba(40,32,90,.14)
+        ),
+    val primaryButton: KudosShadowSpec =
+        KudosShadowSpec(
+            offsetY = 8.dp,
+            blur = 22.dp,
+            color = Color(0x806C63E6), // periwinkle glow @ 50%
+        ),
 )
 
 val LocalElevation = staticCompositionLocalOf { KudosElevation() }

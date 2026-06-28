@@ -18,25 +18,25 @@ import okhttp3.logging.HttpLoggingInterceptor
 
 @ContributesTo(DataScope::class)
 interface AndroidNetworkGraph {
-
     @Provides
     @SingleIn(DataScope::class)
-    fun provideHttpClient(json: Json): HttpClient = HttpClient(OkHttp) {
-        engine {
-            config {
-                addInterceptor(
-                    HttpLoggingInterceptor().apply {
-                        level = HttpLoggingInterceptor.Level.BODY
-                    }
-                )
+    fun provideHttpClient(json: Json): HttpClient =
+        HttpClient(OkHttp) {
+            engine {
+                config {
+                    addInterceptor(
+                        HttpLoggingInterceptor().apply {
+                            level = HttpLoggingInterceptor.Level.BODY
+                        },
+                    )
+                }
+            }
+            install(ContentNegotiation) {
+                json(json)
+            }
+            defaultRequest {
+                header("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
             }
         }
-        install(ContentNegotiation) {
-            json(json)
-        }
-        defaultRequest {
-            header("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-        }
-    }
 }

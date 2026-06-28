@@ -12,8 +12,10 @@ interface TasksApiClient {
 
     suspend fun createTask(request: CreateTaskRequest)
 
-    suspend fun updateTask(taskId: String, request: UpdateTaskRequest)
+    suspend fun updateTask(
+        taskId: String,
+        request: UpdateTaskRequest,
+    )
 
     suspend fun deleteTask(taskId: String)
 }
-

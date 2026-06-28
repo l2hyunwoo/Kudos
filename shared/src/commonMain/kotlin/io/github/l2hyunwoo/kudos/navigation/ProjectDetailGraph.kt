@@ -33,9 +33,9 @@ fun NavGraphBuilder.projectDetailGraph(navController: NavHostController) {
                             status = task.status.name,
                             priority = task.priority.name,
                             dueDate = task.dueDate,
-                        )
+                        ),
                     )
-                }
+                },
             )
         }
     }

@@ -38,12 +38,13 @@ fun KanbanCard(
     onClick: () -> Unit = {},
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(KudosTheme.shapes.row)
-            .background(KudosTheme.colors.surface.surface)
-            .clickable(onClick = onClick)
-            .padding(12.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(KudosTheme.shapes.row)
+                .background(KudosTheme.colors.surface.surface)
+                .clickable(onClick = onClick)
+                .padding(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             PriorityDot(task.priority)
@@ -85,10 +86,11 @@ fun KanbanCard(
 @Composable
 private fun PriorityDot(priority: TaskPriority) {
     Box(
-        modifier = Modifier
-            .size(8.dp)
-            .clip(KudosTheme.shapes.pill)
-            .background(priority.dotColor()),
+        modifier =
+            Modifier
+                .size(8.dp)
+                .clip(KudosTheme.shapes.pill)
+                .background(priority.dotColor()),
     )
 }
 

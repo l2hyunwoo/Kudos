@@ -44,7 +44,7 @@ fun ProjectDetailScreen(
     uiState: ProjectDetailUiState,
     eventFlow: EventFlow<ProjectDetailEvent>,
     onTaskClick: (Task) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val colors = KudosTheme.colors
@@ -52,7 +52,7 @@ fun ProjectDetailScreen(
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
             snackbarHostState.showSnackbar(
-                message = error.message ?: "오류가 발생했습니다"
+                message = error.message ?: "오류가 발생했습니다",
             )
         }
     }
@@ -64,7 +64,7 @@ fun ProjectDetailScreen(
                     Text(
                         text = "프로젝트 상세",
                         style = KudosTheme.typography.titleMediumB,
-                        color = colors.ink.ink
+                        color = colors.ink.ink,
                     )
                 },
                 navigationIcon = {
@@ -72,41 +72,44 @@ fun ProjectDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "뒤로가기",
-                            tint = colors.ink.ink2
+                            tint = colors.ink.ink2,
                         )
                     }
                 },
                 actions = {
                     IconButton(
-                        onClick = { eventFlow.tryEmit(ProjectDetailEvent.ShowEditSheet) }
+                        onClick = { eventFlow.tryEmit(ProjectDetailEvent.ShowEditSheet) },
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "수정",
-                            tint = colors.brand.primary600
+                            tint = colors.brand.primary600,
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colors.glass.fill,
-                    scrolledContainerColor = colors.glass.fill,
-                ),
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = colors.glass.fill,
+                        scrolledContainerColor = colors.glass.fill,
+                    ),
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = colors.surface.bg,
-        modifier = modifier
+        modifier = modifier,
     ) { paddingValues ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
             ) {
                 CategoryBadge(
                     label = uiState.categoryPrefix,
@@ -118,7 +121,7 @@ fun ProjectDetailScreen(
                 Text(
                     text = uiState.title,
                     style = KudosTheme.typography.titleLargeB,
-                    color = colors.ink.ink
+                    color = colors.ink.ink,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -127,7 +130,7 @@ fun ProjectDetailScreen(
                     Text(
                         text = description,
                         style = KudosTheme.typography.bodyMediumR,
-                        color = colors.ink.ink2
+                        color = colors.ink.ink2,
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                 } ?: run {
@@ -136,14 +139,14 @@ fun ProjectDetailScreen(
 
                 ProjectTasksList(
                     tasks = uiState.tasks,
-                    onTaskClick = onTaskClick
+                    onTaskClick = onTaskClick,
                 )
             }
 
             if (uiState.isLoadingTasks || uiState.isUpdatingProject) {
                 CircularProgressIndicator(
                     color = colors.brand.primary600,
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
                 )
             }
         }
@@ -156,7 +159,7 @@ fun ProjectDetailScreen(
             onDismiss = { eventFlow.tryEmit(ProjectDetailEvent.DismissEditSheet) },
             onUpdate = { request ->
                 eventFlow.tryEmit(ProjectDetailEvent.UpdateProject(request))
-            }
+            },
         )
     }
 }
@@ -173,10 +176,11 @@ private fun CategoryBadge(
         text = label,
         style = KudosTheme.typography.eyebrow,
         color = fg,
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(color = bg, shape = RoundedCornerShape(8.dp))
-            .padding(horizontal = 10.dp, vertical = 5.dp)
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(color = bg, shape = RoundedCornerShape(8.dp))
+                .padding(horizontal = 10.dp, vertical = 5.dp),
     )
 }
 

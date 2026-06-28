@@ -12,31 +12,30 @@ import io.github.l2hyunwoo.kudos.core.common.DataScope
 @ContributesBinding(DataScope::class)
 @Inject
 class DefaultCategoriesApiClient internal constructor(
-    ktorfit: Ktorfit
+    ktorfit: Ktorfit,
 ) : CategoriesApiClient {
     private val categoriesApi = ktorfit.createCategoriesApi()
 
-    override suspend fun getCategories(): CategoriesResponse {
-        return categoriesApi.getCategories()
-    }
+    override suspend fun getCategories(): CategoriesResponse = categoriesApi.getCategories()
 
-    override suspend fun createCategory(request: CreateCategoryRequest): CategoriesResponse {
-        return categoriesApi.createCategory(request)
-    }
+    override suspend fun createCategory(request: CreateCategoryRequest): CategoriesResponse =
+        categoriesApi.createCategory(request)
 
-    override suspend fun deleteCategory(id: String): CategoriesResponse {
-        return categoriesApi.deleteCategory(id)
-    }
+    override suspend fun deleteCategory(id: String): CategoriesResponse = categoriesApi.deleteCategory(id)
 
-    override suspend fun createProject(categoryId: String, request: CreateProjectRequest): CategoriesResponse {
-        return categoriesApi.createProject(categoryId, request)
-    }
+    override suspend fun createProject(
+        categoryId: String,
+        request: CreateProjectRequest,
+    ): CategoriesResponse = categoriesApi.createProject(categoryId, request)
 
-    override suspend fun updateProject(categoryId: String, projectId: String, request: UpdateProjectRequest): CategoriesResponse {
-        return categoriesApi.updateProject(categoryId, projectId, request)
-    }
+    override suspend fun updateProject(
+        categoryId: String,
+        projectId: String,
+        request: UpdateProjectRequest,
+    ): CategoriesResponse = categoriesApi.updateProject(categoryId, projectId, request)
 
-    override suspend fun deleteProject(categoryId: String, projectId: String): CategoriesResponse {
-        return categoriesApi.deleteProject(categoryId, projectId)
-    }
+    override suspend fun deleteProject(
+        categoryId: String,
+        projectId: String,
+    ): CategoriesResponse = categoriesApi.deleteProject(categoryId, projectId)
 }

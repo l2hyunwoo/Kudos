@@ -41,7 +41,7 @@ import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.Moon
-import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
+import io.github.l2hyunwoo.core.design.token.LUNAR_DURATION_STANDARD
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
@@ -78,10 +78,11 @@ fun KanbanBoard(
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columnWidth = maxWidth * 0.78f
             Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 uiState.columns.forEach { column ->
@@ -90,19 +91,20 @@ fun KanbanBoard(
                         width = columnWidth,
                         topContentPadding = topContentPadding,
                         isHovered = dndState.hoveredDropTargetKey == column.status,
-                        dndModifier = Modifier.dropTarget(
-                            key = column.status,
-                            state = dndState,
-                            onDrop = { dragged ->
-                                val task = dragged.data
-                                // Same-column drop is a no-op; only a real status change is emitted.
-                                if (task.status != column.status) {
-                                    eventFlow.tryEmit(
-                                        TaskListEvent.ChangeStatus(task.taskId, task.id, column.status),
-                                    )
-                                }
-                            },
-                        ),
+                        modifier =
+                            Modifier.dropTarget(
+                                key = column.status,
+                                state = dndState,
+                                onDrop = { dragged ->
+                                    val task = dragged.data
+                                    // Same-column drop is a no-op; only a real status change is emitted.
+                                    if (task.status != column.status) {
+                                        eventFlow.tryEmit(
+                                            TaskListEvent.ChangeStatus(task.taskId, task.id, column.status),
+                                        )
+                                    }
+                                },
+                            ),
                     ) { task ->
                         DraggableItem(
                             key = task.id,
@@ -119,17 +121,17 @@ fun KanbanBoard(
                             KanbanCard(
                                 task = task,
                                 onClick = { onTaskClick(task) },
-                                modifier = Modifier
-                                    .graphicsLayer {
-                                        scaleX = scale
-                                        scaleY = scale
-                                    }
-                                    .shadow(
-                                        elevation = if (isDragging) 8.dp else 0.dp,
-                                        shape = KudosTheme.shapes.row,
-                                        ambientColor = KudosTheme.colors.glass.shadowTint,
-                                        spotColor = KudosTheme.colors.glass.shadowTint,
-                                    ),
+                                modifier =
+                                    Modifier
+                                        .graphicsLayer {
+                                            scaleX = scale
+                                            scaleY = scale
+                                        }.shadow(
+                                            elevation = if (isDragging) 8.dp else 0.dp,
+                                            shape = KudosTheme.shapes.row,
+                                            ambientColor = KudosTheme.colors.glass.shadowTint,
+                                            spotColor = KudosTheme.colors.glass.shadowTint,
+                                        ),
                             )
                         }
                     }
@@ -145,10 +147,10 @@ private fun KanbanColumnView(
     width: Dp,
     topContentPadding: Dp,
     isHovered: Boolean,
-    dndModifier: Modifier,
+    modifier: Modifier = Modifier,
     cardContent: @Composable (Task) -> Unit,
 ) {
-    val colorSpec = tween<Color>(LunarDurationStandard, easing = LunarStandardEasing)
+    val colorSpec = tween<Color>(LUNAR_DURATION_STANDARD, easing = LunarStandardEasing)
     // Target glow: tint the column fill + border while a card hovers over it.
     val borderColor by animateColorAsState(
         targetValue = if (isHovered) KudosTheme.colors.brand.primary400 else Color.Transparent,
@@ -159,15 +161,16 @@ private fun KanbanColumnView(
         animationSpec = colorSpec,
     )
     Column(
-        modifier = Modifier
-            .width(width)
-            .fillMaxHeight()
-            .padding(top = topContentPadding, bottom = 16.dp)
-            .clip(KudosTheme.shapes.card)
-            .then(dndModifier)
-            .background(bgColor)
-            .border(1.dp, borderColor, KudosTheme.shapes.card)
-            .padding(12.dp),
+        modifier =
+            Modifier
+                .width(width)
+                .fillMaxHeight()
+                .padding(top = topContentPadding, bottom = 16.dp)
+                .clip(KudosTheme.shapes.card)
+                .then(modifier)
+                .background(bgColor)
+                .border(1.dp, borderColor, KudosTheme.shapes.card)
+                .padding(12.dp),
     ) {
         ColumnHeader(status = column.status, count = column.tasks.size)
         Spacer(Modifier.height(12.dp))
@@ -187,7 +190,10 @@ private fun KanbanColumnView(
 }
 
 @Composable
-private fun ColumnHeader(status: TaskStatus, count: Int) {
+private fun ColumnHeader(
+    status: TaskStatus,
+    count: Int,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -203,12 +209,13 @@ private fun ColumnHeader(status: TaskStatus, count: Int) {
             modifier = Modifier.weight(1f),
         )
         Box(
-            modifier = Modifier
-                .clip(KudosTheme.shapes.pill)
-                .background(KudosTheme.colors.surface.surface)
-                .widthIn(min = 20.dp)
-                .height(20.dp)
-                .padding(horizontal = 6.dp),
+            modifier =
+                Modifier
+                    .clip(KudosTheme.shapes.pill)
+                    .background(KudosTheme.colors.surface.surface)
+                    .widthIn(min = 20.dp)
+                    .height(20.dp)
+                    .padding(horizontal = 6.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -220,33 +227,35 @@ private fun ColumnHeader(status: TaskStatus, count: Int) {
     }
 }
 
-private fun TaskStatus.koLabel(): String = when (this) {
-    TaskStatus.BACKLOG -> "백로그"
-    TaskStatus.TODO -> "할 일"
-    TaskStatus.IN_PROGRESS -> "진행 중"
-    TaskStatus.DONE -> "완료"
-}
+private fun TaskStatus.koLabel(): String =
+    when (this) {
+        TaskStatus.BACKLOG -> "백로그"
+        TaskStatus.TODO -> "할 일"
+        TaskStatus.IN_PROGRESS -> "진행 중"
+        TaskStatus.DONE -> "완료"
+    }
 
 @Preview
 @Composable
 private fun KanbanBoardPreview() {
     KudosTheme {
-        val columns = listOf(
-            KanbanColumn(
-                TaskStatus.BACKLOG,
-                persistentListOf(
-                    Task.fixture.copy(id = "b1", title = "Backlog task", status = TaskStatus.BACKLOG),
+        val columns =
+            listOf(
+                KanbanColumn(
+                    TaskStatus.BACKLOG,
+                    persistentListOf(
+                        Task.fixture.copy(id = "b1", title = "Backlog task", status = TaskStatus.BACKLOG),
+                    ),
                 ),
-            ),
-            KanbanColumn(
-                TaskStatus.TODO,
-                persistentListOf(
-                    Task.fixture.copy(id = "t1", title = "Todo task", status = TaskStatus.TODO),
+                KanbanColumn(
+                    TaskStatus.TODO,
+                    persistentListOf(
+                        Task.fixture.copy(id = "t1", title = "Todo task", status = TaskStatus.TODO),
+                    ),
                 ),
-            ),
-            KanbanColumn(TaskStatus.IN_PROGRESS, persistentListOf()),
-            KanbanColumn(TaskStatus.DONE, persistentListOf()),
-        ).toImmutableList()
+                KanbanColumn(TaskStatus.IN_PROGRESS, persistentListOf()),
+                KanbanColumn(TaskStatus.DONE, persistentListOf()),
+            ).toImmutableList()
         KanbanBoard(
             uiState = KanbanUiState(columns = columns),
             eventFlow = rememberEventFlow(),

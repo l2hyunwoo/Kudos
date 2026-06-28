@@ -11,7 +11,7 @@ import io.github.l2hyunwoo.kudos.core.common.ScreenContext
 import soil.query.QueryKey
 
 @GraphExtension(TasksScope::class)
-interface TasksContext: ScreenContext {
+interface TasksContext : ScreenContext {
     val tasksQuery: QueryKey<List<TasksResponse.CategoryWithTasks>>
     val createTaskMutation: CreateTaskMutationKey
     val updateTaskMutation: UpdateTaskMutationKey

@@ -19,17 +19,21 @@ class DefaultUpdateTaskMutationKey(
     private val apiClient: TasksApiClient,
     private val cacheDataStore: TasksCacheDataStore,
 ) : UpdateTaskMutationKey by buildMutationKey(
-    id = MutationId("update_task"),
-    mutate = { params ->
-        // PATCH matches on task_id; the Edge Function returns {success:true} only,
-        // so invalidate the cache and let the query refetch the canonical list.
-        apiClient.updateTask(params.taskId, params.request)
-        cacheDataStore.clear()
-    }
-) {
+        id = MutationId("update_task"),
+        mutate = { params ->
+            // PATCH matches on task_id; the Edge Function returns {success:true} only,
+            // so invalidate the cache and let the query refetch the canonical list.
+            apiClient.updateTask(params.taskId, params.request)
+            cacheDataStore.clear()
+        },
+    ) {
     // clear() above only wipes the DataStore preload; invalidate tasks_query so active
     // rememberQuery subscribers refetch the canonical list (subtask toggle, edits, etc.).
-    override fun onMutateEffect(variable: UpdateTaskParams, data: Unit): Effect = {
-        queryClient.invalidateQueriesBy(TasksQueryId)
-    }
+    override fun onMutateEffect(
+        variable: UpdateTaskParams,
+        data: Unit,
+    ): Effect =
+        {
+            queryClient.invalidateQueriesBy(TasksQueryId)
+        }
 }

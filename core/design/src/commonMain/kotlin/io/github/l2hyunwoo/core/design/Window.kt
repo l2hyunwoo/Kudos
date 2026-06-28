@@ -7,14 +7,16 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 
-val LocalBottomNavigationBarsPadding = staticCompositionLocalOf {
-    PaddingValues()
-}
+val LocalBottomNavigationBarsPadding =
+    staticCompositionLocalOf {
+        PaddingValues()
+    }
 
 val WindowInsets.Companion.safeDrawingWithBottomNavBar: WindowInsets
     @Composable
-    get() = WindowInsets.safeDrawing.union(
-        WindowInsets(
-            bottom = LocalBottomNavigationBarsPadding.current.calculateBottomPadding(),
-        ),
-    )
+    get() =
+        WindowInsets.safeDrawing.union(
+            WindowInsets(
+                bottom = LocalBottomNavigationBarsPadding.current.calculateBottomPadding(),
+            ),
+        )

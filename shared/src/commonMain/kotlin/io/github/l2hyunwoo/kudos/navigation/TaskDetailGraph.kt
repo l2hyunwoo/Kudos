@@ -28,7 +28,7 @@ fun NavGraphBuilder.taskDetailGraph(navController: NavHostController) {
                     status = TaskStatus.valueOf(args.status),
                     priority = TaskPriority.valueOf(args.priority),
                     dueDate = args.dueDate,
-                    onNavigateBack = { navController.navigateUp() }
+                    onNavigateBack = { navController.navigateUp() },
                 )
             }
         }

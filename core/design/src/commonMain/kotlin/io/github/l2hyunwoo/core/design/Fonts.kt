@@ -13,14 +13,15 @@ import org.jetbrains.compose.resources.Font
 // Variable-font weights are realized through the `wght` axis: each Font entry pins the same
 // .ttf to a weight, and CMP forwards a matching FontVariation.Settings(weight) into Skia/Android
 // so the variable face is interpolated to that weight (see compose-resources FontResources.skiko.kt).
-private val coveredWeights = listOf(
-    FontWeight.Normal,
-    FontWeight.Medium,
-    FontWeight.SemiBold,
-    FontWeight.Bold,
-    FontWeight.ExtraBold,
-    FontWeight.Black,
-)
+private val coveredWeights =
+    listOf(
+        FontWeight.Normal,
+        FontWeight.Medium,
+        FontWeight.SemiBold,
+        FontWeight.Bold,
+        FontWeight.ExtraBold,
+        FontWeight.Black,
+    )
 
 @Composable
 private fun variableFontFamily(resource: org.jetbrains.compose.resources.FontResource): FontFamily =

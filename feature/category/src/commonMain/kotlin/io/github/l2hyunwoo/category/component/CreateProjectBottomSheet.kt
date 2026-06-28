@@ -43,11 +43,12 @@ fun CreateProjectBottomSheet(
     categoryId: String,
     onDismiss: () -> Unit,
     onCreate: (String, CreateProjectRequest) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
@@ -56,24 +57,26 @@ fun CreateProjectBottomSheet(
     KudosBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .imePadding(),
         ) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp),
             ) {
                 Text(
                     text = stringResource(Res.string.create_project),
                     style = KudosTheme.typography.bodyLargeXB,
                     color = KudosTheme.colors.ink.ink,
-                    modifier = Modifier.padding(bottom = 24.dp)
+                    modifier = Modifier.padding(bottom = 24.dp),
                 )
 
                 OutlinedTextField(
@@ -82,7 +85,7 @@ fun CreateProjectBottomSheet(
                     label = { Text(stringResource(Res.string.project_title)) },
                     placeholder = { Text(stringResource(Res.string.project_title_hint)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -94,22 +97,23 @@ fun CreateProjectBottomSheet(
                     placeholder = { Text(stringResource(Res.string.description_hint)) },
                     minLines = 3,
                     maxLines = 5,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp, top = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 32.dp, top = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 GhostButton(
                     onClick = onDismiss,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(stringResource(Res.string.cancel))
                 }
@@ -120,13 +124,13 @@ fun CreateProjectBottomSheet(
                             categoryId,
                             CreateProjectRequest(
                                 title = title,
-                                description = description.takeIf { it.isNotBlank() }
-                            )
+                                description = description.takeIf { it.isNotBlank() },
+                            ),
                         )
                         onDismiss()
                     },
                     enabled = isValid,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(stringResource(Res.string.create))
                 }

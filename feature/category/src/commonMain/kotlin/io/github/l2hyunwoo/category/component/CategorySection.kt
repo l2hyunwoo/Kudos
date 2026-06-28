@@ -37,7 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
-import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
+import io.github.l2hyunwoo.core.design.token.LUNAR_DURATION_STANDARD
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.data.categories.model.Category
 import io.github.l2hyunwoo.data.categories.model.Project
@@ -55,10 +55,10 @@ fun CategorySection(
     category: Category,
     onAddProjectClick: () -> Unit,
     onDeleteCategoryClick: () -> Unit,
-    onProjectClick: (Project) -> Unit = {},
     onDeleteProjectClick: (Project) -> Unit,
     modifier: Modifier = Modifier,
-    searchQuery: String = ""
+    onProjectClick: (Project) -> Unit = {},
+    searchQuery: String = "",
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
@@ -69,29 +69,31 @@ fun CategorySection(
     // the periwinkle span color outside remember (theme read) then key on (display, query, color).
     val highlightColor = KudosTheme.colors.brand.primary600
     val displayTitle = category.title.uppercase()
-    val titleText = remember(displayTitle, searchQuery, highlightColor) {
-        highlighted(displayTitle, searchQuery, highlightColor)
-    }
+    val titleText =
+        remember(displayTitle, searchQuery, highlightColor) {
+            highlighted(displayTitle, searchQuery, highlightColor)
+        }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 // Category prefix badge: pastel chip (12% fill over surface, darkened text).
                 Text(
                     text = category.prefix,
                     style = KudosTheme.typography.eyebrow,
                     color = badgeFg,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = badgeBg)
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier =
+                        Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(color = badgeBg)
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                 )
 
                 Text(
@@ -107,7 +109,7 @@ fun CategorySection(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(Res.string.add_project),
-                        tint = KudosTheme.colors.brand.primary600
+                        tint = KudosTheme.colors.brand.primary600,
                     )
                 }
 
@@ -115,7 +117,7 @@ fun CategorySection(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = stringResource(Res.string.delete_category),
-                        tint = KudosTheme.colors.priority.urgent
+                        tint = KudosTheme.colors.priority.urgent,
                     )
                 }
             }
@@ -128,19 +130,21 @@ fun CategorySection(
                 text = stringResource(Res.string.no_projects_yet),
                 style = KudosTheme.typography.bodySmallR,
                 color = KudosTheme.colors.ink.ink3,
-                modifier = Modifier.padding(start = 16.dp)
+                modifier = Modifier.padding(start = 16.dp),
             )
         } else {
             // Projects live in a plain Column (not LazyColumn), so animateItem is unavailable here.
             // animateContentSize smooths the section's height when search filters projects in/out,
             // instead of snapping. Spec rebuilt from the standard duration + easing tokens (IntSize).
             Column(
-                modifier = Modifier.animateContentSize(
-                    animationSpec = tween<IntSize>(
-                        LunarDurationStandard,
-                        easing = LunarStandardEasing,
+                modifier =
+                    Modifier.animateContentSize(
+                        animationSpec =
+                            tween<IntSize>(
+                                LUNAR_DURATION_STANDARD,
+                                easing = LunarStandardEasing,
+                            ),
                     ),
-                ),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 category.projects.forEach { project ->
@@ -150,7 +154,7 @@ fun CategorySection(
                             categoryColor = category.color,
                             searchQuery = searchQuery,
                             onClick = { onProjectClick(project) },
-                            onDelete = { onDeleteProjectClick(project) }
+                            onDelete = { onDeleteProjectClick(project) },
                         )
                     }
                 }
@@ -168,7 +172,7 @@ fun CategorySection(
                     onClick = {
                         onDeleteCategoryClick()
                         showDeleteConfirmation = false
-                    }
+                    },
                 ) {
                     Text(stringResource(Res.string.delete))
                 }
@@ -177,7 +181,7 @@ fun CategorySection(
                 TextButton(onClick = { showDeleteConfirmation = false }) {
                     Text(stringResource(Res.string.cancel))
                 }
-            }
+            },
         )
     }
 }
@@ -215,23 +219,25 @@ private fun highlighted(
 private fun CategorySectionHighlightPreview() {
     KudosTheme {
         CategorySection(
-            category = Category(
-                id = "1",
-                prefix = "WORK",
-                title = "Work Projects",
-                color = "#C9B8F0",
-                createdAt = "2024-01-01T00:00:00Z",
-                updatedAt = "2024-01-01T00:00:00Z",
-                projects = listOf(
-                    Project(
-                        id = "p1",
-                        title = "Mobile App Development",
-                        description = "Build a new mobile application",
-                        createdAt = "2024-01-01T00:00:00Z",
-                        updatedAt = "2024-01-01T00:00:00Z"
-                    )
-                )
-            ),
+            category =
+                Category(
+                    id = "1",
+                    prefix = "WORK",
+                    title = "Work Projects",
+                    color = "#C9B8F0",
+                    createdAt = "2024-01-01T00:00:00Z",
+                    updatedAt = "2024-01-01T00:00:00Z",
+                    projects =
+                        listOf(
+                            Project(
+                                id = "p1",
+                                title = "Mobile App Development",
+                                description = "Build a new mobile application",
+                                createdAt = "2024-01-01T00:00:00Z",
+                                updatedAt = "2024-01-01T00:00:00Z",
+                            ),
+                        ),
+                ),
             searchQuery = "work",
             onAddProjectClick = {},
             onDeleteCategoryClick = {},

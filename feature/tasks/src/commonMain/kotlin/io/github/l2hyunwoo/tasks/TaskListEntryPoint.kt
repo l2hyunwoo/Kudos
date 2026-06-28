@@ -9,6 +9,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.data.tasks.model.Task
@@ -25,6 +27,7 @@ import soil.query.compose.rememberQuery
 @Composable
 context(context: TasksContext)
 fun TaskListEntryPoint(
+    modifier: Modifier = Modifier,
     eventFlow: EventFlow<TaskListEvent>? = null,
     onAddTask: () -> Unit = {},
     onNavigateToCategories: () -> Unit = {},
@@ -40,10 +43,10 @@ fun TaskListEntryPoint(
     embedded: Boolean = false,
     // Pull-to-refresh state owned by the parent (MainScreen) so the visible indicator can be drawn as
     // a sibling OUTSIDE the backdrop recorder (crisp over the glass). The gesture itself attaches to
-    // the list here. Null disables PTR (standalone usage). onRefreshingChanged reports validation
+    // the list here. Null disables PTR (standalone usage). onRefreshingChange reports validation
     // state back up so the parent's indicator tracks it.
     pullToRefreshState: PullToRefreshState? = null,
-    onRefreshingChanged: (Boolean) -> Unit = {},
+    onRefreshingChange: (Boolean) -> Unit = {},
 ) {
     val actualEventFlow = eventFlow ?: rememberEventFlow()
     val scope = rememberCoroutineScope()
@@ -52,35 +55,40 @@ fun TaskListEntryPoint(
     // instance. isValidating drives the indicator; refresh() is the suspend pull action.
     val query: QueryObject<List<TasksResponse.CategoryWithTasks>> = rememberQuery(context.tasksQuery)
     val isRefreshing = query.isValidating
-    LaunchedEffect(isRefreshing) { onRefreshingChanged(isRefreshing) }
+    // rememberUpdatedState so the effect always calls the latest lambda without restarting when it changes.
+    val currentOnRefreshingChange = rememberUpdatedState(onRefreshingChange)
+    LaunchedEffect(isRefreshing) { currentOnRefreshingChange.value(isRefreshing) }
 
-    val fallback = if (embedded) {
-        SoilFallbackDefaults.default()
-    } else {
-        SoilFallbackDefaults.appBar(
-            title = "Tasks",
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = onAddTask,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "Add Task",
-                    )
-                }
-            }
-        )
-    }
+    val fallback =
+        if (embedded) {
+            SoilFallbackDefaults.default()
+        } else {
+            SoilFallbackDefaults.appBar(
+                title = "Tasks",
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = onAddTask,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Add Task",
+                        )
+                    }
+                },
+            )
+        }
 
     SoilBoundary(
         state = query,
+        modifier = modifier,
         fallback = fallback,
     ) { categories ->
-        val uiState = taskListPresenter(
-            eventFlow = actualEventFlow,
-            categories = categories,
-            searchQuery = searchQuery,
-        )
+        val uiState =
+            taskListPresenter(
+                eventFlow = actualEventFlow,
+                categories = categories,
+                searchQuery = searchQuery,
+            )
 
         TaskListScreen(
             uiState = uiState,

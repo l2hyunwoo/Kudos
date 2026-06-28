@@ -32,7 +32,7 @@ fun EditProjectBottomSheet(
     initialDescription: String?,
     onDismiss: () -> Unit,
     onUpdate: (UpdateProjectRequest) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -43,18 +43,19 @@ fun EditProjectBottomSheet(
     KudosBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 32.dp),
         ) {
             Text(
                 text = "프로젝트 수정",
                 style = KudosTheme.typography.titleLargeB,
-                color = KudosTheme.colorScheme.onSurface
+                color = KudosTheme.colorScheme.onSurface,
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -64,7 +65,7 @@ fun EditProjectBottomSheet(
                 onValueChange = { title = it },
                 label = { Text("제목") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -76,14 +77,14 @@ fun EditProjectBottomSheet(
                 label = { Text("설명 (선택)") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
-                maxLines = 5
+                maxLines = 5,
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Action Buttons
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 GhostButton(
                     onClick = {
@@ -92,7 +93,7 @@ fun EditProjectBottomSheet(
                             onDismiss()
                         }
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text("취소")
                 }
@@ -105,15 +106,15 @@ fun EditProjectBottomSheet(
                             onUpdate(
                                 UpdateProjectRequest(
                                     title = title,
-                                    description = description.ifBlank { null }
-                                )
+                                    description = description.ifBlank { null },
+                                ),
                             )
                             sheetState.hide()
                             onDismiss()
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    enabled = title.isNotBlank()
+                    enabled = title.isNotBlank(),
                 ) {
                     Text("완료")
                 }

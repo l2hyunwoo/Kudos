@@ -15,21 +15,22 @@ fun TaskDetailEntryPoint(
     status: TaskStatus,
     priority: TaskPriority,
     dueDate: String?,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
 ) {
     val eventFlow = rememberEventFlow<TaskDetailEvent>()
 
-    val uiState = taskDetailPresenter(
-        id = id,
-        taskId = taskId,
-        initialTitle = title,
-        initialDescription = description,
-        initialStatus = status,
-        initialPriority = priority,
-        initialDueDate = dueDate,
-        eventFlow = eventFlow,
-        onNavigateBack = onNavigateBack
-    )
+    val uiState =
+        taskDetailPresenter(
+            id = id,
+            taskId = taskId,
+            initialTitle = title,
+            initialDescription = description,
+            initialStatus = status,
+            initialPriority = priority,
+            initialDueDate = dueDate,
+            eventFlow = eventFlow,
+            onNavigateBack = onNavigateBack,
+        )
 
     TaskDetailScreen(
         uiState = uiState,

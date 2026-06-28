@@ -21,20 +21,20 @@ import kotlinx.serialization.json.Json
 
 @ContributesTo(DataScope::class)
 interface IosNetworkGraph {
-
     @Provides
     @SingleIn(DataScope::class)
-    fun provideHttpClient(json: Json): HttpClient = HttpClient(Darwin) {
-        install(ContentNegotiation) {
-            json(json)
+    fun provideHttpClient(json: Json): HttpClient =
+        HttpClient(Darwin) {
+            install(ContentNegotiation) {
+                json(json)
+            }
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
+            }
+            defaultRequest {
+                header("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+            }
         }
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.ALL
-        }
-        defaultRequest {
-            header("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-        }
-    }
 }

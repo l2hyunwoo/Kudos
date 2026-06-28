@@ -36,10 +36,17 @@ fun NavGraphBuilder.mainScreenGraph(
                             status = task.status.name,
                             priority = task.priority.name,
                             dueDate = task.dueDate,
-                        )
+                        ),
                     )
                 },
-                onNavigateToProjectDetail = { projectId, categoryId, title, description, categoryColor, categoryPrefix ->
+                onNavigateToProjectDetail = {
+                    projectId,
+                    categoryId,
+                    title,
+                    description,
+                    categoryColor,
+                    categoryPrefix,
+                    ->
                     navController.navigate(
                         ProjectDetail(
                             projectId = projectId,
@@ -47,10 +54,10 @@ fun NavGraphBuilder.mainScreenGraph(
                             title = title,
                             description = description,
                             categoryColor = categoryColor,
-                            categoryPrefix = categoryPrefix
-                        )
+                            categoryPrefix = categoryPrefix,
+                        ),
                     )
-                }
+                },
             )
         }
     }

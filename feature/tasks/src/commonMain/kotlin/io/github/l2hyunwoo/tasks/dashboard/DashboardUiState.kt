@@ -24,12 +24,14 @@ data class DashboardUiState(
 fun aggregate(tasks: List<Task>): DashboardUiState {
     if (tasks.isEmpty()) return EmptyDashboard
 
-    val statusCounts = TaskStatus.entries.associateWith { status ->
-        tasks.count { it.status == status }
-    }
-    val priorityCounts = TaskPriority.entries.associateWith { priority ->
-        tasks.count { it.priority == priority }
-    }
+    val statusCounts =
+        TaskStatus.entries.associateWith { status ->
+            tasks.count { it.status == status }
+        }
+    val priorityCounts =
+        TaskPriority.entries.associateWith { priority ->
+            tasks.count { it.priority == priority }
+        }
     val doneCount = statusCounts[TaskStatus.DONE] ?: 0
     val completionRatio = doneCount.toFloat() / tasks.size.toFloat()
 
@@ -42,9 +44,10 @@ fun aggregate(tasks: List<Task>): DashboardUiState {
 }
 
 // Zero state: every enum key present at 0 so the empty-case still has a well-formed shape.
-private val EmptyDashboard = DashboardUiState(
-    completionRatio = 0f,
-    statusCounts = persistentMapOf(*TaskStatus.entries.map { it to 0 }.toTypedArray()),
-    priorityCounts = persistentMapOf(*TaskPriority.entries.map { it to 0 }.toTypedArray()),
-    totalCount = 0,
-)
+private val EmptyDashboard =
+    DashboardUiState(
+        completionRatio = 0f,
+        statusCounts = persistentMapOf(*TaskStatus.entries.map { it to 0 }.toTypedArray()),
+        priorityCounts = persistentMapOf(*TaskPriority.entries.map { it to 0 }.toTypedArray()),
+        totalCount = 0,
+    )

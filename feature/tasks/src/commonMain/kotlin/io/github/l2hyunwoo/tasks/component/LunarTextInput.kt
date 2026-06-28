@@ -72,8 +72,9 @@ private fun LunarTextInputDarkPreview() {
 @Composable
 private fun LunarTextInputPreviewColumn() {
     Column(
-        modifier = Modifier
-            .padding(16.dp),
+        modifier =
+            Modifier
+                .padding(16.dp),
     ) {
         LunarTextInput(
             value = "Ship the release",

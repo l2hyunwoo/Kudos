@@ -57,45 +57,47 @@ fun Moon(
     // Quantize k so the draw cache only rebuilds on visible phase steps (~0.5% increments).
     val quantK = (k.coerceIn(0f, 1f) * 200f).roundToInt()
     Box(
-        modifier = modifier
-            .size(size)
-            .drawWithCache {
-                val kClamped = quantK / 200f
-                val side = this.size.minDimension
-                val scale = side / VIEW_BOX
-                val r = BASE_RADIUS * scale
-                val cx = this.size.width / 2f
-                val cy = this.size.height / 2f
-                val stroke = STROKE_WIDTH * scale
+        modifier =
+            modifier
+                .size(size)
+                .drawWithCache {
+                    val kClamped = quantK / 200f
+                    val side = this.size.minDimension
+                    val scale = side / VIEW_BOX
+                    val r = BASE_RADIUS * scale
+                    val cx = this.size.width / 2f
+                    val cy = this.size.height / 2f
+                    val stroke = STROKE_WIDTH * scale
 
-                val circleBounds = Rect(cx - r, cy - r, cx + r, cy + r)
-                val shadowPath = Path()
-                if (kClamped < 1f) {
-                    buildShadowPath(shadowPath, kClamped, cx, cy, r, circleBounds)
-                }
-
-                val glowBrush = Brush.radialGradient(
-                    colors = listOf(glowColor.copy(alpha = 0.55f), Color.Transparent),
-                    center = Offset(cx, cy),
-                    radius = r * 1.6f,
-                )
-
-                onDrawBehind {
-                    if (glow) {
-                        drawCircle(brush = glowBrush, radius = r * 1.6f, center = Offset(cx, cy))
-                    }
-                    drawCircle(brush = litBrush, radius = r, center = Offset(cx, cy))
+                    val circleBounds = Rect(cx - r, cy - r, cx + r, cy + r)
+                    val shadowPath = Path()
                     if (kClamped < 1f) {
-                        drawPath(shadowPath, color = shadowColor)
+                        buildShadowPath(shadowPath, kClamped, cx, cy, r, circleBounds)
                     }
-                    drawCircle(
-                        color = ringColor,
-                        radius = r,
-                        center = Offset(cx, cy),
-                        style = Stroke(width = stroke),
-                    )
-                }
-            },
+
+                    val glowBrush =
+                        Brush.radialGradient(
+                            colors = listOf(glowColor.copy(alpha = 0.55f), Color.Transparent),
+                            center = Offset(cx, cy),
+                            radius = r * 1.6f,
+                        )
+
+                    onDrawBehind {
+                        if (glow) {
+                            drawCircle(brush = glowBrush, radius = r * 1.6f, center = Offset(cx, cy))
+                        }
+                        drawCircle(brush = litBrush, radius = r, center = Offset(cx, cy))
+                        if (kClamped < 1f) {
+                            drawPath(shadowPath, color = shadowColor)
+                        }
+                        drawCircle(
+                            color = ringColor,
+                            radius = r,
+                            center = Offset(cx, cy),
+                            style = Stroke(width = stroke),
+                        )
+                    }
+                },
     )
 }
 
@@ -148,7 +150,7 @@ fun MoonToggle(
     LaunchedEffect(isDone) {
         if (isDone && !wasDone.value) {
             doneGlow.snapTo(1f)
-            doneGlow.animateTo(0f, animationSpec = tween(LunarGlowDurationMs))
+            doneGlow.animateTo(0f, animationSpec = tween(LUNAR_GLOW_DURATION_MS))
         }
         wasDone.value = isDone
     }
@@ -156,20 +158,21 @@ fun MoonToggle(
     val interaction = remember { MutableInteractionSource() }
     Moon(
         k = animatedK,
-        modifier = modifier
-            .size(size)
-            .combinedClickable(
-                interactionSource = interaction,
-                indication = null,
-                onClick = onTap,
-                onLongClick = onLongPress,
-            ),
+        modifier =
+            modifier
+                .size(size)
+                .combinedClickable(
+                    interactionSource = interaction,
+                    indication = null,
+                    onClick = onTap,
+                    onLongClick = onLongPress,
+                ),
         size = size,
         glow = animatedK >= 0.999f || doneGlow.value > 0f,
     )
 }
 
-private const val LunarGlowDurationMs = 520
+private const val LUNAR_GLOW_DURATION_MS = 520
 
 // Progress glyph: k = done/total. Renders a Moon; the ring already conveys the boundary.
 @Composable
@@ -195,10 +198,11 @@ fun MoonLoadingIndicator(
     val k by phase.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(periodMillis, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(periodMillis, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
         label = "moonPhase",
     )
     Moon(k = k, modifier = modifier, size = size, glow = k >= 0.95f)

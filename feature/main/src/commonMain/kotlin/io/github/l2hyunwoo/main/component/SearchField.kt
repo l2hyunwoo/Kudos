@@ -67,10 +67,11 @@ internal fun SearchField(
                 imageVector = Icons.Rounded.Close,
                 contentDescription = "검색어 지우기",
                 tint = KudosTheme.colors.ink.ink3,
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(PillShape)
-                    .clickable { onQueryChange("") },
+                modifier =
+                    Modifier
+                        .size(20.dp)
+                        .clip(PillShape)
+                        .clickable { onQueryChange("") },
             )
         }
     }

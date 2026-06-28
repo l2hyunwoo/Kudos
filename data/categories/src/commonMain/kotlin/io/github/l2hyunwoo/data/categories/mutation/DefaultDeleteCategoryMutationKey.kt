@@ -15,26 +15,26 @@ class DefaultDeleteCategoryMutationKey(
     private val apiClient: CategoriesApiClient,
     private val cacheDataStore: CategoriesCacheDataStore,
 ) : DeleteCategoryMutationKey by buildMutationKey(
-    id = MutationId("delete_category"),
-    mutate = { categoryId ->
-        val previousCache = cacheDataStore.getCacheSync()
+        id = MutationId("delete_category"),
+        mutate = { categoryId ->
+            val previousCache = cacheDataStore.getCacheSync()
 
-        // Optimistic update: remove immediately
-        val optimisticList = previousCache?.filterNot { it.id == categoryId } ?: emptyList()
-        cacheDataStore.save(optimisticList)
+            // Optimistic update: remove immediately
+            val optimisticList = previousCache?.filterNot { it.id == categoryId } ?: emptyList()
+            cacheDataStore.save(optimisticList)
 
-        try {
-            // If it's a temporary ID (from optimistic create), skip API call
-            if (categoryId.startsWith("temp-")) {
-                return@buildMutationKey optimisticList
+            try {
+                // If it's a temporary ID (from optimistic create), skip API call
+                if (categoryId.startsWith("temp-")) {
+                    return@buildMutationKey optimisticList
+                }
+
+                val updatedCategories = apiClient.deleteCategory(categoryId)
+                cacheDataStore.save(updatedCategories)
+                updatedCategories
+            } catch (e: Exception) {
+                previousCache?.let { cacheDataStore.save(it) }
+                throw e
             }
-
-            val updatedCategories = apiClient.deleteCategory(categoryId)
-            cacheDataStore.save(updatedCategories)
-            updatedCategories
-        } catch (e: Exception) {
-            previousCache?.let { cacheDataStore.save(it) }
-            throw e
-        }
-    }
-)
+        },
+    )

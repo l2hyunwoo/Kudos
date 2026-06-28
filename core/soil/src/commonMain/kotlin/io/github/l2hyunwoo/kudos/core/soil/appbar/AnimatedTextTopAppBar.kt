@@ -27,7 +27,7 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,19 +60,22 @@ fun AnimatedTextTopAppBar(
         }
     }
     val density = LocalDensity.current.density
-    var navigationIconWidthDp by remember { mutableStateOf(0f) }
+    var navigationIconWidthDp by remember { mutableFloatStateOf(0f) }
     val currentTextColor = if (transitionFraction > 0f) scrolledTextColor else textColor
 
     // Medium width or wider (>= 600dp) uses the background tint; compact keeps surfaceContainer.
-    val isAtLeastMediumWidth = currentWindowAdaptiveInfo().windowSizeClass
-        .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val isAtLeastMediumWidth =
+        currentWindowAdaptiveInfo()
+            .windowSizeClass
+            .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     val resolvedColors: TopAppBarColors =
         colors ?: TopAppBarDefaults.topAppBarColors(
-            scrolledContainerColor = if (isAtLeastMediumWidth) {
-                MaterialTheme.colorScheme.background
-            } else {
-                MaterialTheme.colorScheme.surfaceContainer
-            },
+            scrolledContainerColor =
+                if (isAtLeastMediumWidth) {
+                    MaterialTheme.colorScheme.background
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainer
+                },
         )
 
     TopAppBar(
@@ -80,15 +83,17 @@ fun AnimatedTextTopAppBar(
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = title,
-                    autoSize = TextAutoSize.StepBased(
-                        maxFontSize = 28.sp,
-                    ),
+                    autoSize =
+                        TextAutoSize.StepBased(
+                            maxFontSize = 28.sp,
+                        ),
                     color = currentTextColor,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            alpha = 1f - transitionFraction
-                        },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .graphicsLayer {
+                                alpha = 1f - transitionFraction
+                            },
                     textAlign = TextAlign.Start,
                     maxLines = 1,
                     style = MaterialTheme.typography.headlineSmall,
@@ -96,19 +101,21 @@ fun AnimatedTextTopAppBar(
 
                 Text(
                     text = title,
-                    autoSize = TextAutoSize.StepBased(
-                        maxFontSize = 16.sp,
-                    ),
+                    autoSize =
+                        TextAutoSize.StepBased(
+                            maxFontSize = 16.sp,
+                        ),
                     color = currentTextColor,
-                    modifier = Modifier
-                        // Ensures the title appears centered when a navigation icon is present.
-                        // Note: The width of actions is currently not considered.
-                        .padding(end = navigationIconWidthDp.dp)
-                        .fillMaxWidth()
-                        .align(Alignment.Center)
-                        .graphicsLayer {
-                            alpha = transitionFraction
-                        },
+                    modifier =
+                        Modifier
+                            // Ensures the title appears centered when a navigation icon is present.
+                            // Note: The width of actions is currently not considered.
+                            .padding(end = navigationIconWidthDp.dp)
+                            .fillMaxWidth()
+                            .align(Alignment.Center)
+                            .graphicsLayer {
+                                alpha = transitionFraction
+                            },
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     style = MaterialTheme.typography.titleMedium,
@@ -121,9 +128,10 @@ fun AnimatedTextTopAppBar(
                 IconButton(
                     onClick = it,
                     shape = IconButtonDefaults.outlinedShape,
-                    modifier = Modifier.onSizeChanged {
-                        navigationIconWidthDp = it.width / density
-                    },
+                    modifier =
+                        Modifier.onSizeChanged {
+                            navigationIconWidthDp = it.width / density
+                        },
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -147,7 +155,8 @@ fun TopAppBarScrollBehavior.resetScroll() {
 
 object AnimatedTextTopAppBarDefaults {
     @Composable
-    fun windowInsets() = WindowInsets.displayCutout.union(WindowInsets.systemBars).only(
-        WindowInsetsSides.Horizontal + WindowInsetsSides.Top,
-    )
+    fun windowInsets() =
+        WindowInsets.displayCutout.union(WindowInsets.systemBars).only(
+            WindowInsetsSides.Horizontal + WindowInsetsSides.Top,
+        )
 }

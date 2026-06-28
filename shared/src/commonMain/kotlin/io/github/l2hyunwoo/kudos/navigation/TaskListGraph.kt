@@ -16,7 +16,7 @@ fun NavGraphBuilder.taskListGraph(navController: NavHostController) {
             TaskListEntryPoint(
                 onNavigateToCategories = {
                     navController.navigate(CategoryList)
-                }
+                },
             )
         }
     }

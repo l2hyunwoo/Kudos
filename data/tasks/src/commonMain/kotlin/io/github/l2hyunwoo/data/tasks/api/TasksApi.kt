@@ -16,19 +16,25 @@ interface TasksApi {
     suspend fun getTasks(): TasksResponse
 
     @GET("functions/v1/project-tasks/{projectId}")
-    suspend fun getProjectTasks(@Path("projectId") projectId: String): ProjectTasksResponse
+    suspend fun getProjectTasks(
+        @Path("projectId") projectId: String,
+    ): ProjectTasksResponse
 
     @POST("functions/v1/tasks-api/tasks")
-    suspend fun createTask(@Body request: CreateTaskRequest)
+    suspend fun createTask(
+        @Body request: CreateTaskRequest,
+    )
 
     // taskId is the text identifier (e.g. "KUDOS-1"), not the UUID `id`.
     // The Edge Function matches on ?task_id=eq.${taskId}.
     @PATCH("functions/v1/tasks-api/tasks/{taskId}")
     suspend fun updateTask(
         @Path("taskId") taskId: String,
-        @Body request: UpdateTaskRequest
+        @Body request: UpdateTaskRequest,
     )
 
     @DELETE("functions/v1/tasks-api/tasks/{taskId}")
-    suspend fun deleteTask(@Path("taskId") taskId: String)
+    suspend fun deleteTask(
+        @Path("taskId") taskId: String,
+    )
 }

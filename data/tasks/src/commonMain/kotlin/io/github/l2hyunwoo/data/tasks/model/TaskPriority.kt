@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class TaskPriority(
     val text: String,
-    val color: Long
+    val color: Long,
 ) {
     @SerialName("urgent")
     URGENT("Urgent", 0xFFF2555A),

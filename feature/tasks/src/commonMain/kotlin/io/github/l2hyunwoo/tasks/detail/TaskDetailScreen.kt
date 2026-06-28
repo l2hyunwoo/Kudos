@@ -20,9 +20,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -32,7 +32,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import io.github.l2hyunwoo.core.design.component.sheet.KudosBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -63,10 +62,11 @@ import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.core.design.component.moon.MoonProgress
 import io.github.l2hyunwoo.core.design.component.moon.MoonToggle
+import io.github.l2hyunwoo.core.design.component.sheet.KudosBottomSheet
 import io.github.l2hyunwoo.core.design.component.surface.glassSurface
-import io.github.l2hyunwoo.core.design.transition.sharedTask
-import io.github.l2hyunwoo.core.design.token.LunarDurationMicro
+import io.github.l2hyunwoo.core.design.token.LUNAR_DURATION_MICRO
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
+import io.github.l2hyunwoo.core.design.transition.sharedTask
 import io.github.l2hyunwoo.data.tasks.model.TaskPriority
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 import io.github.l2hyunwoo.data.tasks.model.next
@@ -79,12 +79,13 @@ import kotlinx.collections.immutable.ImmutableList
 
 // Phase order for the picker sheet (waxing). The single-step advance uses TaskStatus.next() from the
 // data model, shared with the list screen.
-private val PhaseOrder = listOf(
-    TaskStatus.BACKLOG,
-    TaskStatus.TODO,
-    TaskStatus.IN_PROGRESS,
-    TaskStatus.DONE,
-)
+private val PhaseOrder =
+    listOf(
+        TaskStatus.BACKLOG,
+        TaskStatus.TODO,
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.DONE,
+    )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,11 +110,12 @@ fun TaskDetailScreen(
     // Optimistic delete with undo: confirm on dismiss, restore on action.
     LaunchedEffect(uiState.pendingDelete) {
         if (uiState.pendingDelete) {
-            val result = snackbarHostState.showSnackbar(
-                message = "Task deleted",
-                actionLabel = "Undo",
-                duration = SnackbarDuration.Short
-            )
+            val result =
+                snackbarHostState.showSnackbar(
+                    message = "Task deleted",
+                    actionLabel = "Undo",
+                    duration = SnackbarDuration.Short,
+                )
             when (result) {
                 SnackbarResult.ActionPerformed -> eventFlow.tryEmit(TaskDetailEvent.UndoDelete)
                 SnackbarResult.Dismissed -> eventFlow.tryEmit(TaskDetailEvent.ConfirmDelete)
@@ -162,23 +164,25 @@ fun TaskDetailScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = KudosTheme.colors.surface.bg,
-        modifier = modifier
+        modifier = modifier,
     ) { paddingValues ->
         // `sky` records this region as the glass top bar's blur backdrop. Keep it on the static
         // outer Box, not on the scrolling Column: a `sky` recorder on the scroll container itself
         // stops the container from consuming vertical drags (the list/page stops scrolling). The Box
         // is a non-scrolling parent, so the recorded backdrop is identical while the Column scrolls.
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .sky(sky)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .sky(sky),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
             ) {
                 PriorityRow(uiState.priority)
 
@@ -188,11 +192,12 @@ fun TaskDetailScreen(
                     text = uiState.title,
                     style = KudosTheme.typography.titleLargeB,
                     color = KudosTheme.colors.ink.ink,
-                    textDecoration = if (uiState.status == TaskStatus.DONE) {
-                        TextDecoration.LineThrough
-                    } else {
-                        TextDecoration.None
-                    },
+                    textDecoration =
+                        if (uiState.status == TaskStatus.DONE) {
+                            TextDecoration.LineThrough
+                        } else {
+                            TextDecoration.None
+                        },
                     modifier = Modifier.sharedTask("task-title-$sharedKeyId", bounds = true),
                 )
 
@@ -211,9 +216,10 @@ fun TaskDetailScreen(
                     val overdue = isOverdue(due, today)
                     Text(
                         // Verbose form for the detail: "오늘 마감" / "2일 지남" / "6월 29일 마감".
-                        text = formatDueLabel(due, today).let { label ->
-                            if (overdue) label else "$label 마감"
-                        },
+                        text =
+                            formatDueLabel(due, today).let { label ->
+                                if (overdue) label else "$label 마감"
+                            },
                         style = KudosTheme.typography.bodySmallR,
                         color = if (overdue) KudosTheme.colors.priority.urgent else KudosTheme.colors.ink.ink3,
                     )
@@ -270,21 +276,25 @@ fun TaskDetailScreen(
             initialPriority = uiState.priority,
             initialDueDate = uiState.dueDate,
             onDismiss = { eventFlow.tryEmit(TaskDetailEvent.DismissEditSheet) },
-            onUpdate = { request -> eventFlow.tryEmit(TaskDetailEvent.UpdateTask(request)) }
+            onUpdate = { request -> eventFlow.tryEmit(TaskDetailEvent.UpdateTask(request)) },
         )
     }
 }
 
 // Priority as a quiet left bar + pastel-tinted label, not a loud filled chip.
 @Composable
-private fun PriorityRow(priority: TaskPriority, modifier: Modifier = Modifier) {
+private fun PriorityRow(
+    priority: TaskPriority,
+    modifier: Modifier = Modifier,
+) {
     val p = KudosTheme.colors.priority
-    val dot = when (priority) {
-        TaskPriority.URGENT -> p.urgent
-        TaskPriority.HIGH -> p.high
-        TaskPriority.MEDIUM -> p.medium
-        TaskPriority.LOW -> p.low
-    }
+    val dot =
+        when (priority) {
+            TaskPriority.URGENT -> p.urgent
+            TaskPriority.HIGH -> p.high
+            TaskPriority.MEDIUM -> p.medium
+            TaskPriority.LOW -> p.low
+        }
     val (bg, fg) = KudosTheme.colors.pastelChip(dot)
     Row(
         modifier = modifier,
@@ -292,20 +302,22 @@ private fun PriorityRow(priority: TaskPriority, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(16.dp)
-                .clip(KudosTheme.shapes.pill)
-                .background(dot),
+            modifier =
+                Modifier
+                    .width(4.dp)
+                    .height(16.dp)
+                    .clip(KudosTheme.shapes.pill)
+                    .background(dot),
         )
         Text(
             text = priority.text,
             style = KudosTheme.typography.labelSmallM,
             color = fg,
-            modifier = Modifier
-                .clip(KudosTheme.shapes.chipSmall)
-                .background(bg)
-                .padding(horizontal = 10.dp, vertical = 4.dp),
+            modifier =
+                Modifier
+                    .clip(KudosTheme.shapes.chipSmall)
+                    .background(bg)
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
         )
     }
 }
@@ -372,10 +384,11 @@ private fun PhasePickerSheet(
         sheetState = sheetState,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
@@ -391,7 +404,7 @@ private fun PhasePickerSheet(
                     visible = rowsVisible,
                     // Light stagger: each row trails the previous by one micro step. Easing/duration
                     // come from the Lunar tokens; only the per-index delay is computed here.
-                    enterDelayMillis = index * PhaseStaggerStepMillis,
+                    enterDelayMillis = index * PHASE_STAGGER_STEP_MILLIS,
                     onClick = { onSelect(status) },
                 )
             }
@@ -400,7 +413,7 @@ private fun PhasePickerSheet(
 }
 
 // One micro step between staggered phase rows; kept small so 4 rows settle inside ~one standard beat.
-private const val PhaseStaggerStepMillis = LunarDurationMicro / 2
+private const val PHASE_STAGGER_STEP_MILLIS = LUNAR_DURATION_MICRO / 2
 
 @Composable
 private fun PhasePickerRow(
@@ -415,21 +428,25 @@ private fun PhasePickerRow(
     // a no-op (the sheet itself slides away), so we only animate the appearance.
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(
-            animationSpec = tween(
-                durationMillis = LunarDurationMicro,
-                delayMillis = enterDelayMillis,
-                easing = LunarStandardEasing,
-            ),
-        ) + slideInVertically(
-            animationSpec = tween(
-                durationMillis = LunarDurationMicro,
-                delayMillis = enterDelayMillis,
-                easing = LinearOutSlowInEasing,
-            ),
-            initialOffsetY = { it / 4 },
-        ),
-        exit = fadeOut(animationSpec = tween(LunarDurationMicro)),
+        enter =
+            fadeIn(
+                animationSpec =
+                    tween(
+                        durationMillis = LUNAR_DURATION_MICRO,
+                        delayMillis = enterDelayMillis,
+                        easing = LunarStandardEasing,
+                    ),
+            ) +
+                slideInVertically(
+                    animationSpec =
+                        tween(
+                            durationMillis = LUNAR_DURATION_MICRO,
+                            delayMillis = enterDelayMillis,
+                            easing = LinearOutSlowInEasing,
+                        ),
+                    initialOffsetY = { it / 4 },
+                ),
+        exit = fadeOut(animationSpec = tween(LUNAR_DURATION_MICRO)),
     ) {
         PhasePickerRowContent(
             status = status,
@@ -448,14 +465,14 @@ private fun PhasePickerRowContent(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(KudosTheme.shapes.row)
-            .background(
-                if (isSelected) KudosTheme.colors.brand.primary050 else Color.Transparent,
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(KudosTheme.shapes.row)
+                .background(
+                    if (isSelected) KudosTheme.colors.brand.primary050 else Color.Transparent,
+                ).clickable(onClick = onClick)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -507,11 +524,12 @@ private fun SubtaskSection(
             }
         }
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(KudosTheme.shapes.card)
-                .background(KudosTheme.colors.surface.surface2)
-                .padding(vertical = 4.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(KudosTheme.shapes.card)
+                    .background(KudosTheme.colors.surface.surface2)
+                    .padding(vertical = 4.dp),
         ) {
             if (subtasks.isEmpty()) {
                 Column(
@@ -549,9 +567,10 @@ private fun SubtaskRow(
 ) {
     val isDone = subtask.status == TaskStatus.DONE
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -595,9 +614,10 @@ private fun AddSubtaskRow(
         }
     }
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -614,11 +634,12 @@ private fun AddSubtaskRow(
             },
             singleLine = true,
             shape = KudosTheme.shapes.chipSmall,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = KudosTheme.colors.brand.primary600,
-                unfocusedBorderColor = KudosTheme.colors.surface.outlineStrong,
-                cursorColor = KudosTheme.colors.brand.primary600,
-            ),
+            colors =
+                OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = KudosTheme.colors.brand.primary600,
+                    unfocusedBorderColor = KudosTheme.colors.surface.outlineStrong,
+                    cursorColor = KudosTheme.colors.brand.primary600,
+                ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { submit() }),
             modifier = Modifier.weight(1f),
@@ -633,9 +654,10 @@ private fun AddSubtaskRow(
     }
 }
 
-private fun TaskStatus.label(): String = when (this) {
-    TaskStatus.BACKLOG -> "백로그"
-    TaskStatus.TODO -> "할 일"
-    TaskStatus.IN_PROGRESS -> "진행 중"
-    TaskStatus.DONE -> "완료"
-}
+private fun TaskStatus.label(): String =
+    when (this) {
+        TaskStatus.BACKLOG -> "백로그"
+        TaskStatus.TODO -> "할 일"
+        TaskStatus.IN_PROGRESS -> "진행 중"
+        TaskStatus.DONE -> "완료"
+    }

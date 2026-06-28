@@ -11,11 +11,11 @@ val LunarStandardEasing: Easing = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 val LunarEmphasizedEasing: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 val LunarOvershootEasing: Easing = CubicBezierEasing(0.34f, 1.4f, 0.64f, 1f)
 
-const val LunarDurationMicro = 120
-const val LunarDurationStandard = 240
-const val LunarDurationScreenPush = 360
-const val LunarDurationSheet = 520
-const val LunarDurationMoonFill = 520
+const val LUNAR_DURATION_MICRO = 120
+const val LUNAR_DURATION_STANDARD = 240
+const val LUNAR_DURATION_SCREEN_PUSH = 360
+const val LUNAR_DURATION_SHEET = 520
+const val LUNAR_DURATION_MOON_FILL = 520
 
 @Immutable
 data class KudosMotion(
@@ -28,13 +28,13 @@ data class KudosMotion(
 
 // reduceMotion collapses the large/expressive specs to a short cross-fade; micro stays as-is.
 fun kudosMotion(reduceMotion: Boolean): KudosMotion {
-    val reduced: FiniteAnimationSpec<Float> = tween(LunarDurationMicro, easing = LunarStandardEasing)
+    val reduced: FiniteAnimationSpec<Float> = tween(LUNAR_DURATION_MICRO, easing = LunarStandardEasing)
     return KudosMotion(
-        micro = tween(LunarDurationMicro, easing = LunarStandardEasing),
-        standard = if (reduceMotion) reduced else tween(LunarDurationStandard, easing = LunarStandardEasing),
-        screenPush = if (reduceMotion) reduced else tween(LunarDurationScreenPush, easing = LunarEmphasizedEasing),
-        sheet = if (reduceMotion) reduced else tween(LunarDurationSheet, easing = LunarEmphasizedEasing),
-        moonFill = if (reduceMotion) reduced else tween(LunarDurationMoonFill, easing = LunarOvershootEasing),
+        micro = tween(LUNAR_DURATION_MICRO, easing = LunarStandardEasing),
+        standard = if (reduceMotion) reduced else tween(LUNAR_DURATION_STANDARD, easing = LunarStandardEasing),
+        screenPush = if (reduceMotion) reduced else tween(LUNAR_DURATION_SCREEN_PUSH, easing = LunarEmphasizedEasing),
+        sheet = if (reduceMotion) reduced else tween(LUNAR_DURATION_SHEET, easing = LunarEmphasizedEasing),
+        moonFill = if (reduceMotion) reduced else tween(LUNAR_DURATION_MOON_FILL, easing = LunarOvershootEasing),
     )
 }
 

@@ -7,7 +7,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class TaskGroupTest {
-
     private fun task(
         id: String,
         number: Int,
@@ -29,12 +28,13 @@ class TaskGroupTest {
     @Test
     fun groupsAreOrderedByPriorityWithUrgentFirst() {
         val today = "2024-06-15"
-        val tasks = listOf(
-            task("a", 1, TaskPriority.LOW, dueDate = today),
-            task("b", 2, TaskPriority.URGENT, dueDate = today),
-            task("c", 3, TaskPriority.MEDIUM, dueDate = today),
-            task("d", 4, TaskPriority.HIGH, dueDate = today),
-        )
+        val tasks =
+            listOf(
+                task("a", 1, TaskPriority.LOW, dueDate = today),
+                task("b", 2, TaskPriority.URGENT, dueDate = today),
+                task("c", 3, TaskPriority.MEDIUM, dueDate = today),
+                task("d", 4, TaskPriority.HIGH, dueDate = today),
+            )
 
         val groups = groupTasksByDueDate(tasks, today)
         val todayGroup = groups.single { it.kind == TaskGroupKind.TODAY }
@@ -45,11 +45,12 @@ class TaskGroupTest {
     @Test
     fun samePriorityIsTieBrokenByTaskNumber() {
         val today = "2024-06-15"
-        val tasks = listOf(
-            task("late", 30, TaskPriority.HIGH, dueDate = today),
-            task("early", 10, TaskPriority.HIGH, dueDate = today),
-            task("mid", 20, TaskPriority.HIGH, dueDate = today),
-        )
+        val tasks =
+            listOf(
+                task("late", 30, TaskPriority.HIGH, dueDate = today),
+                task("early", 10, TaskPriority.HIGH, dueDate = today),
+                task("mid", 20, TaskPriority.HIGH, dueDate = today),
+            )
 
         val groups = groupTasksByDueDate(tasks, today)
         val todayGroup = groups.single { it.kind == TaskGroupKind.TODAY }
@@ -59,11 +60,12 @@ class TaskGroupTest {
 
     @Test
     fun doneGroupKeepsInputOrderNotPrioritySorted() {
-        val tasks = listOf(
-            task("d1", 1, TaskPriority.LOW, status = TaskStatus.DONE),
-            task("d2", 2, TaskPriority.URGENT, status = TaskStatus.DONE),
-            task("d3", 3, TaskPriority.MEDIUM, status = TaskStatus.DONE),
-        )
+        val tasks =
+            listOf(
+                task("d1", 1, TaskPriority.LOW, status = TaskStatus.DONE),
+                task("d2", 2, TaskPriority.URGENT, status = TaskStatus.DONE),
+                task("d3", 3, TaskPriority.MEDIUM, status = TaskStatus.DONE),
+            )
 
         val groups = groupTasksByDueDate(tasks, "2024-06-15")
         val doneGroup = groups.single { it.kind == TaskGroupKind.DONE }
@@ -75,14 +77,15 @@ class TaskGroupTest {
     @Test
     fun prioritySortIsAppliedPerGroupIndependently() {
         val today = "2024-06-15"
-        val tasks = listOf(
-            // OVERDUE bucket
-            task("o-low", 1, TaskPriority.LOW, dueDate = "2024-06-10"),
-            task("o-urgent", 2, TaskPriority.URGENT, dueDate = "2024-06-10"),
-            // NO_DUE bucket
-            task("n-medium", 3, TaskPriority.MEDIUM),
-            task("n-high", 4, TaskPriority.HIGH),
-        )
+        val tasks =
+            listOf(
+                // OVERDUE bucket
+                task("o-low", 1, TaskPriority.LOW, dueDate = "2024-06-10"),
+                task("o-urgent", 2, TaskPriority.URGENT, dueDate = "2024-06-10"),
+                // NO_DUE bucket
+                task("n-medium", 3, TaskPriority.MEDIUM),
+                task("n-high", 4, TaskPriority.HIGH),
+            )
 
         val groups = groupTasksByDueDate(tasks, today)
 

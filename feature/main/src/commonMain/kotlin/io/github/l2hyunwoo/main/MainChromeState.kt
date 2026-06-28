@@ -1,5 +1,6 @@
 package io.github.l2hyunwoo.main
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,7 +8,6 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.Composable
 
 // Holds the screen's nav/view selection: which surface is shown. Per-field mutableStateOf so reading
 // one field doesn't subscribe a reader to the others.
@@ -28,27 +28,28 @@ class MainChromeState(
     }
 
     fun toggleTasksViewMode() {
-        tasksViewMode = if (tasksViewMode == TasksViewMode.LIST) {
-            TasksViewMode.BOARD
-        } else {
-            TasksViewMode.LIST
-        }
+        tasksViewMode =
+            if (tasksViewMode == TasksViewMode.LIST) {
+                TasksViewMode.BOARD
+            } else {
+                TasksViewMode.LIST
+            }
     }
 
     companion object {
-        val Saver: Saver<MainChromeState, Any> = listSaver(
-            save = { listOf(it.selectedTab.name, it.tasksViewMode.name, it.showCategories) },
-            restore = {
-                MainChromeState(
-                    selectedTab = MainTab.valueOf(it[0] as String),
-                    tasksViewMode = TasksViewMode.valueOf(it[1] as String),
-                    showCategories = it[2] as Boolean,
-                )
-            },
-        )
+        val Saver: Saver<MainChromeState, Any> =
+            listSaver(
+                save = { listOf(it.selectedTab.name, it.tasksViewMode.name, it.showCategories) },
+                restore = {
+                    MainChromeState(
+                        selectedTab = MainTab.valueOf(it[0] as String),
+                        tasksViewMode = TasksViewMode.valueOf(it[1] as String),
+                        showCategories = it[2] as Boolean,
+                    )
+                },
+            )
     }
 }
 
 @Composable
-fun rememberMainChromeState(): MainChromeState =
-    rememberSaveable(saver = MainChromeState.Saver) { MainChromeState() }
+fun rememberMainChromeState(): MainChromeState = rememberSaveable(saver = MainChromeState.Saver) { MainChromeState() }

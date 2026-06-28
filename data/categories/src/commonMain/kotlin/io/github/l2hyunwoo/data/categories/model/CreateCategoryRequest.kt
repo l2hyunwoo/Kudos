@@ -10,5 +10,5 @@ data class CreateCategoryRequest(
     @SerialName("title")
     val title: String,
     @SerialName("color")
-    val color: String? = null
+    val color: String? = null,
 )

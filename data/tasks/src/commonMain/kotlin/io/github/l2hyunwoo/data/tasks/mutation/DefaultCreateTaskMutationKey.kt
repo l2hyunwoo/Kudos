@@ -19,16 +19,20 @@ class DefaultCreateTaskMutationKey(
     private val apiClient: TasksApiClient,
     private val cacheDataStore: TasksCacheDataStore,
 ) : CreateTaskMutationKey by buildMutationKey(
-    id = MutationId("create_task"),
-    mutate = { request ->
-        apiClient.createTask(request)
+        id = MutationId("create_task"),
+        mutate = { request ->
+            apiClient.createTask(request)
 
-        cacheDataStore.clear()
-    }
-) {
+            cacheDataStore.clear()
+        },
+    ) {
     // clear() above only wipes the DataStore preload; it does not touch Soil's in-memory query cache.
     // Invalidate tasks_query so active rememberQuery subscribers refetch and the new subtask appears.
-    override fun onMutateEffect(variable: CreateTaskRequest, data: Unit): Effect = {
-        queryClient.invalidateQueriesBy(TasksQueryId)
-    }
+    override fun onMutateEffect(
+        variable: CreateTaskRequest,
+        data: Unit,
+    ): Effect =
+        {
+            queryClient.invalidateQueriesBy(TasksQueryId)
+        }
 }

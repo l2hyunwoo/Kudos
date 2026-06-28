@@ -23,7 +23,7 @@ fun projectDetailPresenter(
     initialTitle: String,
     initialDescription: String?,
     eventFlow: EventFlow<ProjectDetailEvent>,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
 ): ProjectDetailUiState {
     val tasksQueryKey = remember(projectId) { context.projectTasksQueryKeyFactory.create(projectId) }
     val tasksQuery = rememberQuery(tasksQueryKey)
@@ -38,7 +38,8 @@ fun projectDetailPresenter(
     LaunchedEffect(updateProjectMutation.data) {
         updateProjectMutation.data?.let {
             // Find the updated project in the response
-            it.flatMap { category -> category.projects }
+            it
+                .flatMap { category -> category.projects }
                 .find { project -> project.id == projectId }
                 ?.let { updatedProject ->
                     title = updatedProject.title
@@ -52,19 +53,22 @@ fun projectDetailPresenter(
             is ProjectDetailEvent.ShowEditSheet -> {
                 showEditSheet = true
             }
+
             is ProjectDetailEvent.DismissEditSheet -> {
                 showEditSheet = false
             }
+
             is ProjectDetailEvent.UpdateProject -> {
                 updateProjectMutation.mutate(
                     UpdateProjectParams(
                         categoryId = categoryId,
                         projectId = projectId,
-                        request = event.request
-                    )
+                        request = event.request,
+                    ),
                 )
                 showEditSheet = false
             }
+
             is ProjectDetailEvent.NavigateBack -> {
                 onNavigateBack()
             }
@@ -82,6 +86,6 @@ fun projectDetailPresenter(
         isLoadingTasks = tasksQuery.isPending,
         isUpdatingProject = updateProjectMutation.isPending,
         showEditSheet = showEditSheet,
-        error = tasksQuery.error ?: updateProjectMutation.error
+        error = tasksQuery.error ?: updateProjectMutation.error,
     )
 }

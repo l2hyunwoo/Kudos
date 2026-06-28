@@ -5,6 +5,7 @@ import io.github.takahirom.rin.rememberRetained
 
 @Composable
 context(factory: TaskDetailContext.Factory)
-fun rememberTaskDetailContextRetained() = rememberRetained {
-    factory.createTaskDetailContext()
-}
+fun rememberTaskDetailContextRetained() =
+    rememberRetained {
+        factory.createTaskDetailContext()
+    }

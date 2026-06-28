@@ -11,28 +11,28 @@ import kotlinx.serialization.json.Json
 
 @ContributesTo(DataScope::class)
 interface NetworkGraph {
-
     companion object {
         @Provides
         @SingleIn(DataScope::class)
-        fun provideJson(): Json = Json {
-            isLenient = true
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-            // Omit null-valued properties on encode so partial-update payloads
-            // (UpdateTaskRequest) only carry the fields actually being changed.
-            // Safe for decode: response models give nullable fields a `= null` default.
-            explicitNulls = false
-            prettyPrint = true
-        }
+        fun provideJson(): Json =
+            Json {
+                isLenient = true
+                ignoreUnknownKeys = true
+                encodeDefaults = true
+                // Omit null-valued properties on encode so partial-update payloads
+                // (UpdateTaskRequest) only carry the fields actually being changed.
+                // Safe for decode: response models give nullable fields a `= null` default.
+                explicitNulls = false
+                prettyPrint = true
+            }
 
         @Provides
         @SingleIn(DataScope::class)
-        fun provideKtorfit(
-            httpClient: HttpClient
-        ): Ktorfit = Ktorfit.Builder()
-            .httpClient(httpClient)
-            .baseUrl(BuildConfig.SUPABASE_URL)
-            .build()
+        fun provideKtorfit(httpClient: HttpClient): Ktorfit =
+            Ktorfit
+                .Builder()
+                .httpClient(httpClient)
+                .baseUrl(BuildConfig.SUPABASE_URL)
+                .build()
     }
 }

@@ -36,24 +36,26 @@ fun taskDetailPresenter(
 
     // Subtasks are children in the same cached list, matched by parent_task_id == this task's UUID.
     val tasksQuery = rememberQuery(context.tasksQuery)
-    val subtasks = remember(tasksQuery.data, id) {
-        tasksQuery.data
-            .orEmpty()
-            .asSequence()
-            .flatMap { it.tasks.asSequence() }
-            .filter { it.parentTaskId == id }
-            .map { SubtaskItem(id = it.id, taskId = it.taskId, title = it.title, status = it.status) }
-            .toList()
-            .toImmutableList()
-    }
+    val subtasks =
+        remember(tasksQuery.data, id) {
+            tasksQuery.data
+                .orEmpty()
+                .asSequence()
+                .flatMap { it.tasks.asSequence() }
+                .filter { it.parentTaskId == id }
+                .map { SubtaskItem(id = it.id, taskId = it.taskId, title = it.title, status = it.status) }
+                .toList()
+                .toImmutableList()
+        }
 
     // A new subtask inherits the parent's category (required by the create API) and project, looked
     // up from the same cached list by the parent task's UUID.
-    val parentTask = remember(tasksQuery.data, id) {
-        tasksQuery.data.orEmpty().firstNotNullOfOrNull { category ->
-            category.tasks.firstOrNull { it.id == id }?.let { task -> category.id to task }
+    val parentTask =
+        remember(tasksQuery.data, id) {
+            tasksQuery.data.orEmpty().firstNotNullOfOrNull { category ->
+                category.tasks.firstOrNull { it.id == id }?.let { task -> category.id to task }
+            }
         }
-    }
     val parentCategoryId = parentTask?.first
     val parentProjectId = parentTask?.second?.projectId
 
@@ -92,8 +94,8 @@ fun taskDetailPresenter(
                 updateTaskMutation.mutate(
                     UpdateTaskParams(
                         taskId = taskId,
-                        request = UpdateTaskRequest(status = event.status)
-                    )
+                        request = UpdateTaskRequest(status = event.status),
+                    ),
                 )
             }
 
@@ -126,22 +128,23 @@ fun taskDetailPresenter(
                             status = TaskStatus.TODO,
                             priority = TaskPriority.MEDIUM,
                             parentTaskId = id,
-                        )
+                        ),
                     )
                 }
             }
 
             is TaskDetailEvent.ToggleSubtask -> {
-                val nextStatus = if (event.subtask.status == TaskStatus.DONE) {
-                    TaskStatus.TODO
-                } else {
-                    TaskStatus.DONE
-                }
+                val nextStatus =
+                    if (event.subtask.status == TaskStatus.DONE) {
+                        TaskStatus.TODO
+                    } else {
+                        TaskStatus.DONE
+                    }
                 updateTaskMutation.mutate(
                     UpdateTaskParams(
                         taskId = event.subtask.taskId,
                         request = UpdateTaskRequest(status = nextStatus),
-                    )
+                    ),
                 )
             }
 

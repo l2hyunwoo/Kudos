@@ -30,11 +30,12 @@ fun KanbanBoardEntryPoint(
         state = rememberQuery(context.tasksQuery),
         fallback = SoilFallbackDefaults.default(),
     ) { categories ->
-        val uiState = kanbanPresenter(
-            eventFlow = actualEventFlow,
-            categories = categories,
-            searchQuery = searchQuery,
-        )
+        val uiState =
+            kanbanPresenter(
+                eventFlow = actualEventFlow,
+                categories = categories,
+                searchQuery = searchQuery,
+            )
         KanbanBoard(
             uiState = uiState,
             eventFlow = actualEventFlow,

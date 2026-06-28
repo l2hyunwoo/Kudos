@@ -77,11 +77,12 @@ fun CreateTaskBottomSheet(
     categories: ImmutableList<Category>,
     onDismiss: () -> Unit,
     onCreate: (CreateTaskRequest) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
     val scope = rememberCoroutineScope()
     // Selection is persisted by id (a Saveable String) rather than the Category/Project object, so the
     // in-progress form survives config changes (rotation, theme toggle). The objects are resolved from
@@ -96,15 +97,18 @@ fun CreateTaskBottomSheet(
     var pickedIso by rememberSaveable { mutableStateOf<String?>(null) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
 
-    val selectedCategory = remember(selectedCategoryId, categories) {
-        categories.find { it.id == selectedCategoryId }
-    }
-    val availableProjects = remember(selectedCategory) {
-        selectedCategory?.projects?.toImmutableList() ?: persistentListOf()
-    }
-    val selectedProject = remember(selectedProjectId, availableProjects) {
-        availableProjects.find { it.id == selectedProjectId }
-    }
+    val selectedCategory =
+        remember(selectedCategoryId, categories) {
+            categories.find { it.id == selectedCategoryId }
+        }
+    val availableProjects =
+        remember(selectedCategory) {
+            selectedCategory?.projects?.toImmutableList() ?: persistentListOf()
+        }
+    val selectedProject =
+        remember(selectedProjectId, availableProjects) {
+            availableProjects.find { it.id == selectedProjectId }
+        }
 
     // Clear a stale project id when the chosen category no longer contains it.
     LaunchedEffect(selectedCategory) {
@@ -121,24 +125,26 @@ fun CreateTaskBottomSheet(
     KudosBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .imePadding(),
         ) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp),
             ) {
                 Text(
                     text = stringResource(Res.string.create_task),
                     style = KudosTheme.typography.bodyLargeXB,
                     color = KudosTheme.colors.ink.ink,
-                    modifier = Modifier.padding(bottom = 24.dp)
+                    modifier = Modifier.padding(bottom = 24.dp),
                 )
 
                 // Headline title + description first (matches the mockup's "title first" feel), then the
@@ -149,7 +155,7 @@ fun CreateTaskBottomSheet(
                     placeholder = stringResource(Res.string.task_title_hint),
                     textStyle = KudosTheme.typography.titleLargeM,
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -160,7 +166,7 @@ fun CreateTaskBottomSheet(
                     placeholder = stringResource(Res.string.add_description),
                     textStyle = KudosTheme.typography.bodyLargeR,
                     minLines = 3,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -169,13 +175,13 @@ fun CreateTaskBottomSheet(
                 LunarFormSection(title = stringResource(Res.string.category).uppercase()) {
                     Row(
                         modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         categories.forEach { category ->
                             LunarSelectableChip(
                                 label = "${category.prefix} · ${category.title}",
                                 selected = selectedCategoryId == category.id,
-                                onClick = { selectedCategoryId = category.id }
+                                onClick = { selectedCategoryId = category.id },
                             )
                         }
                     }
@@ -186,18 +192,18 @@ fun CreateTaskBottomSheet(
                 LunarFormSection(title = stringResource(Res.string.project).uppercase()) {
                     Row(
                         modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         LunarSelectableChip(
                             label = stringResource(Res.string.no_project),
                             selected = selectedProjectId == null,
-                            onClick = { selectedProjectId = null }
+                            onClick = { selectedProjectId = null },
                         )
                         availableProjects.forEach { project ->
                             LunarSelectableChip(
                                 label = project.title,
                                 selected = selectedProjectId == project.id,
-                                onClick = { selectedProjectId = project.id }
+                                onClick = { selectedProjectId = project.id },
                             )
                         }
                     }
@@ -215,7 +221,7 @@ fun CreateTaskBottomSheet(
                                 label = stringResource(status.labelRes()),
                                 selected = selectedStatus == status,
                                 onClick = { selectedStatus = status },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
@@ -230,7 +236,7 @@ fun CreateTaskBottomSheet(
                                 label = priority.text,
                                 selected = selectedPriority == priority,
                                 onClick = { selectedPriority = priority },
-                                leadingDotColor = priority.dotColor()
+                                leadingDotColor = priority.dotColor(),
                             )
                         }
                     }
@@ -243,28 +249,29 @@ fun CreateTaskBottomSheet(
                         LunarSelectableChip(
                             label = stringResource(Res.string.due_today),
                             selected = selectedDue == DueOption.TODAY,
-                            onClick = { selectedDue = DueOption.TODAY }
+                            onClick = { selectedDue = DueOption.TODAY },
                         )
                         LunarSelectableChip(
                             label = stringResource(Res.string.due_this_week),
                             selected = selectedDue == DueOption.THIS_WEEK,
-                            onClick = { selectedDue = DueOption.THIS_WEEK }
+                            onClick = { selectedDue = DueOption.THIS_WEEK },
                         )
                         LunarSelectableChip(
                             // Once a date is chosen, show it as a friendly relative label (오늘/내일/N일 후/
                             // M월 d일) via the same formatter the task rows use, instead of the raw ISO.
-                            label = pickedIso?.let { formatDueLabel(it, todayIso()) }
-                                ?: stringResource(Res.string.due_pick),
+                            label =
+                                pickedIso?.let { formatDueLabel(it, todayIso()) }
+                                    ?: stringResource(Res.string.due_pick),
                             selected = selectedDue == DueOption.PICK,
                             onClick = {
                                 selectedDue = DueOption.PICK
                                 showDatePicker = true
-                            }
+                            },
                         )
                         LunarSelectableChip(
                             label = stringResource(Res.string.due_none),
                             selected = selectedDue == DueOption.NONE,
-                            onClick = { selectedDue = DueOption.NONE }
+                            onClick = { selectedDue = DueOption.NONE },
                         )
                     }
                 }
@@ -273,23 +280,25 @@ fun CreateTaskBottomSheet(
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp, top = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 32.dp, top = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 GhostButton(
                     onClick = {
-                        scope.launch {
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                onDismiss()
+                        scope
+                            .launch {
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    onDismiss()
+                                }
                             }
-                        }
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(stringResource(Res.string.cancel))
                 }
@@ -305,14 +314,14 @@ fun CreateTaskBottomSheet(
                                     projectId = selectedProject?.id,
                                     priority = selectedPriority,
                                     status = selectedStatus,
-                                    dueDate = dueOptionToIso(selectedDue, pickedIso)
-                                )
+                                    dueDate = dueOptionToIso(selectedDue, pickedIso),
+                                ),
                             )
                             onDismiss()
                         }
                     },
                     enabled = isValid,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(stringResource(Res.string.create))
                 }
@@ -334,7 +343,7 @@ fun CreateTaskBottomSheet(
                             selectedDue = DueOption.PICK
                         }
                         showDatePicker = false
-                    }
+                    },
                 ) {
                     Text(stringResource(Res.string.date_confirm))
                 }
@@ -343,7 +352,7 @@ fun CreateTaskBottomSheet(
                 TextButton(onClick = { showDatePicker = false }) {
                     Text(stringResource(Res.string.cancel))
                 }
-            }
+            },
         ) {
             DatePicker(state = datePickerState)
         }
@@ -351,26 +360,29 @@ fun CreateTaskBottomSheet(
 }
 
 // Status cards in waxing-moon order (new -> full): Backlog, To Do, In Progress, Done.
-private val StatusCardOrder = listOf(
-    TaskStatus.BACKLOG,
-    TaskStatus.TODO,
-    TaskStatus.IN_PROGRESS,
-    TaskStatus.DONE,
-)
+private val StatusCardOrder =
+    listOf(
+        TaskStatus.BACKLOG,
+        TaskStatus.TODO,
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.DONE,
+    )
 
 // Status enum -> localized label resource.
-private fun TaskStatus.labelRes(): StringResource = when (this) {
-    TaskStatus.BACKLOG -> Res.string.status_backlog
-    TaskStatus.TODO -> Res.string.status_todo
-    TaskStatus.IN_PROGRESS -> Res.string.status_in_progress
-    TaskStatus.DONE -> Res.string.status_done
-}
+private fun TaskStatus.labelRes(): StringResource =
+    when (this) {
+        TaskStatus.BACKLOG -> Res.string.status_backlog
+        TaskStatus.TODO -> Res.string.status_todo
+        TaskStatus.IN_PROGRESS -> Res.string.status_in_progress
+        TaskStatus.DONE -> Res.string.status_done
+    }
 
 // Priority enum -> its semantic color token (the leading dot on the priority chip).
 @Composable
-private fun TaskPriority.dotColor() = when (this) {
-    TaskPriority.URGENT -> KudosTheme.colors.priority.urgent
-    TaskPriority.HIGH -> KudosTheme.colors.priority.high
-    TaskPriority.MEDIUM -> KudosTheme.colors.priority.medium
-    TaskPriority.LOW -> KudosTheme.colors.priority.low
-}
+private fun TaskPriority.dotColor() =
+    when (this) {
+        TaskPriority.URGENT -> KudosTheme.colors.priority.urgent
+        TaskPriority.HIGH -> KudosTheme.colors.priority.high
+        TaskPriority.MEDIUM -> KudosTheme.colors.priority.medium
+        TaskPriority.LOW -> KudosTheme.colors.priority.low
+    }

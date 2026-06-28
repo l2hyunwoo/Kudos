@@ -103,11 +103,10 @@ fun <T1, T2, T3> SoilBoundary(
     }
 }
 
-
 @Composable
 private fun ErrorBoundary(
-    modifier: Modifier = Modifier,
     fallback: @Composable context(ErrorContext) BoxScope.() -> Unit,
+    modifier: Modifier = Modifier,
     onReset: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {

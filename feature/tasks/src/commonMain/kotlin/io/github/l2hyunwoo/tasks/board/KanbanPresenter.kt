@@ -19,12 +19,13 @@ import kotlinx.collections.immutable.toImmutableList
 import soil.query.compose.rememberMutation
 
 // Fixed left-to-right column order.
-private val ColumnOrder = listOf(
-    TaskStatus.BACKLOG,
-    TaskStatus.TODO,
-    TaskStatus.IN_PROGRESS,
-    TaskStatus.DONE,
-)
+private val ColumnOrder =
+    listOf(
+        TaskStatus.BACKLOG,
+        TaskStatus.TODO,
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.DONE,
+    )
 
 // Pure: bucket a flat task list into the four kanban columns in [ColumnOrder]. Empty columns are kept
 // so the board always renders all four lanes. Within a column, tasks keep input order.
@@ -66,7 +67,7 @@ fun kanbanPresenter(
                         UpdateTaskParams(
                             taskId = event.taskId,
                             request = UpdateTaskRequest(status = event.status),
-                        )
+                        ),
                     )
                 } catch (e: Exception) {
                     if (e is kotlinx.coroutines.CancellationException) throw e
@@ -76,16 +77,19 @@ fun kanbanPresenter(
 
             // The board only emits ChangeStatus; other TaskListEvents are owned by the list presenter
             // and ignored here so a shared eventFlow stays safe.
-            else -> Unit
+            else -> {
+                Unit
+            }
         }
     }
 
     val query = searchQuery.trim()
-    val baseTasks = categories.flatMap { it.tasks }.filter { task ->
-        if (query.isEmpty()) return@filter true
-        task.title.contains(query, ignoreCase = true) ||
-            task.description?.contains(query, ignoreCase = true) == true
-    }
+    val baseTasks =
+        categories.flatMap { it.tasks }.filter { task ->
+            if (query.isEmpty()) return@filter true
+            task.title.contains(query, ignoreCase = true) ||
+                task.description?.contains(query, ignoreCase = true) == true
+        }
 
     // Reconcile overrides the refetched list already reflects, so a stale override can't later clobber
     // an independent status change. Done in an effect (not the body) to avoid a backward write to
@@ -98,17 +102,19 @@ fun kanbanPresenter(
 
     // Apply the optimistic overrides for rendering. Keep id stable through the copy so the card reads
     // as moved (not removed+inserted).
-    val effectiveTasks = if (statusOverrides.isEmpty()) {
-        baseTasks
-    } else {
-        baseTasks.map { task ->
-            statusOverrides[task.id]?.let { task.copy(status = it) } ?: task
+    val effectiveTasks =
+        if (statusOverrides.isEmpty()) {
+            baseTasks
+        } else {
+            baseTasks.map { task ->
+                statusOverrides[task.id]?.let { task.copy(status = it) } ?: task
+            }
         }
-    }
 
-    val columns = remember(effectiveTasks) {
-        bucketByStatus(effectiveTasks).toImmutableList()
-    }
+    val columns =
+        remember(effectiveTasks) {
+            bucketByStatus(effectiveTasks).toImmutableList()
+        }
 
     return KanbanUiState(
         columns = columns,

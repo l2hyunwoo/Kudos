@@ -8,10 +8,7 @@ import io.github.l2hyunwoo.data.tasks.model.TasksResponse
 // summary), so there is no eventFlow or mutation wiring here. remember(categories) keeps the pure
 // aggregate off the recomposition hot path.
 @Composable
-fun dashboardPresenter(
-    categories: List<TasksResponse.CategoryWithTasks>,
-): DashboardUiState {
-    return remember(categories) {
+fun dashboardPresenter(categories: List<TasksResponse.CategoryWithTasks>): DashboardUiState =
+    remember(categories) {
         aggregate(categories.flatMap { it.tasks })
     }
-}

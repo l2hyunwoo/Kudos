@@ -16,12 +16,14 @@ internal class DefaultSoilErrorContext(
     override val errorBoundaryContext: ErrorBoundaryContext,
 ) : ErrorContext
 
-interface SoilPreviewContext : SuspenseContext, ErrorContext
+interface SoilPreviewContext :
+    SuspenseContext,
+    ErrorContext
 
 internal class FakePreviewContext : SoilPreviewContext {
-    override val errorBoundaryContext: ErrorBoundaryContext = ErrorBoundaryContext(
-        err = Throwable("Fake error for preview"),
-        reset = null,
-    )
+    override val errorBoundaryContext: ErrorBoundaryContext =
+        ErrorBoundaryContext(
+            err = Throwable("Fake error for preview"),
+            reset = null,
+        )
 }
-

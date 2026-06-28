@@ -18,13 +18,13 @@ import kotlinx.collections.immutable.ImmutableList
 fun ProjectTasksList(
     tasks: ImmutableList<Task>,
     onTaskClick: (Task) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = "연관된 이슈 (${tasks.size})",
             style = KudosTheme.typography.eyebrow,
-            color = KudosTheme.colors.ink.ink3
+            color = KudosTheme.colors.ink.ink3,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -34,16 +34,16 @@ fun ProjectTasksList(
                 text = "연관된 이슈가 없습니다",
                 style = KudosTheme.typography.bodySmallR,
                 color = KudosTheme.colors.ink.ink3,
-                modifier = Modifier.padding(start = 4.dp)
+                modifier = Modifier.padding(start = 4.dp),
             )
         } else {
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 tasks.forEach { task ->
                     TaskCard(
                         task = task,
-                        onClick = { onTaskClick(task) }
+                        onClick = { onTaskClick(task) },
                     )
                 }
             }

@@ -38,9 +38,7 @@ class TasksCacheDataStore(
             }.firstOrNull()
     }
 
-    fun getCacheSync(): TasksResponse? {
-        return runBlocking { getCache() }
-    }
+    fun getCacheSync(): TasksResponse? = runBlocking { getCache() }
 
     fun getCacheStream(): Flow<TasksResponse> {
         return dataStore.data.mapNotNull { preferences ->

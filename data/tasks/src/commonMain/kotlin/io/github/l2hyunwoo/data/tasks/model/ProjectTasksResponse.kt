@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ProjectTasksResponse(
     @SerialName("tasks")
-    val tasks: List<Task>
+    val tasks: List<Task>,
 )

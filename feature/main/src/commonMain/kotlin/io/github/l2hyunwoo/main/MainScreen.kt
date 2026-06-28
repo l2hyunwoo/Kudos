@@ -14,6 +14,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,12 +32,12 @@ import io.github.l2hyunwoo.category.CategoryListEvent
 import io.github.l2hyunwoo.category.component.CreateCategoryBottomSheet
 import io.github.l2hyunwoo.category.rememberCategoryContextRetained
 import io.github.l2hyunwoo.core.design.KudosTheme
-import io.github.l2hyunwoo.core.design.token.LunarDurationMoonFill
-import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
+import io.github.l2hyunwoo.core.design.token.LUNAR_DURATION_MOON_FILL
+import io.github.l2hyunwoo.core.design.token.LUNAR_DURATION_STANDARD
+import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
 import io.github.l2hyunwoo.main.component.GlassNavBar
 import io.github.l2hyunwoo.main.component.TodayHeader
-import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.tasks.TaskListEntryPoint
 import io.github.l2hyunwoo.tasks.TaskListEvent
 import io.github.l2hyunwoo.tasks.TasksContext
@@ -55,19 +56,22 @@ fun MainScreen(
     darkTheme: Boolean = false,
     onToggleTheme: (Offset) -> Unit = {},
     onNavigateToTaskDetail: (Task) -> Unit = {},
-    onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> }
+    onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> },
+    modifier: Modifier = Modifier,
 ) {
     val chrome = rememberMainChromeState()
     val sheet = rememberSheetState()
     // Kept standalone (not in chrome) so a per-keystroke write doesn't invalidate selection readers.
     var searchQuery by rememberSaveable { mutableStateOf("") }
 
-    val tasksContext = with(tasksContextFactory) {
-        rememberTasksContextRetained()
-    }
-    val categoryContext = with(categoryContextFactory) {
-        rememberCategoryContextRetained()
-    }
+    val tasksContext =
+        with(tasksContextFactory) {
+            rememberTasksContextRetained()
+        }
+    val categoryContext =
+        with(categoryContextFactory) {
+            rememberCategoryContextRetained()
+        }
 
     val tasksEventFlow = rememberEventFlow<TaskListEvent>()
     val categoriesEventFlow = rememberEventFlow<CategoryListEvent>()
@@ -79,7 +83,7 @@ fun MainScreen(
     // Measured glass-header height: the list reserves it as top contentPadding so its first row starts
     // below the header while the rest scrolls UNDER the translucent header (what makes the frosting
     // visible). Variable height (inset + greeting + title + date + search), so measured not hard-coded.
-    var headerHeightPixels by remember { mutableStateOf(0) }
+    var headerHeightPixels by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
     val headerHeight = with(density) { headerHeightPixels.toDp() }
 
@@ -90,14 +94,15 @@ fun MainScreen(
 
     // Keyed on field reads, not on chrome — the holder instance is stable across recompositions, so
     // keying on it would freeze the lambda.
-    val onAddCurrentTab: () -> Unit = remember(chrome.selectedTab, chrome.showCategories) {
-        {
-            when {
-                chrome.showCategories -> sheet.showCreateCategory()
-                else -> sheet.showCreateTask()
+    val onAddCurrentTab: () -> Unit =
+        remember(chrome.selectedTab, chrome.showCategories) {
+            {
+                when {
+                    chrome.showCategories -> sheet.showCreateCategory()
+                    else -> sheet.showCreateTask()
+                }
             }
         }
-    }
 
     // Re-capture the backdrop whenever the recorded content swaps under the glass: a tab change, a
     // list/board toggle, opening/closing the Categories overlay, or a theme flip. A Crossfade/content
@@ -106,10 +111,11 @@ fun MainScreen(
     // longest of the dissolve / theme-reveal durations so the blur tracks the whole transition instead
     // of freezing partway once a short settle tail elapses.
     LaunchedEffect(chrome.selectedTab, chrome.tasksViewMode, chrome.showCategories, darkTheme) {
-        sky.invalidate(maxOf(LunarDurationStandard, LunarDurationMoonFill).toLong())
+        sky.invalidate(maxOf(LUNAR_DURATION_STANDARD, LUNAR_DURATION_MOON_FILL).toLong())
     }
 
     Scaffold(
+        modifier = modifier,
         containerColor = KudosTheme.colors.surface.bg,
     ) { _ ->
         Box(Modifier.fillMaxSize()) {
@@ -120,17 +126,18 @@ fun MainScreen(
             Box(
                 Modifier
                     .fillMaxSize()
-                    .sky(sky)
+                    .sky(sky),
             ) {
                 // Cross-fade the recorded subtree instead of hard-swapping it (the reported tab-switch
                 // flicker). The target encodes every distinct surface — the Categories overlay, the
                 // active tab, and (on Tasks) the list/board view — so each swap dissolves. standard is
                 // a Float spec, so reduce-motion collapses it for free.
-                val contentKey: Any = when {
-                    chrome.showCategories -> "categories"
-                    chrome.selectedTab == MainTab.DASHBOARD -> "dashboard"
-                    else -> chrome.tasksViewMode
-                }
+                val contentKey: Any =
+                    when {
+                        chrome.showCategories -> "categories"
+                        chrome.selectedTab == MainTab.DASHBOARD -> "dashboard"
+                        else -> chrome.tasksViewMode
+                    }
                 Crossfade(
                     targetState = contentKey,
                     animationSpec = KudosTheme.motion.standard,
@@ -143,7 +150,7 @@ fun MainScreen(
                                     eventFlow = categoriesEventFlow,
                                     searchQuery = searchQuery,
                                     topContentPadding = headerHeight,
-                                    onNavigateToProjectDetail = onNavigateToProjectDetail
+                                    onNavigateToProjectDetail = onNavigateToProjectDetail,
                                 )
                             }
                         }
@@ -179,7 +186,7 @@ fun MainScreen(
                                     // PTR gesture lives on the list (inside the recorder); the
                                     // indicator is drawn below as a sibling (outside the recorder).
                                     pullToRefreshState = pullToRefreshState,
-                                    onRefreshingChanged = { tasksRefreshing = it },
+                                    onRefreshingChange = { tasksRefreshing = it },
                                 )
                             }
                         }
@@ -203,7 +210,7 @@ fun MainScreen(
                 onOpenCategories = { chrome.showCategories = true },
                 onCloseCategories = { chrome.showCategories = false },
                 sky = sky,
-                onHeightChanged = { headerHeightPixels = it },
+                onHeightChange = { headerHeightPixels = it },
                 modifier = Modifier.align(Alignment.TopCenter),
             )
 
@@ -213,10 +220,11 @@ fun MainScreen(
                 onSelectTab = chrome::selectTab,
                 onAdd = onAddCurrentTab,
                 sky = sky,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
             )
 
             // Pull-to-refresh indicator: a sibling of the recorder (never recorded), so it stays crisp
@@ -231,9 +239,10 @@ fun MainScreen(
                     state = pullToRefreshState,
                     isRefreshing = tasksRefreshing,
                     color = KudosTheme.colors.brand.primary600,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = headerHeight),
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = headerHeight),
                 )
             }
         }
@@ -251,7 +260,7 @@ fun MainScreen(
                     onCreate = { request ->
                         tasksEventFlow.tryEmit(TaskListEvent.CreateTask(request))
                         sheet.dismiss()
-                    }
+                    },
                 )
             }
         }
@@ -263,11 +272,13 @@ fun MainScreen(
                     onCreate = { request ->
                         categoriesEventFlow.tryEmit(CategoryListEvent.CreateCategory(request))
                         sheet.dismiss()
-                    }
+                    },
                 )
             }
         }
 
-        null -> Unit
+        null -> {
+            Unit
+        }
     }
 }

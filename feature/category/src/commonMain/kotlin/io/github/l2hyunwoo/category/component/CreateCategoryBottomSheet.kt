@@ -43,11 +43,12 @@ import org.jetbrains.compose.resources.stringResource
 fun CreateCategoryBottomSheet(
     onDismiss: () -> Unit,
     onCreate: (CreateCategoryRequest) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
     var prefix by remember { mutableStateOf("") }
     var title by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf<CategoryColor?>(null) }
@@ -57,24 +58,26 @@ fun CreateCategoryBottomSheet(
     KudosBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .imePadding(),
         ) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp),
             ) {
                 Text(
                     text = stringResource(Res.string.create_category),
                     style = KudosTheme.typography.bodyLargeXB,
                     color = KudosTheme.colors.ink.ink,
-                    modifier = Modifier.padding(bottom = 24.dp)
+                    modifier = Modifier.padding(bottom = 24.dp),
                 )
 
                 OutlinedTextField(
@@ -83,7 +86,7 @@ fun CreateCategoryBottomSheet(
                     label = { Text(stringResource(Res.string.prefix)) },
                     placeholder = { Text(stringResource(Res.string.prefix_hint)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -94,30 +97,31 @@ fun CreateCategoryBottomSheet(
                     label = { Text(stringResource(Res.string.title)) },
                     placeholder = { Text(stringResource(Res.string.title_hint)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 ColorPicker(
                     selectedColor = selectedColor,
-                    onColorSelected = { selectedColor = it },
-                    modifier = Modifier.fillMaxWidth()
+                    onSelectColor = { selectedColor = it },
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp, top = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 32.dp, top = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 GhostButton(
                     onClick = onDismiss,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(stringResource(Res.string.cancel))
                 }
@@ -128,13 +132,13 @@ fun CreateCategoryBottomSheet(
                             CreateCategoryRequest(
                                 prefix = prefix,
                                 title = title,
-                                color = selectedColor?.hexCode
-                            )
+                                color = selectedColor?.hexCode,
+                            ),
                         )
                         onDismiss()
                     },
                     enabled = isValid,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(stringResource(Res.string.create))
                 }

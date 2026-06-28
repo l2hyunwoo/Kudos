@@ -28,7 +28,7 @@ import io.github.l2hyunwoo.core.design.component.moon.Moon
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
 
 // Press scale for the micro tactile feedback; mirrors KudosButton's idiom.
-private const val PressedScale = 0.96f
+private const val PRESSED_SCALE = 0.96f
 
 /**
  * Selectable status card: a moon-phase glyph over a centered label, used for the single-select Status
@@ -51,7 +51,7 @@ fun LunarStatusCard(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) PressedScale else 1f,
+        targetValue = if (pressed) PRESSED_SCALE else 1f,
         animationSpec = KudosTheme.motion.micro,
         label = "statusCardPressScale",
     )
@@ -63,21 +63,20 @@ fun LunarStatusCard(
     val shape = KudosTheme.shapes.chipSmall
 
     Column(
-        modifier = modifier
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .clip(shape)
-            .background(containerColor)
-            .border(borderWidth, borderColor, shape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                role = Role.RadioButton,
-                onClick = onClick,
-            )
-            .padding(vertical = 12.dp, horizontal = 8.dp),
+        modifier =
+            modifier
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }.clip(shape)
+                .background(containerColor)
+                .border(borderWidth, borderColor, shape)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    role = Role.RadioButton,
+                    onClick = onClick,
+                ).padding(vertical = 12.dp, horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Moon(k = fraction, size = 28.dp)
@@ -110,9 +109,10 @@ private fun LunarStatusCardDarkPreview() {
 @Composable
 private fun LunarStatusCardPreviewRow() {
     Row(
-        modifier = Modifier
-            .background(KudosTheme.colors.surface.bg)
-            .padding(16.dp),
+        modifier =
+            Modifier
+                .background(KudosTheme.colors.surface.bg)
+                .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         LunarStatusCard(

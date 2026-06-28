@@ -18,5 +18,5 @@ data class Category(
     @SerialName("updated_at")
     val updatedAt: String,
     @SerialName("projects")
-    val projects: List<Project>
+    val projects: List<Project>,
 )

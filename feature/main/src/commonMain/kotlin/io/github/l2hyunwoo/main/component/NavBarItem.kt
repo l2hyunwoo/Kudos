@@ -33,14 +33,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
-import io.github.l2hyunwoo.core.design.token.LunarDurationMicro
-import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
+import io.github.l2hyunwoo.core.design.token.LUNAR_DURATION_MICRO
+import io.github.l2hyunwoo.core.design.token.LUNAR_DURATION_STANDARD
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 
 // KudosMotion specs are FiniteAnimationSpec<Float>; color animation needs a Color spec, so rebuild one
 // from the same standard duration + easing tokens. Hoisted to a file-level val so it is not re-allocated
 // on every recomposition.
-private val NavBarColorSpec = tween<Color>(LunarDurationStandard, easing = LunarStandardEasing)
+private val NavBarColorSpec = tween<Color>(LUNAR_DURATION_STANDARD, easing = LunarStandardEasing)
 
 @Composable
 internal fun NavBarItem(
@@ -55,11 +55,12 @@ internal fun NavBarItem(
         animationSpec = NavBarColorSpec,
     )
     val pillColor by animateColorAsState(
-        targetValue = if (selected) {
-            KudosTheme.colors.brand.primary100
-        } else {
-            Color.Transparent
-        },
+        targetValue =
+            if (selected) {
+                KudosTheme.colors.brand.primary100
+            } else {
+                Color.Transparent
+            },
         animationSpec = NavBarColorSpec,
     )
     val interaction = remember { MutableInteractionSource() }
@@ -83,15 +84,13 @@ internal fun NavBarItem(
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
-                }
-                .clip(PillShape)
+                }.clip(PillShape)
                 .background(pillColor)
                 .clickable(
                     interactionSource = interaction,
                     indication = ripple(bounded = true),
                     onClick = onClick,
-                )
-                .padding(horizontal = 14.dp, vertical = 8.dp),
+                ).padding(horizontal = 14.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
@@ -105,12 +104,14 @@ internal fun NavBarItem(
             // its selected width. Typed specs rebuilt from the micro duration + standard easing.
             AnimatedVisibility(
                 visible = selected,
-                enter = expandHorizontally(
-                    animationSpec = tween(LunarDurationStandard, easing = LunarStandardEasing),
-                ) + fadeIn(animationSpec = tween(LunarDurationStandard, easing = LunarStandardEasing)),
-                exit = shrinkHorizontally(
-                    animationSpec = tween(LunarDurationMicro, easing = LunarStandardEasing),
-                ) + fadeOut(animationSpec = tween(LunarDurationMicro, easing = LunarStandardEasing)),
+                enter =
+                    expandHorizontally(
+                        animationSpec = tween(LUNAR_DURATION_STANDARD, easing = LunarStandardEasing),
+                    ) + fadeIn(animationSpec = tween(LUNAR_DURATION_STANDARD, easing = LunarStandardEasing)),
+                exit =
+                    shrinkHorizontally(
+                        animationSpec = tween(LUNAR_DURATION_MICRO, easing = LunarStandardEasing),
+                    ) + fadeOut(animationSpec = tween(LUNAR_DURATION_MICRO, easing = LunarStandardEasing)),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Spacer(Modifier.width(8.dp))

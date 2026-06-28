@@ -20,12 +20,13 @@ fun dueOptionToIso(
     option: DueOption,
     pickedIso: String?,
     today: String = todayIso(),
-): String? = when (option) {
-    DueOption.NONE -> null
-    DueOption.TODAY -> today
-    DueOption.THIS_WEEK -> upcomingSundayIso(today)
-    DueOption.PICK -> pickedIso
-}
+): String? =
+    when (option) {
+        DueOption.NONE -> null
+        DueOption.TODAY -> today
+        DueOption.THIS_WEEK -> upcomingSundayIso(today)
+        DueOption.PICK -> pickedIso
+    }
 
 // The ISO date of the Sunday that ends the current (Monday-start) week, given today as "YYYY-MM-DD".
 // Falls back to the input on a malformed date so a bad value never throws here.

@@ -43,7 +43,7 @@ import io.github.l2hyunwoo.core.design.KudosTheme
 // where raw Material buttons were used.
 
 /** Press scale for the micro tactile feedback; mirrors the app's other tap interactions. */
-private const val PressedScale = 0.96f
+private const val PRESSED_SCALE = 0.96f
 
 /**
  * Filled periwinkle primary action with the periwinkle glow shadow.
@@ -151,7 +151,7 @@ private fun KudosButtonCore(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) PressedScale else 1f,
+        targetValue = if (pressed) PRESSED_SCALE else 1f,
         animationSpec = KudosTheme.motion.micro,
         label = "buttonPressScale",
     )
@@ -160,35 +160,34 @@ private fun KudosButtonCore(
     val resolvedBorder = if (borderColor == Color.Transparent) null else borderColor
 
     Row(
-        modifier = modifier
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                alpha = disabledAlpha
-            }
-            // Glow/shadow under the fill so the colored shadow isn't clipped by the rounded fill.
-            .then(
-                if (shadowElevation > 0.dp) {
-                    Modifier.shadow(
-                        elevation = shadowElevation,
-                        shape = shape,
-                        ambientColor = shadowColor,
-                        spotColor = shadowColor,
-                    )
-                } else {
-                    Modifier
+        modifier =
+            modifier
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    alpha = disabledAlpha
                 }
-            )
-            .clip(shape)
-            .background(containerColor)
-            .then(if (resolvedBorder != null) Modifier.border(1.dp, resolvedBorder, shape) else Modifier)
-            .clickableButton(
-                interactionSource = interactionSource,
-                enabled = enabled,
-                onClick = onClick,
-            )
-            .defaultMinSize(minHeight = 48.dp)
-            .padding(contentPadding),
+                // Glow/shadow under the fill so the colored shadow isn't clipped by the rounded fill.
+                .then(
+                    if (shadowElevation > 0.dp) {
+                        Modifier.shadow(
+                            elevation = shadowElevation,
+                            shape = shape,
+                            ambientColor = shadowColor,
+                            spotColor = shadowColor,
+                        )
+                    } else {
+                        Modifier
+                    },
+                ).clip(shape)
+                .background(containerColor)
+                .then(if (resolvedBorder != null) Modifier.border(1.dp, resolvedBorder, shape) else Modifier)
+                .clickableButton(
+                    interactionSource = interactionSource,
+                    enabled = enabled,
+                    onClick = onClick,
+                ).defaultMinSize(minHeight = 48.dp)
+                .padding(contentPadding),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -206,13 +205,14 @@ private fun Modifier.clickableButton(
     interactionSource: MutableInteractionSource,
     enabled: Boolean,
     onClick: () -> Unit,
-): Modifier = this.clickable(
-    interactionSource = interactionSource,
-    indication = LocalIndication.current,
-    enabled = enabled,
-    role = Role.Button,
-    onClick = onClick,
-)
+): Modifier =
+    this.clickable(
+        interactionSource = interactionSource,
+        indication = LocalIndication.current,
+        enabled = enabled,
+        role = Role.Button,
+        onClick = onClick,
+    )
 
 @Preview
 @Composable
@@ -233,9 +233,10 @@ private fun KudosButtonsDarkPreview() {
 @Composable
 private fun ButtonPreviewColumn() {
     Column(
-        modifier = Modifier
-            .background(KudosTheme.colors.surface.bg)
-            .padding(16.dp),
+        modifier =
+            Modifier
+                .background(KudosTheme.colors.surface.bg)
+                .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         PrimaryButton(onClick = {}) { Text("Primary") }

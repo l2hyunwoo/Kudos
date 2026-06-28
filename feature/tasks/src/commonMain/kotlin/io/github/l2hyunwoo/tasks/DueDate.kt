@@ -23,7 +23,10 @@ import io.github.l2hyunwoo.kudos.core.common.date.daysFromCivil
 //
 // Malformed input (length < 10 or a non-numeric date portion) degrades to the first 10 chars rather
 // than throwing, so a bad timestamp never crashes the list.
-fun formatDueLabel(dueDate: String, todayIso: String): String {
+fun formatDueLabel(
+    dueDate: String,
+    todayIso: String,
+): String {
     val dueDay = dueDate.dueDayPortion()
     val due = parseIsoDate(dueDay) ?: return dueDay
     val today = parseIsoDate(todayIso.dueDayPortion()) ?: return dueDay
@@ -42,7 +45,10 @@ fun formatDueLabel(dueDate: String, todayIso: String): String {
 
 // True when the due day is strictly before today (used by callers to tint overdue labels red). Equal
 // or non-parseable dates are not overdue.
-fun isOverdue(dueDate: String, todayIso: String): Boolean {
+fun isOverdue(
+    dueDate: String,
+    todayIso: String,
+): Boolean {
     val due = parseIsoDate(dueDate.dueDayPortion()) ?: return false
     val today = parseIsoDate(todayIso.dueDayPortion()) ?: return false
     return daysFromCivil(due.year, due.month, due.day) < daysFromCivil(today.year, today.month, today.day)
@@ -50,7 +56,11 @@ fun isOverdue(dueDate: String, todayIso: String): Boolean {
 
 // Parsed civil date; private to this file (the public surface is the two String-based helpers above).
 // Named distinctly from core.common.date.CivilDate, which it feeds into daysFromCivil().
-private data class ParsedIsoDate(val year: Long, val month: Long, val day: Long)
+private data class ParsedIsoDate(
+    val year: Long,
+    val month: Long,
+    val day: Long,
+)
 
 // The "YYYY-MM-DD" prefix of an ISO-8601 string: first 10 chars when long enough, else the whole
 // string. Mirrors TaskGroup.dueDay() (private there), kept local so this file stands alone.

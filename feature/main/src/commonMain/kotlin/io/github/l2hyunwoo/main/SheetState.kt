@@ -16,7 +16,9 @@ enum class ActiveSheet {
 }
 
 @Stable
-class SheetState(active: ActiveSheet? = null) {
+class SheetState(
+    active: ActiveSheet? = null,
+) {
     var active by mutableStateOf(active)
 
     fun showCreateTask() {
@@ -33,13 +35,13 @@ class SheetState(active: ActiveSheet? = null) {
 
     companion object {
         // null element = no sheet open; the ?.let guards valueOf against it.
-        val Saver: Saver<SheetState, Any> = listSaver(
-            save = { listOf(it.active?.name) },
-            restore = { SheetState(it[0]?.let(ActiveSheet::valueOf)) },
-        )
+        val Saver: Saver<SheetState, Any> =
+            listSaver(
+                save = { listOf(it.active?.name) },
+                restore = { SheetState(it[0]?.let(ActiveSheet::valueOf)) },
+            )
     }
 }
 
 @Composable
-fun rememberSheetState(): SheetState =
-    rememberSaveable(saver = SheetState.Saver) { SheetState() }
+fun rememberSheetState(): SheetState = rememberSaveable(saver = SheetState.Saver) { SheetState() }

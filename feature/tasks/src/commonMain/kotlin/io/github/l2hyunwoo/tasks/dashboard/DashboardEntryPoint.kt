@@ -13,9 +13,7 @@ import soil.query.compose.rememberQuery
 // screen accepts a [topContentPadding] to clear the header.
 @Composable
 context(context: TasksContext)
-fun DashboardEntryPoint(
-    topContentPadding: Dp = 0.dp,
-) {
+fun DashboardEntryPoint(topContentPadding: Dp = 0.dp) {
     SoilBoundary(
         state = rememberQuery(context.tasksQuery),
         fallback = SoilFallbackDefaults.default(),

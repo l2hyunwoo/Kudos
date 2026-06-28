@@ -15,5 +15,5 @@ data class ProjectDetailUiState(
     val isLoadingTasks: Boolean = false,
     val isUpdatingProject: Boolean = false,
     val showEditSheet: Boolean = false,
-    val error: Throwable? = null
+    val error: Throwable? = null,
 )

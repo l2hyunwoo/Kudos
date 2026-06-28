@@ -42,7 +42,7 @@ private fun ChromePreviewScaffold() {
     Box(
         Modifier
             .fillMaxSize()
-            .background(KudosTheme.colors.surface.bg)
+            .background(KudosTheme.colors.surface.bg),
     ) {
         // Full-screen recorder (the list would live here at runtime).
         Box(Modifier.fillMaxSize().sky(sky))
@@ -59,7 +59,7 @@ private fun ChromePreviewScaffold() {
             onOpenCategories = {},
             onCloseCategories = {},
             sky = sky,
-            onHeightChanged = {},
+            onHeightChange = {},
             modifier = Modifier.align(Alignment.TopCenter),
         )
         GlassNavBar(
@@ -67,9 +67,10 @@ private fun ChromePreviewScaffold() {
             onSelectTab = { tab = it },
             onAdd = {},
             sky = sky,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 24.dp, vertical = 16.dp)
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
         )
     }
 }

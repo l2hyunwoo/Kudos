@@ -15,8 +15,10 @@ import io.github.l2hyunwoo.kudos.core.soil.appbar.AppBarFallbackScaffold
 import io.github.l2hyunwoo.kudos.core.soil.appbar.AppBarSize
 
 sealed interface SoilFallback {
-    val suspenseFallback: @Composable context(SuspenseContext) BoxScope.() -> Unit
-    val errorFallback: @Composable context(ErrorContext) BoxScope.() -> Unit
+    val suspenseFallback: @Composable context(SuspenseContext)
+    BoxScope.() -> Unit
+    val errorFallback: @Composable context(ErrorContext)
+    BoxScope.() -> Unit
 }
 
 object SoilFallbackDefaults {
@@ -24,9 +26,10 @@ object SoilFallbackDefaults {
     @Composable
     fun appBar(
         title: String,
-        colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors().copy(
-            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
+        colors: TopAppBarColors =
+            TopAppBarDefaults.topAppBarColors().copy(
+                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ),
         onBackClick: (() -> Unit)? = null,
         appBarSize: AppBarSize = AppBarSize.DEFAULT,
         // Allowing WindowInsets to be overridden to prevent layout jump/glitches
@@ -34,31 +37,35 @@ object SoilFallbackDefaults {
         windowInsets: WindowInsets = WindowInsets.safeDrawingWithBottomNavBar,
         floatingActionButton: @Composable () -> Unit = {},
         contentBackground: (@Composable (innerPadding: PaddingValues) -> Unit)? = null,
-    ): SoilFallback = AppBar(
-        title = title,
-        colors = colors,
-        onBackClick = onBackClick,
-        size = appBarSize,
-        windowInsets = windowInsets,
-        floatingActionButton = floatingActionButton,
-        contentBackground = contentBackground,
-    )
+    ): SoilFallback =
+        AppBar(
+            title = title,
+            colors = colors,
+            onBackClick = onBackClick,
+            size = appBarSize,
+            windowInsets = windowInsets,
+            floatingActionButton = floatingActionButton,
+            contentBackground = contentBackground,
+        )
 
     fun default(): SoilFallback = Default
 
     fun custom(
         suspenseFallback: @Composable context(SuspenseContext) BoxScope.() -> Unit,
         errorFallback: @Composable context(ErrorContext) BoxScope.() -> Unit,
-    ): SoilFallback = Custom(
-        suspenseFallback = suspenseFallback,
-        errorFallback = errorFallback,
-    )
+    ): SoilFallback =
+        Custom(
+            suspenseFallback = suspenseFallback,
+            errorFallback = errorFallback,
+        )
 }
 
 private object Default : SoilFallback {
-    override val suspenseFallback: @Composable context(SuspenseContext) BoxScope.() -> Unit
+    override val suspenseFallback: @Composable context(SuspenseContext)
+    BoxScope.() -> Unit
         get() = { KudosSuspenseFallbackContents() }
-    override val errorFallback: @Composable context(ErrorContext) BoxScope.() -> Unit
+    override val errorFallback: @Composable context(ErrorContext)
+    BoxScope.() -> Unit
         get() = { KudosErrorFallbackContents() }
 }
 
@@ -77,7 +84,8 @@ private class AppBar(
     val floatingActionButton: @Composable () -> Unit,
     val contentBackground: (@Composable (innerPadding: PaddingValues) -> Unit)?,
 ) : SoilFallback {
-    override val suspenseFallback: @Composable context(SuspenseContext) BoxScope.() -> Unit = {
+    override val suspenseFallback: @Composable context(SuspenseContext)
+    BoxScope.() -> Unit = {
         AppBarFallbackScaffold(
             title = title,
             onBackClick = onBackClick,
@@ -93,7 +101,8 @@ private class AppBar(
         }
     }
 
-    override val errorFallback: @Composable context(ErrorContext) BoxScope.() -> Unit = {
+    override val errorFallback: @Composable context(ErrorContext)
+    BoxScope.() -> Unit = {
         AppBarFallbackScaffold(
             title = title,
             onBackClick = onBackClick,

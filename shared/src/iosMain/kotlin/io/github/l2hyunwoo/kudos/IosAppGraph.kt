@@ -20,7 +20,6 @@ import kotlinx.cinterop.ExportObjCClass
     additionalScopes = [DataScope::class],
 )
 interface IosAppGraph : AppGraph {
-
     @DependencyGraph.Factory
     fun interface Factory {
         fun createIosAppGraph(): IosAppGraph

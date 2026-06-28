@@ -16,27 +16,31 @@ interface CategoriesApi {
     suspend fun getCategories(): CategoriesResponse
 
     @POST("functions/v1/categories-api/categories")
-    suspend fun createCategory(@Body request: CreateCategoryRequest): CategoriesResponse
+    suspend fun createCategory(
+        @Body request: CreateCategoryRequest,
+    ): CategoriesResponse
 
     @DELETE("functions/v1/categories-api/categories/{id}")
-    suspend fun deleteCategory(@Path("id") id: String): CategoriesResponse
+    suspend fun deleteCategory(
+        @Path("id") id: String,
+    ): CategoriesResponse
 
     @POST("functions/v1/categories-api/categories/{id}/projects")
     suspend fun createProject(
         @Path("id") categoryId: String,
-        @Body request: CreateProjectRequest
+        @Body request: CreateProjectRequest,
     ): CategoriesResponse
 
     @PATCH("functions/v1/categories-api/categories/{categoryId}/projects/{projectId}")
     suspend fun updateProject(
         @Path("categoryId") categoryId: String,
         @Path("projectId") projectId: String,
-        @Body request: UpdateProjectRequest
+        @Body request: UpdateProjectRequest,
     ): CategoriesResponse
 
     @DELETE("functions/v1/categories-api/categories/{categoryId}/projects/{projectId}")
     suspend fun deleteProject(
         @Path("categoryId") categoryId: String,
-        @Path("projectId") projectId: String
+        @Path("projectId") projectId: String,
     ): CategoriesResponse
 }

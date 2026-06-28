@@ -21,14 +21,15 @@ class DefaultTasksQueryKey(
     private val apiClient: TasksApiClient,
     private val dataStore: TasksCacheDataStore,
 ) : QueryKey<List<TasksResponse.CategoryWithTasks>> by buildQueryKey(
-    id = TasksQueryId,
-    fetch = {
-        val response = apiClient.getTasks()
-        dataStore.save(response)
-        response.categories
-    }
-) {
-    override fun onPreloadData(): QueryPreloadData<List<TasksResponse.CategoryWithTasks>>? {
-        return { dataStore.getCache()?.categories }
-    }
+        id = TasksQueryId,
+        fetch = {
+            val response = apiClient.getTasks()
+            dataStore.save(response)
+            response.categories
+        },
+    ) {
+    override fun onPreloadData(): QueryPreloadData<List<TasksResponse.CategoryWithTasks>>? =
+        {
+            dataStore.getCache()?.categories
+        }
 }

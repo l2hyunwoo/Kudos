@@ -54,9 +54,10 @@ private fun LunarFormSectionDarkPreview() {
 private fun LunarFormSectionPreview() {
     LunarFormSection(
         title = "DUE DATE",
-        modifier = Modifier
-            .background(KudosTheme.colors.surface.bg)
-            .padding(16.dp),
+        modifier =
+            Modifier
+                .background(KudosTheme.colors.surface.bg)
+                .padding(16.dp),
     ) {
         Text(
             text = "Section content goes here",

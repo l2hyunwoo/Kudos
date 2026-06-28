@@ -18,15 +18,14 @@ import okio.Path.Companion.toPath
 
 @ContributesTo(DataScope::class)
 interface DataStoreProviders {
-
     @SingleIn(DataScope::class)
     @TasksDataStore
     @Provides
     fun provideTasksDataStore(
         dataStorePathProducer: DataStorePathProducer,
         @IoDispatchers ioDispatcher: CoroutineDispatcher,
-    ): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.createWithPath(
+    ): DataStore<Preferences> =
+        PreferenceDataStoreFactory.createWithPath(
             corruptionHandler = ReplaceFileCorruptionHandler({ emptyPreferences() }),
             migrations = emptyList(),
             scope = CoroutineScope(ioDispatcher),
@@ -34,7 +33,6 @@ interface DataStoreProviders {
                 dataStorePathProducer.producePath(DATA_STORE_TASKS_FILE_NAME).toPath()
             },
         )
-    }
 
     @SingleIn(DataScope::class)
     @CategoriesDataStore
@@ -42,8 +40,8 @@ interface DataStoreProviders {
     fun provideCategoriesDataStore(
         dataStorePathProducer: DataStorePathProducer,
         @IoDispatchers ioDispatcher: CoroutineDispatcher,
-    ): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.createWithPath(
+    ): DataStore<Preferences> =
+        PreferenceDataStoreFactory.createWithPath(
             corruptionHandler = ReplaceFileCorruptionHandler({ emptyPreferences() }),
             migrations = emptyList(),
             scope = CoroutineScope(ioDispatcher),
@@ -51,7 +49,6 @@ interface DataStoreProviders {
                 dataStorePathProducer.producePath(DATA_STORE_CATEGORIES_FILE_NAME).toPath()
             },
         )
-    }
 
     companion object {
         const val DATA_STORE_TASKS_FILE_NAME: String = "kudos.tasks.preferences_pb"

@@ -28,63 +28,52 @@ private val DarkOnSurfaceVariant = Color(0xFFB4B2C4)
 private val DarkOutline = Color(0xFF3A3950)
 private val DarkOutlineVariant = Color(0xFF2B2A38)
 
-val LightColorScheme = lightColorScheme(
-    primary = Periwinkle600,
-    onPrimary = White,
-    primaryContainer = Periwinkle100,
-    onPrimaryContainer = Ink,
+val LightColorScheme =
+    lightColorScheme(
+        primary = Periwinkle600,
+        onPrimary = White,
+        primaryContainer = Periwinkle100,
+        onPrimaryContainer = Ink,
+        secondary = Periwinkle500,
+        onSecondary = White,
+        secondaryContainer = Periwinkle100,
+        onSecondaryContainer = Ink,
+        tertiary = Ink3,
+        onTertiary = White,
+        background = White,
+        onBackground = Ink,
+        surface = White,
+        onSurface = Ink,
+        surfaceVariant = Surface2Light,
+        onSurfaceVariant = Ink2,
+        outline = Ink3,
+        outlineVariant = OutlineVariantLight,
+        error = LunarError,
+        onError = White,
+    )
 
-    secondary = Periwinkle500,
-    onSecondary = White,
-    secondaryContainer = Periwinkle100,
-    onSecondaryContainer = Ink,
-
-    tertiary = Ink3,
-    onTertiary = White,
-
-    background = White,
-    onBackground = Ink,
-
-    surface = White,
-    onSurface = Ink,
-    surfaceVariant = Surface2Light,
-    onSurfaceVariant = Ink2,
-
-    outline = Ink3,
-    outlineVariant = OutlineVariantLight,
-
-    error = LunarError,
-    onError = White,
-)
-
-val DarkColorScheme = darkColorScheme(
-    primary = Periwinkle400,
-    onPrimary = Ink,
-    primaryContainer = DarkSurfaceVariant,
-    onPrimaryContainer = DarkOnSurface,
-
-    secondary = Periwinkle500,
-    onSecondary = Ink,
-    secondaryContainer = DarkSurfaceVariant,
-    onSecondaryContainer = DarkOnSurface,
-
-    tertiary = Ink3,
-    onTertiary = Ink,
-
-    background = DarkBg,
-    onBackground = DarkOnSurface,
-
-    surface = DarkSurface,
-    onSurface = DarkOnSurface,
-    surfaceVariant = DarkSurfaceVariant,
-    onSurfaceVariant = DarkOnSurfaceVariant,
-
-    outline = DarkOutline,
-    outlineVariant = DarkOutlineVariant,
-
-    error = LunarError,
-    onError = White,
-)
+val DarkColorScheme =
+    darkColorScheme(
+        primary = Periwinkle400,
+        onPrimary = Ink,
+        primaryContainer = DarkSurfaceVariant,
+        onPrimaryContainer = DarkOnSurface,
+        secondary = Periwinkle500,
+        onSecondary = Ink,
+        secondaryContainer = DarkSurfaceVariant,
+        onSecondaryContainer = DarkOnSurface,
+        tertiary = Ink3,
+        onTertiary = Ink,
+        background = DarkBg,
+        onBackground = DarkOnSurface,
+        surface = DarkSurface,
+        onSurface = DarkOnSurface,
+        surfaceVariant = DarkSurfaceVariant,
+        onSurfaceVariant = DarkOnSurfaceVariant,
+        outline = DarkOutline,
+        outlineVariant = DarkOutlineVariant,
+        error = LunarError,
+        onError = White,
+    )
 
 val LocalColorScheme = staticCompositionLocalOf { LightColorScheme }
-

@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import io.github.l2hyunwoo.core.design.KudosTheme
 
 // Press scale for the micro tactile feedback; mirrors KudosButton's idiom so taps feel identical.
-private const val PressedScale = 0.96f
+private const val PRESSED_SCALE = 0.96f
 
 /**
  * Lunar pill chip used for single-select rows (Priority, Due date). Selected fills periwinkle with
@@ -53,7 +53,7 @@ fun LunarSelectableChip(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) PressedScale else 1f,
+        targetValue = if (pressed) PRESSED_SCALE else 1f,
         animationSpec = KudosTheme.motion.micro,
         label = "chipPressScale",
     )
@@ -65,33 +65,33 @@ fun LunarSelectableChip(
     val shape = KudosTheme.shapes.pill
 
     Row(
-        modifier = modifier
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                alpha = if (enabled) 1f else 0.4f
-            }
-            .clip(shape)
-            .background(containerColor)
-            .then(if (borderColor != Color.Transparent) Modifier.border(1.dp, borderColor, shape) else Modifier)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled,
-                role = Role.RadioButton,
-                onClick = onClick,
-            )
-            .defaultMinSize(minHeight = 40.dp)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier =
+            modifier
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    alpha = if (enabled) 1f else 0.4f
+                }.clip(shape)
+                .background(containerColor)
+                .then(if (borderColor != Color.Transparent) Modifier.border(1.dp, borderColor, shape) else Modifier)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = enabled,
+                    role = Role.RadioButton,
+                    onClick = onClick,
+                ).defaultMinSize(minHeight = 40.dp)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (leadingDotColor != null) {
             Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(leadingDotColor),
+                modifier =
+                    Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(leadingDotColor),
             )
         }
         Text(
@@ -121,9 +121,10 @@ private fun LunarSelectableChipDarkPreview() {
 @Composable
 private fun LunarSelectableChipPreviewRow() {
     Row(
-        modifier = Modifier
-            .background(KudosTheme.colors.surface.bg)
-            .padding(16.dp),
+        modifier =
+            Modifier
+                .background(KudosTheme.colors.surface.bg)
+                .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

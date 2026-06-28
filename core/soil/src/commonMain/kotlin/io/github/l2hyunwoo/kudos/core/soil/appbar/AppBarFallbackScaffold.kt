@@ -8,6 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import io.github.l2hyunwoo.core.design.safeDrawingWithBottomNavBar
 import io.github.l2hyunwoo.kudos.core.soil.FallbackContext
 
@@ -16,16 +17,19 @@ import io.github.l2hyunwoo.kudos.core.soil.FallbackContext
 context(_: FallbackContext)
 fun AppBarFallbackScaffold(
     title: String,
+    modifier: Modifier = Modifier,
     onBackClick: (() -> Unit)? = null,
     appBarSize: AppBarSize = AppBarSize.DEFAULT,
-    appBarColors: TopAppBarColors = TopAppBarDefaults.topAppBarColors().copy(
-        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ),
+    appBarColors: TopAppBarColors =
+        TopAppBarDefaults.topAppBarColors().copy(
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ),
     windowInsets: WindowInsets = WindowInsets.safeDrawingWithBottomNavBar,
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (innerPadding: PaddingValues) -> Unit,
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             when (appBarSize) {
                 AppBarSize.DEFAULT -> {

@@ -48,22 +48,24 @@ import io.github.l2hyunwoo.data.categories.model.Project
 fun ProjectRow(
     project: Project,
     categoryColor: String,
-    onClick: () -> Unit = {},
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
-    searchQuery: String = ""
+    onClick: () -> Unit = {},
+    searchQuery: String = "",
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
     val rowShape = remember { RoundedCornerShape(16.dp) }
-    val accent = remember(categoryColor) {
-        Color(categoryColor.removePrefix("#").toLong(16) or 0xFF000000)
-    }
+    val accent =
+        remember(categoryColor) {
+            Color(categoryColor.removePrefix("#").toLong(16) or 0xFF000000)
+        }
 
     // Resolve the periwinkle span color outside remember (theme read), then key on (title, query, color).
     val highlightColor = KudosTheme.colors.brand.primary600
-    val titleText = remember(project.title, searchQuery, highlightColor) {
-        highlighted(project.title, searchQuery, highlightColor)
-    }
+    val titleText =
+        remember(project.title, searchQuery, highlightColor) {
+            highlighted(project.title, searchQuery, highlightColor)
+        }
 
     // Subtle press-scale on the solid row; read inside graphicsLayer (draw phase) so press
     // transitions skip composition/layout. micro is a Float spec, so reduce-motion collapses it.
@@ -86,41 +88,43 @@ fun ProjectRow(
         },
         backgroundContent = {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = KudosTheme.colors.priority.urgent, shape = rowShape)
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.CenterEnd
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(color = KudosTheme.colors.priority.urgent, shape = rowShape)
+                        .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd,
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
-                    tint = Color.White
+                    tint = Color.White,
                 )
             }
         },
         enableDismissFromStartToEnd = false,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                .background(color = KudosTheme.colors.surface.surface, shape = rowShape)
-                .clip(rowShape)
-                .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }.background(color = KudosTheme.colors.surface.surface, shape = rowShape)
+                    .clip(rowShape)
+                    .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+                    .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(accent)
+                modifier =
+                    Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(accent),
             )
 
             Column(modifier = Modifier.weight(1f)) {
@@ -128,7 +132,7 @@ fun ProjectRow(
                     text = titleText,
                     style = KudosTheme.typography.rowTitle,
                     // Base ink color for unmatched text; the highlight span overrides matched ranges.
-                    color = KudosTheme.colors.ink.ink
+                    color = KudosTheme.colors.ink.ink,
                 )
 
                 project.description?.let { description ->
@@ -136,7 +140,7 @@ fun ProjectRow(
                     Text(
                         text = description,
                         style = KudosTheme.typography.bodySmallR,
-                        color = KudosTheme.colors.ink.ink2
+                        color = KudosTheme.colors.ink.ink2,
                     )
                 }
             }
@@ -144,7 +148,7 @@ fun ProjectRow(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = KudosTheme.colors.ink.ink3
+                tint = KudosTheme.colors.ink.ink3,
             )
         }
     }
@@ -183,13 +187,14 @@ private fun highlighted(
 private fun ProjectRowHighlightPreview() {
     KudosTheme {
         ProjectRow(
-            project = Project(
-                id = "p1",
-                title = "Mobile App Development",
-                description = "Build a new mobile application",
-                createdAt = "2024-01-01T00:00:00Z",
-                updatedAt = "2024-01-01T00:00:00Z"
-            ),
+            project =
+                Project(
+                    id = "p1",
+                    title = "Mobile App Development",
+                    description = "Build a new mobile application",
+                    createdAt = "2024-01-01T00:00:00Z",
+                    updatedAt = "2024-01-01T00:00:00Z",
+                ),
             categoryColor = "#C9B8F0",
             searchQuery = "app",
             onDelete = {},

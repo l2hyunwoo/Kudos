@@ -13,16 +13,16 @@ import platform.Foundation.NSUserDomainMask
 interface IosDataStoreGraph {
     @OptIn(ExperimentalForeignApi::class)
     @Provides
-    fun provideDataStorePathProducer(): DataStorePathProducer {
-        return DataStorePathProducer { fileName ->
-            val documentDirectory: NSURL? = NSFileManager.defaultManager.URLForDirectory(
-                directory = NSDocumentDirectory,
-                inDomain = NSUserDomainMask,
-                appropriateForURL = null,
-                create = false,
-                error = null,
-            )
+    fun provideDataStorePathProducer(): DataStorePathProducer =
+        DataStorePathProducer { fileName ->
+            val documentDirectory: NSURL? =
+                NSFileManager.defaultManager.URLForDirectory(
+                    directory = NSDocumentDirectory,
+                    inDomain = NSUserDomainMask,
+                    appropriateForURL = null,
+                    create = false,
+                    error = null,
+                )
             requireNotNull(documentDirectory).path + "/$fileName"
         }
-    }
 }

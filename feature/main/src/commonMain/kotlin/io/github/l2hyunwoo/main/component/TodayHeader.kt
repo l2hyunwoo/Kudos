@@ -55,7 +55,7 @@ fun TodayHeader(
     onOpenCategories: () -> Unit,
     onCloseCategories: () -> Unit,
     sky: Sky,
-    onHeightChanged: (Int) -> Unit,
+    onHeightChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // remembered so a keystroke recomposing this header doesn't re-run the epoch arithmetic.
@@ -64,11 +64,11 @@ fun TodayHeader(
     Column(
         modifier
             .fillMaxWidth()
-            .onSizeChanged { onHeightChanged(it.height) }
+            .onSizeChanged { onHeightChange(it.height) }
             // Meets the screen top edge, so only the bottom corners are rounded.
             .glassSurface(sky = sky, shape = HeaderShape)
             .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 16.dp)
+            .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 16.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -98,11 +98,12 @@ fun TodayHeader(
                         val isBoard = tasksViewMode == TasksViewMode.BOARD
                         HeaderIconButton(
                             // Icon shows the view the tap switches TO.
-                            icon = if (isBoard) {
-                                Icons.AutoMirrored.Rounded.ListAlt
-                            } else {
-                                Icons.Rounded.ViewKanban
-                            },
+                            icon =
+                                if (isBoard) {
+                                    Icons.AutoMirrored.Rounded.ListAlt
+                                } else {
+                                    Icons.Rounded.ViewKanban
+                                },
                             contentDescription = if (isBoard) "리스트 보기" else "보드 보기",
                             onClick = onToggleViewMode,
                         )
@@ -117,11 +118,12 @@ fun TodayHeader(
             }
         }
         Spacer(Modifier.height(6.dp))
-        val titleRes = when {
-            showCategories -> Res.string.categories
-            selectedTab == MainTab.DASHBOARD -> Res.string.dashboard
-            else -> Res.string.tasks
-        }
+        val titleRes =
+            when {
+                showCategories -> Res.string.categories
+                selectedTab == MainTab.DASHBOARD -> Res.string.dashboard
+                else -> Res.string.tasks
+            }
         Text(
             text = stringResource(titleRes),
             style = KudosTheme.typography.titleLargeB,

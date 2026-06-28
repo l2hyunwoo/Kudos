@@ -13,6 +13,6 @@ import soil.query.buildSubscriptionKey
 class DefaultCategoriesSubscriptionKey(
     private val cacheDataStore: CategoriesCacheDataStore,
 ) : CategoriesSubscriptionKey by buildSubscriptionKey(
-    id = SubscriptionId("categories"),
-    subscribe = { cacheDataStore.getCacheStream() }
-)
+        id = SubscriptionId("categories"),
+        subscribe = { cacheDataStore.getCacheStream() },
+    )
