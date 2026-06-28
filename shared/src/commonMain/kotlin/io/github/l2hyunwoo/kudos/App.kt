@@ -2,6 +2,7 @@ package io.github.l2hyunwoo.kudos
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -18,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import io.github.l2hyunwoo.core.design.KudosTheme
+import io.github.l2hyunwoo.core.design.component.reveal.CircularRevealThemeSwitch
+import io.github.l2hyunwoo.core.design.component.reveal.rememberThemeRevealState
 import io.github.l2hyunwoo.core.design.transition.LocalSharedTransitionScope
 import io.github.l2hyunwoo.kudos.core.common.navigation.Main
 import io.github.l2hyunwoo.kudos.navigation.categoryListGraph
@@ -41,37 +44,58 @@ fun App() {
         // rememberSaveable (in-memory across recreation is enough; no persistence requirement).
         var userDark: Boolean? by rememberSaveable { mutableStateOf(null) }
         val dark = userDark ?: isSystemInDarkTheme()
-        KudosTheme(darkTheme = dark) {
-            val navController = rememberNavController()
-            Scaffold(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // SharedTransitionLayout is `this: SharedTransitionScope`. Expose it via the local so
-                // leaf composables in the row and the detail screen can opt into shared elements; each
-                // destination additionally provides its own AnimatedContentScope (see the graphs).
-                SharedTransitionLayout {
-                    CompositionLocalProvider(LocalSharedTransitionScope provides this) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = Main,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .imePadding()
-                                .background(MaterialTheme.colorScheme.background)
-                        ) {
-                            mainScreenGraph(
+        // Plain remember: a reveal interrupted by recreation should just no-op to the final theme,
+        // so it is intentionally not saveable (only userDark survives).
+        val reveal = rememberThemeRevealState()
+        // Outer Box hosts the reveal overlay as a Z-sibling ABOVE KudosTheme, so it covers the system
+        // bars and the glass chrome. The overlay records no subtree, so it never enters MainScreen's
+        // Cloudy `sky` recorder and cannot form a RenderNode cycle with it.
+        Box(modifier = Modifier.fillMaxSize()) {
+            KudosTheme(darkTheme = dark) {
+                val navController = rememberNavController()
+                Scaffold(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    // SharedTransitionLayout is `this: SharedTransitionScope`. Expose it via the local
+                    // so leaf composables in the row and the detail screen can opt into shared
+                    // elements; each destination additionally provides its own AnimatedContentScope
+                    // (see the graphs).
+                    SharedTransitionLayout {
+                        CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                            NavHost(
                                 navController = navController,
-                                darkTheme = dark,
-                                onToggleTheme = { userDark = !dark },
-                            )
-                            taskListGraph(navController)
-                            categoryListGraph(navController)
-                            projectDetailGraph(navController)
-                            taskDetailGraph(navController)
+                                startDestination = Main,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .imePadding()
+                                    .background(MaterialTheme.colorScheme.background)
+                            ) {
+                                mainScreenGraph(
+                                    navController = navController,
+                                    darkTheme = dark,
+                                    onToggleTheme = { origin ->
+                                        // Order is load-bearing: arm with the OLD theme BEFORE the
+                                        // flip. Both are snapshot writes in one lambda, so the
+                                        // recomposition that observes the new theme also observes the
+                                        // armed reveal — no torn frame.
+                                        reveal.launch(origin = origin, fromDark = dark)
+                                        userDark = !dark
+                                    },
+                                )
+                                taskListGraph(navController)
+                                categoryListGraph(navController)
+                                projectDetailGraph(navController)
+                                taskDetailGraph(navController)
+                            }
                         }
                     }
                 }
             }
+            // Above KudosTheme content -> covers status bar + glass chrome. Composes nothing when idle.
+            CircularRevealThemeSwitch(
+                state = reveal,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }

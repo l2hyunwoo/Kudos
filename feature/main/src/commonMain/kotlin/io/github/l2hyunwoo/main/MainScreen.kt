@@ -61,7 +61,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
@@ -78,6 +82,7 @@ import io.github.l2hyunwoo.core.design.KudosTheme
 import io.github.l2hyunwoo.core.design.component.surface.glassSurface
 import io.github.l2hyunwoo.core.design.token.KudosShapes
 import io.github.l2hyunwoo.core.design.token.LunarDurationMicro
+import io.github.l2hyunwoo.core.design.token.LunarDurationMoonFill
 import io.github.l2hyunwoo.core.design.token.LunarDurationStandard
 import io.github.l2hyunwoo.core.design.token.LunarStandardEasing
 import io.github.l2hyunwoo.kudos.core.common.compose.rememberEventFlow
@@ -118,7 +123,7 @@ fun MainScreen(
     tasksContextFactory: TasksContext.Factory,
     categoryContextFactory: CategoryContext.Factory,
     darkTheme: Boolean = false,
-    onToggleTheme: () -> Unit = {},
+    onToggleTheme: (Offset) -> Unit = {},
     onNavigateToTaskDetail: (Task) -> Unit = {},
     onNavigateToProjectDetail: (String, String, String, String?, String, String) -> Unit = { _, _, _, _, _, _ -> }
 ) {
@@ -177,12 +182,13 @@ fun MainScreen(
     }
 
     // Re-capture the backdrop whenever the recorded content swaps under the glass: a tab change, a
-    // list/board toggle, or opening/closing the Categories overlay. A Crossfade/content swap is not a
-    // scroll, so the recorder's scroll-driven re-arm never fires for it; without this the glass chrome
-    // keeps blurring the previous content (ghost). Pass the cross-fade duration so the blur tracks the
-    // whole dissolve instead of freezing partway once a short settle tail elapses.
-    LaunchedEffect(selectedTab, tasksViewMode, showCategories) {
-        sky.invalidate(LunarDurationStandard.toLong())
+    // list/board toggle, opening/closing the Categories overlay, or a theme flip. A Crossfade/content
+    // swap or color flip is not a scroll, so the recorder's scroll-driven re-arm never fires for it;
+    // without this the glass chrome keeps blurring the previous content/theme (ghost). Pass the
+    // longest of the dissolve / theme-reveal durations so the blur tracks the whole transition instead
+    // of freezing partway once a short settle tail elapses.
+    LaunchedEffect(selectedTab, tasksViewMode, showCategories, darkTheme) {
+        sky.invalidate(maxOf(LunarDurationStandard, LunarDurationMoonFill).toLong())
     }
 
     Scaffold(
@@ -364,7 +370,7 @@ private fun TodayHeader(
     searchQuery: String,
     onSearchChange: (String) -> Unit,
     darkTheme: Boolean,
-    onToggleTheme: () -> Unit,
+    onToggleTheme: (Offset) -> Unit,
     onToggleViewMode: () -> Unit,
     onOpenCategories: () -> Unit,
     onCloseCategories: () -> Unit,
@@ -484,20 +490,25 @@ private fun HeaderIconButton(
 @Composable
 private fun ThemeToggleButton(
     darkTheme: Boolean,
-    onToggle: () -> Unit,
+    onToggle: (Offset) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val interaction = remember { MutableInteractionSource() }
+    // Window-space center of this button; written by layout, read only at click so reflow never
+    // recomposes. Emitted on tap so the App-root reveal overlay (also in window space) can center
+    // the expanding circle here.
+    var center by remember { mutableStateOf(Offset.Unspecified) }
     Box(
         modifier
             .size(36.dp)
+            .onGloballyPositioned { center = it.boundsInWindow().center }
             // clip precedes clickable so the bounded ripple is masked to the circle.
             .clip(PillShape)
             .background(KudosTheme.colors.brand.primary050)
             .clickable(
                 interactionSource = interaction,
                 indication = ripple(bounded = true),
-                onClick = onToggle,
+                onClick = { if (center.isSpecified) onToggle(center) },
             ),
         contentAlignment = Alignment.Center,
     ) {

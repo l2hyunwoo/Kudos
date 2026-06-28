@@ -1,6 +1,7 @@
 package io.github.l2hyunwoo.kudos.navigation
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.geometry.Offset
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -15,7 +16,7 @@ context(appGraph: AppGraph)
 fun NavGraphBuilder.mainScreenGraph(
     navController: NavHostController,
     darkTheme: Boolean,
-    onToggleTheme: () -> Unit,
+    onToggleTheme: (Offset) -> Unit,
 ) {
     // `this` (the composable lambda receiver) is the AnimatedContentScope for the Main destination.
     composable<Main> {
