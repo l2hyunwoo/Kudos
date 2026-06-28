@@ -11,8 +11,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // api: glassSurface exposes Sky (com.skydoves.cloudy) in its public signature,
-            // so feature modules need :core:glass transitively to call it.
-            api(projects.core.glass)
+            // so feature modules need cloudy transitively to call it.
+            api(libs.cloudy)
 
             implementation(libs.material3)
             implementation(libs.material.icons.extended)

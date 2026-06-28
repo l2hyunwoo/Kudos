@@ -35,6 +35,7 @@ ktorfit = "2.7.5"
 rin = "0.4.0"
 reorderable = "3.1.0"
 composeDnd = "0.4.0"
+cloudy = "0.6.1"
 
 [libraries]
 # Kotlin
@@ -118,6 +119,9 @@ reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reo
 
 # Compose DnD (cross-container drag-and-drop, KMP-common incl. iOS)
 compose-dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version.ref = "composeDnd" }
+
+# Cloudy (blur / glass surface engine, KMP-common incl. iOS) — exposes Sky/cloudy/sky API
+cloudy = { module = "com.github.skydoves:cloudy", version.ref = "cloudy" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
