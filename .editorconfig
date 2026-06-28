@@ -1,0 +1,13 @@
+root = true
+
+[*.{kt,kts}]
+ktlint_code_style = ktlint_official
+max_line_length = 120
+# Allow PascalCase names for @Composable functions (Compose convention) so ktlint's
+# standard:function-naming does not flag them. compose-rules adds the Compose-specific checks.
+ktlint_function_naming_ignore_when_annotated_with = Composable
+
+# Design-system CompositionLocals are an intentional, sanctioned pattern (theme/colors/shapes/
+# typography/elevation/motion/transition scopes), not accidental hidden dependencies. Allowlist
+# them so compose:compositionlocal-allowlist does not flag the design system's own locals.
+compose_allowed_composition_locals = LocalColorScheme,LocalDarkTheme,LocalTypography,LocalBottomNavigationBarsPadding,LocalKudosColors,LocalElevation,LocalReduceMotion,LocalMotion,LocalShapes,LocalSharedTransitionScope,LocalNavAnimatedContentScope

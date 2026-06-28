@@ -37,6 +37,10 @@ reorderable = "3.1.0"
 composeDnd = "0.4.0"
 cloudy = "0.6.1"
 
+# Lint / Format
+kotlinter = "5.5.0"
+composeRules = "0.6.2"
+
 [libraries]
 # Kotlin
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -84,6 +88,10 @@ kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", ve
 compose-compiler-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
 compose-gradlePlugin = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "composeMultiplatform" }
 buildConfig-gradlePlugin = { module = "com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin", version.ref = "buildConfig" }
+kotlinter-gradlePlugin = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinter" }
+
+# Compose lint rules (mrmans0n/compose-rules, ex-twitter) — custom ktlint ruleset loaded via kotlinter's `ktlint` configuration
+compose-rules-ktlint = { module = "io.nlopez.compose.rules:ktlint", version.ref = "composeRules" }
 
 # Soil Query
 soil-query = { module = "com.soil-kt.soil:query-core", version.ref = "soil" }
@@ -136,3 +144,4 @@ androidLint = { id = "com.android.lint", version.ref = "agp" }
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
 ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }

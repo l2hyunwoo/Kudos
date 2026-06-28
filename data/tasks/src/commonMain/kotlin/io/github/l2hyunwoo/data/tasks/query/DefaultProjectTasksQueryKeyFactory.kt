@@ -11,11 +11,12 @@ import soil.query.buildQueryKey
 class DefaultProjectTasksQueryKeyFactory(
     private val apiClient: TasksApiClient,
 ) {
-    fun create(projectId: String): QueryKey<List<Task>> = buildQueryKey(
-        id = QueryId("project_tasks_query_$projectId"),
-        fetch = {
-            val response = apiClient.getProjectTasks(projectId)
-            response.tasks
-        }
-    )
+    fun create(projectId: String): QueryKey<List<Task>> =
+        buildQueryKey(
+            id = QueryId("project_tasks_query_$projectId"),
+            fetch = {
+                val response = apiClient.getProjectTasks(projectId)
+                response.tasks
+            },
+        )
 }

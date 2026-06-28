@@ -3,6 +3,7 @@ package io.github.l2hyunwoo.kudos.primitive
 import io.github.l2hyunwoo.kudos.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -15,6 +16,7 @@ class KotlinMultiPlatformPlugin : Plugin<Project> {
         with(pluginManager) {
             apply(libs.findPlugin("kotlinMultiplatform").get().get().pluginId)
         }
+        apply<LintPlugin>()
         extensions.configure<KotlinMultiplatformExtension> {
             tasks.withType(KotlinCompile::class.java) {
                 compilerOptions {

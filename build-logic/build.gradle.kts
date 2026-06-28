@@ -6,6 +6,7 @@ dependencies {
     implementation(libs.android.gradlePlugin)
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.buildConfig.gradlePlugin)
+    implementation(libs.kotlinter.gradlePlugin)
     compileOnly(libs.compose.compiler.gradlePlugin)
     compileOnly(libs.compose.gradlePlugin)
 }
@@ -27,6 +28,10 @@ gradlePlugin {
         register("kmpPrimitive") {
             id = "kudos.kmp"
             implementationClass = "io.github.l2hyunwoo.kudos.primitive.KotlinMultiPlatformPlugin"
+        }
+        register("lint") {
+            id = "kudos.lint"
+            implementationClass = "io.github.l2hyunwoo.kudos.primitive.LintPlugin"
         }
         register("kmpConvention") {
             id = "kudos.kotlin.multiplatform"
