@@ -167,9 +167,11 @@ fun MainScreen(
     val onAddCurrentTab: () -> Unit = remember(selectedTab, showCategories) {
         {
             when {
+                // Categories overlay → create a category; everywhere else (Tasks list/board,
+                // Dashboard) the + creates a task — the dashboard is task data, so adding from it
+                // is the natural action.
                 showCategories -> showCreateCategorySheet = true
-                selectedTab == MainTab.TASKS -> showCreateTaskSheet = true
-                else -> Unit
+                else -> showCreateTaskSheet = true
             }
         }
     }
