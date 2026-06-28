@@ -90,6 +90,8 @@ import io.github.l2hyunwoo.tasks.component.CreateTaskBottomSheet
 import io.github.l2hyunwoo.tasks.dashboard.DashboardEntryPoint
 import io.github.l2hyunwoo.tasks.rememberTasksContextRetained
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kudos.feature.main.generated.resources.Res
 import kudos.feature.main.generated.resources.add_task
 import kudos.feature.main.generated.resources.categories
@@ -382,7 +384,7 @@ private fun TodayHeader(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "좋은 아침 ☾",
+                text = "${greetingLabel()} ☾",
                 style = KudosTheme.typography.eyebrow,
                 color = KudosTheme.colors.brand.primary500,
                 modifier = Modifier.weight(1f),
@@ -737,6 +739,22 @@ private fun todayLabel(): String {
     // 1970-01-01 was a Thursday (index 3 in Mon=0 weekday list).
     val weekday = KoreanWeekdays[(epochDays + 3).mod(7L).toInt()]
     return "${month}월 ${day}일 ($weekday)"
+}
+
+// Time-of-day greeting from the LOCAL hour. Unlike todayLabel()'s date, this needs the device time
+// zone — a UTC hour would greet the wrong part of the day — so it resolves the local hour via
+// kotlinx-datetime rather than the bare epoch.
+private fun greetingLabel(): String {
+    val hour = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+        .hour
+    return when (hour) {
+        in 5..10 -> "좋은 아침"
+        in 11..13 -> "좋은 낮"
+        in 14..17 -> "좋은 오후"
+        in 18..22 -> "좋은 저녁"
+        else -> "좋은 밤" // 23:00–04:59
+    }
 }
 
 // Howard Hinnant's civil_from_days: epoch day count -> (month, day-of-month). Year is unused here.

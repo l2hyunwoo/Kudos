@@ -14,6 +14,7 @@ kotlin {
             implementation(projects.data.tasks)
 
             implementation(libs.kotlinx.collections.immutable)
+            implementation(libs.kotlinx.datetime)
             implementation(libs.material3)
             implementation(libs.soil.query)
             implementation(libs.soil.query.compose)
