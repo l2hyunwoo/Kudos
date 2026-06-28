@@ -1,8 +1,11 @@
 package io.github.l2hyunwoo.tasks
 
+import io.github.l2hyunwoo.kudos.core.common.date.daysFromCivil
+
 // Human-readable due-date labels (DESIGN_SYSTEM_LUNAR "2일 지남 · KUDOS-88" style), derived from the
-// civil-date / epoch-day machinery in TaskGroup.kt so commonMain needs no datetime dependency. The
-// helpers here are pure (no Composable/theme reads) so callers can compute labels outside composition.
+// shared civil-date / epoch-day conversions in core.common.date so commonMain needs no datetime
+// dependency. The helpers here are pure (no Composable/theme reads) so callers can compute labels
+// outside composition.
 
 // Korean weekday-agnostic relative/absolute label for a raw due date against today (both ISO strings).
 //
@@ -46,7 +49,8 @@ fun isOverdue(dueDate: String, todayIso: String): Boolean {
 }
 
 // Parsed civil date; private to this file (the public surface is the two String-based helpers above).
-private data class CivilDate(val year: Long, val month: Long, val day: Long)
+// Named distinctly from core.common.date.CivilDate, which it feeds into daysFromCivil().
+private data class ParsedIsoDate(val year: Long, val month: Long, val day: Long)
 
 // The "YYYY-MM-DD" prefix of an ISO-8601 string: first 10 chars when long enough, else the whole
 // string. Mirrors TaskGroup.dueDay() (private there), kept local so this file stands alone.
@@ -54,23 +58,11 @@ private fun String.dueDayPortion(): String = if (length >= 10) substring(0, 10) 
 
 // Strictly parses a "YYYY-MM-DD" head: needs length >= 10, dashes at [4] and [7], and numeric Y/M/D.
 // Returns null on any deviation so callers can fall back to the raw text instead of crashing.
-private fun parseIsoDate(s: String): CivilDate? {
+private fun parseIsoDate(s: String): ParsedIsoDate? {
     if (s.length < 10 || s[4] != '-' || s[7] != '-') return null
     val year = s.substring(0, 4).toLongOrNull() ?: return null
     val month = s.substring(5, 7).toLongOrNull() ?: return null
     val day = s.substring(8, 10).toLongOrNull() ?: return null
     if (month !in 1L..12L || day !in 1L..31L) return null
-    return CivilDate(year, month, day)
-}
-
-// Howard Hinnant's days_from_civil: (year, month, day) -> days since the Unix epoch (inverse of the
-// civil_from_days used by todayIso()/civilMonthDay()). Lets us take an exact signed day delta for the
-// "N일 지남"/"N일 후" labels instead of only a lexicographic comparison.
-internal fun daysFromCivil(year: Long, month: Long, day: Long): Long {
-    val y = if (month <= 2L) year - 1L else year
-    val era = (if (y >= 0L) y else y - 399L) / 400L
-    val yoe = y - era * 400L
-    val doy = (153L * (if (month > 2L) month - 3L else month + 9L) + 2L) / 5L + day - 1L
-    val doe = yoe * 365L + yoe / 4L - yoe / 100L + doy
-    return era * 146_097L + doe - 719_468L
+    return ParsedIsoDate(year, month, day)
 }

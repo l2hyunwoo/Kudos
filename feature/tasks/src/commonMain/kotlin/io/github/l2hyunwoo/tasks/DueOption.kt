@@ -1,9 +1,12 @@
 package io.github.l2hyunwoo.tasks
 
+import io.github.l2hyunwoo.kudos.core.common.date.daysFromCivil
+import io.github.l2hyunwoo.kudos.core.common.date.isoFromEpochDay
+
 // Due-date presets for the Create-Task sheet. Pure logic (no Compose/theme reads) so the mapping to a
-// stored ISO date can be computed and unit-tested outside composition. Reuses the single civil-date /
-// epoch-day machinery already in this package (TaskGroup.isoFromEpochDay + DueDate.daysFromCivil) so
-// commonMain still needs no datetime dependency and the conversion math has one copy.
+// stored ISO date can be computed and unit-tested outside composition. Reuses the shared civil-date /
+// epoch-day conversions in core.common.date (daysFromCivil + isoFromEpochDay) so commonMain still
+// needs no datetime dependency and the conversion math has one copy.
 enum class DueOption { TODAY, THIS_WEEK, PICK, NONE }
 
 // Maps a selected [DueOption] to the ISO "YYYY-MM-DD" date stored on CreateTaskRequest.dueDate.

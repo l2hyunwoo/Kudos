@@ -3,6 +3,7 @@ package io.github.l2hyunwoo.tasks
 import androidx.compose.runtime.Immutable
 import io.github.l2hyunwoo.data.tasks.model.Task
 import io.github.l2hyunwoo.data.tasks.model.TaskStatus
+import io.github.l2hyunwoo.kudos.core.common.date.isoFromEpochDay
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlin.time.Clock
@@ -87,25 +88,5 @@ fun groupTasksByDueDate(
 private fun String.dueDay(): String = if (length >= 10) substring(0, 10) else this
 
 // Today's local civil date as "YYYY-MM-DD". Uses the device's UTC-based day, which is acceptable for
-// due-date bucketing here.
+// due-date bucketing here. The epoch-day -> ISO conversion lives in core.common.date.
 fun todayIso(): String = isoFromEpochDay(Clock.System.now().epochSeconds.floorDiv(86_400L))
-
-// Howard Hinnant's civil_from_days: epoch day -> "YYYY-MM-DD". Single source of this conversion,
-// reused by todayIso() and the due-date selector (DueOption). Inverse of DueDate.daysFromCivil().
-internal fun isoFromEpochDay(epochDay: Long): String {
-    val z = epochDay + 719_468L
-    val era = (if (z >= 0) z else z - 146_096L) / 146_097L
-    val doe = z - era * 146_097L
-    val yoe = (doe - doe / 1460L + doe / 36_524L - doe / 146_096L) / 365L
-    val year = yoe + era * 400L
-    val doy = doe - (365L * yoe + yoe / 4L - yoe / 100L)
-    val mp = (5L * doy + 2L) / 153L
-    val day = (doy - (153L * mp + 2L) / 5L + 1L).toInt()
-    val month = (if (mp < 10L) mp + 3L else mp - 9L).toInt()
-    val civilYear = (if (month <= 2) year + 1L else year).toInt()
-    return "${pad4(civilYear)}-${pad2(month)}-${pad2(day)}"
-}
-
-private fun pad2(v: Int): String = if (v < 10) "0$v" else v.toString()
-
-private fun pad4(v: Int): String = v.toString().padStart(4, '0')

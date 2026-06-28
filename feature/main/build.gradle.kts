@@ -8,6 +8,7 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.core.common)
             implementation(projects.feature.tasks)
             implementation(projects.feature.category)
             implementation(projects.data.categories)
