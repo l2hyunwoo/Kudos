@@ -90,7 +90,7 @@ gradle.projectsEvaluated {
                 .sum { record -> record.dependencies.count { it.split(':')[2] == 'aar' } } ?: 0
             println "Validated ${records.size()} artifact hashes and URLs; ${jarToAar} JAR-to-AAR edges"
             new File(gradle.rootProject.projectDir, 'tools/android-artifacts.json').text =
-                JsonOutput.prettyPrint(JsonOutput.toJson(records)) + '\n'
+                JsonOutput.prettyPrint(JsonOutput.toJson(records)).replaceAll('(?m)[ \t]+$', '') + '\n'
             def out = new File(gradle.rootProject.projectDir, 'tools/android-dependencies.json')
             out.text = JsonOutput.prettyPrint(JsonOutput.toJson(coordinates)) + '\n'
             println "Exported ${coordinates.size()} Android artifact and metadata coordinates"
