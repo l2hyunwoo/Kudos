@@ -1,0 +1,20 @@
+common --enable_bzlmod
+
+# Kotlin compiles target JVM 17 (same as Gradle); Metro's compiler plugin needs a JDK 21+ host.
+common --java_language_version=17
+common --java_runtime_version=remotejdk_21
+common --tool_java_language_version=17
+common --tool_java_runtime_version=remotejdk_21
+
+build --define=android_dexmerger_tool=d8_dexmerger
+build --define=android_incremental_dexing_tool=d8_dexbuilder
+build --define=android_standalone_dexing_tool=d8_compat_dx
+build --@rules_kotlin//kotlin/settings:jvm_emit_jdeps=False
+build --platform_mappings=tools/platform_mappings
+build --android_platforms=//tools:android_arm64
+
+build --experimental_google_legacy_api
+test --test_output=errors
+
+# Machine-local settings (ANDROID_HOME etc.), not committed.
+try-import %workspace%/user.bazelrc

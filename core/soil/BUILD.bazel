@@ -1,0 +1,15 @@
+load("//tools:kudos.bzl", "kudos_library")
+
+kudos_library(
+    name = "soil",
+    custom_package = "io.github.l2hyunwoo.kudos.core.soil",
+    compose = True,
+    deps = [
+        "//core/common",
+        "//core/design",
+        "@maven//:com_soil_kt_soil_query_core_android",
+        "@maven//:com_soil_kt_soil_query_compose_android",
+        "@maven//:com_soil_kt_soil_reacty_android",
+        "@maven//:androidx_compose_material3_adaptive_adaptive_android",
+    ],
+)

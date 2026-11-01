@@ -1,0 +1,7 @@
+flags:
+  --Android configuration distinguisher=android
+  --cpu=arm64-v8a
+    //tools:android_arm64
+  --Android configuration distinguisher=android
+  --cpu=x86_64
+    //tools:android_x86_64

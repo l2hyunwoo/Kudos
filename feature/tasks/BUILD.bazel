@@ -1,0 +1,33 @@
+load("//tools:kudos.bzl", "kudos_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+kudos_library(
+    name = "tasks",
+    custom_package = "io.github.l2hyunwoo.tasks",
+    feature = True,
+    serialization = False,
+    deps = [
+        "//data/categories",
+        "//data/tasks",
+        "@maven//:org_jetbrains_kotlinx_kotlinx_collections_immutable_jvm",
+        "@maven//:androidx_compose_runtime_runtime_retain_android",
+        "@maven//:sh_calvin_reorderable_reorderable_android",
+        "@maven//:com_mohamedrejeb_dnd_compose_dnd_android",
+        "@maven//:com_soil_kt_soil_query_core_android",
+        "@maven//:com_soil_kt_soil_query_compose_android",
+    ],
+)
+
+kt_jvm_test(
+    name = "task_group_test",
+    srcs = ["src/commonTest/kotlin/io/github/l2hyunwoo/tasks/TaskGroupTest.kt"],
+    test_class = "io.github.l2hyunwoo.tasks.TaskGroupTest",
+    deps = [":tasks", "//data/tasks", "@maven_tools//:org_jetbrains_kotlin_kotlin_test_junit"],
+)
+
+kt_jvm_test(
+    name = "dashboard_aggregate_test",
+    srcs = ["src/commonTest/kotlin/io/github/l2hyunwoo/tasks/dashboard/DashboardAggregateTest.kt"],
+    test_class = "io.github.l2hyunwoo.tasks.dashboard.DashboardAggregateTest",
+    deps = [":tasks", "//data/tasks", "@maven_tools//:org_jetbrains_kotlin_kotlin_test_junit"],
+)

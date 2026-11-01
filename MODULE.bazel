@@ -1,0 +1,74 @@
+"""Bazel build for the Kudos Android app. iOS keeps building with Gradle (no Kotlin/Native rules)."""
+
+module(name = "kudos")
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "rules_java", version = "9.3.0")
+bazel_dep(name = "rules_python", version = "1.7.0")
+bazel_dep(name = "rules_android", version = "0.7.3")
+bazel_dep(name = "rules_android_ndk", version = "0.1.5")
+bazel_dep(name = "rules_kotlin", version = "2.4.21")
+bazel_dep(name = "rules_jvm_external", version = "7.2")
+
+# Same Kotlin/KSP as gradle/libs.versions.toml: Metro and the Compose compiler plugin are bound to it.
+rules_kotlin_extensions = use_extension("@rules_kotlin//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
+rules_kotlin_extensions.kotlinc_version(
+    sha256 = "ba1b9e6eb6ddc3275079224f2e9ea4a2b02eef7d59ce2d38404f04b22613c20a",
+    version = "2.4.0",
+)
+rules_kotlin_extensions.ksp_version(
+    sha256 = "7f462f48a966051e733df463938c35d6da1c3c7191cc889fe5e3b04c7d91b5ab",
+    version = "2.3.9",
+)
+use_repo(rules_kotlin_extensions, "btapi_impl", "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "jarjar", "kotlin_build_tools_api", "kotlinx_coroutines_core_jvm", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
+
+register_toolchains("//tools:kotlin_toolchain")
+
+# SDK comes from ANDROID_HOME (set in user.bazelrc). api_level is left unset: SDK 37 installs as
+# platforms/android-37.0, which an int api_level cannot match.
+android_sdk_repository_extension = use_extension("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
+use_repo(android_sdk_repository_extension, "androidsdk")
+
+register_toolchains(
+    "@rules_android//toolchains/android:android_default_toolchain",
+    "@rules_android//toolchains/android_sdk:android_sdk_tools",
+    "@androidsdk//:sdk-toolchain",
+    "@androidsdk//:all",
+)
+
+# Android variants and edges are resolved by Gradle once, then downloaded by checksum.
+android_dependencies = use_repo_rule("//tools:android_dependencies.bzl", "android_dependencies")
+
+android_dependencies(
+    name = "maven",
+    manifest = "//tools:android-artifacts.json",
+)
+
+# Compiler plugins keep normal Maven transitive resolution, separate from Android variants.
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "maven_tools",
+    artifacts = [
+        "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.4.0",
+        "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable:2.4.0",
+        "dev.zacsweers.metro:compiler:1.2.1",
+        "de.jensklingenberg.ktorfit:ktorfit-ksp:2.7.5",
+        "org.jetbrains.kotlin:kotlin-test-junit:2.4.0",
+        "junit:junit:4.13.2",
+    ],
+    fail_if_repin_required = True,
+    known_contributing_modules = ["protobuf"],
+    lock_file = "//:maven_install.json",
+    repositories = ["https://repo1.maven.org/maven2"],
+    resolver = "maven",
+)
+use_repo(maven, "maven_tools")
+
+local_buildconfig = use_repo_rule("//tools/buildconfig:repository.bzl", "local_buildconfig")
+local_buildconfig(name = "local_config", root_module = "//:MODULE.bazel")
+
+android_ndk = use_extension("@rules_android_ndk//:extension.bzl", "android_ndk_repository_extension")
+android_ndk.configure(api_level = 24)
+use_repo(android_ndk, "androidndk")
+register_toolchains("@androidndk//:all")

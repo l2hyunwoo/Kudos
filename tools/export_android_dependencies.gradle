@@ -1,0 +1,99 @@
+import groovy.json.JsonOutput
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import java.security.MessageDigest
+
+gradle.projectsEvaluated {
+    def app = gradle.rootProject.findProject(':androidApp')
+    if (app == null) return
+    app.tasks.register('exportBazelDependencies') {
+        doLast {
+            def artifacts = app.configurations.releaseRuntimeClasspath.incoming.artifactView {
+                componentFilter { it instanceof ModuleComponentIdentifier }
+            }.artifacts.artifacts
+            def coordinates = artifacts.findAll { it.id.componentIdentifier instanceof ModuleComponentIdentifier }.collect {
+                def id = it.id.componentIdentifier
+                def extension = it.file.name.tokenize('.').last()
+                assert extension in ['aar', 'jar']: it.file.name
+                "${id.group}:${id.module}:${extension}:${id.version}".toString()
+            }.unique().sort()
+            def components = app.configurations.releaseRuntimeClasspath.incoming.resolutionResult.allComponents
+                .findAll { it.id instanceof ModuleComponentIdentifier }
+                .collect { "${it.id.group}:${it.id.module}:${it.id.version}".toString() }.unique().sort()
+            def artifactModules = coordinates.collect { it.split(':')[0..1].join(':') }.toSet()
+            coordinates.addAll(components.findAll { !artifactModules.contains(it.split(':')[0..1].join(':')) })
+            coordinates.sort()
+            def byComponent = artifacts.groupBy { it.id.componentIdentifier }
+            def nodes = app.configurations.releaseRuntimeClasspath.incoming.resolutionResult.allComponents.collectEntries { [(it.id): it] }
+            def coordinate = { artifact ->
+                def id = artifact.id.componentIdentifier
+                "${id.group}:${id.module}:${artifact.file.name.tokenize('.').last()}:${id.version}".toString()
+            }
+            def children = { id ->
+                assert nodes.containsKey(id): "Missing resolved component: $id"
+                nodes[id].dependencies.findAll { !it.constraint }.collect { dependency ->
+                    assert dependency instanceof ResolvedDependencyResult: "Unresolved dependency: $dependency"
+                    dependency.selected.id
+                }
+            }
+            Closure artifactTargets
+            artifactTargets = { id, path ->
+                if (byComponent.containsKey(id)) return byComponent[id].collect(coordinate)
+                assert !path.contains(id): "Metadata cycle: ${path + [id]}"
+                children(id).collectMany { artifactTargets(it, path + [id]) }.unique()
+            }
+            def records = artifacts.collect { artifact ->
+                def id = artifact.id.componentIdentifier
+                def digest = MessageDigest.getInstance('SHA-256')
+                artifact.file.withInputStream { stream ->
+                    byte[] buffer = new byte[65536]
+                    int size
+                    while ((size = stream.read(buffer)) != -1) digest.update(buffer, 0, size)
+                }
+                def repository = (id.group.startsWith('androidx.') || id.group.startsWith('com.android.') ||
+                    id.group.startsWith('com.google.android.') || id.group.startsWith('com.google.firebase')) ?
+                    'https://dl.google.com/dl/android/maven2' : 'https://repo.maven.apache.org/maven2'
+                // shortcut: unclassified Maven artifacts only; resolve published filenames if classifiers are added.
+                def url = "${repository}/${id.group.replace('.', '/')}/${id.module}/${id.version}/${id.module}-${id.version}.${artifact.file.name.tokenize('.').last()}".toString()
+                def connection = (HttpURLConnection) new URI(url).toURL().openConnection()
+                connection.requestMethod = 'HEAD'
+                connection.connectTimeout = 15000
+                connection.readTimeout = 15000
+                try {
+                    assert connection.responseCode == 200: "Artifact URL unavailable (${connection.responseCode}): $url"
+                    assert connection.contentLengthLong == artifact.file.length(): "Artifact size mismatch: $url"
+                } finally {
+                    connection.disconnect()
+                }
+                def key = coordinate(artifact)
+                [coordinate: key, sha256: digest.digest().encodeHex().toString(), url: url,
+                 dependencies: children(id).collectMany { artifactTargets(it, []) }.findAll { it != key }.unique().sort()]
+            }.sort { it.coordinate }
+            records = records.groupBy { it.coordinate }.collect { key, variants ->
+                assert variants.unique().size() == 1: "Different artifacts share coordinate: $key"
+                variants.first()
+            }.sort { it.coordinate }
+            def graph = records.collectEntries { [(it.coordinate): it.dependencies] }
+            assert graph.size() == records.size(): 'Duplicate artifact coordinates'
+            records.each { record ->
+                assert record.sha256 ==~ /[0-9a-f]{64}/
+                record.dependencies.each { assert graph.containsKey(it): "Missing artifact: $it" }
+            }
+            def visited = [] as Set
+            Closure checkCycle
+            checkCycle = { key, path ->
+                assert !path.contains(key): "Artifact cycle: ${path + [key]}"
+                if (visited.add(key)) graph[key].each { checkCycle(it, path + [key]) }
+            }
+            graph.keySet().each { checkCycle(it, []) }
+            def jarToAar = records.findAll { it.coordinate.split(':')[2] == 'jar' }
+                .sum { record -> record.dependencies.count { it.split(':')[2] == 'aar' } } ?: 0
+            println "Validated ${records.size()} artifact hashes and URLs; ${jarToAar} JAR-to-AAR edges"
+            new File(gradle.rootProject.projectDir, 'tools/android-artifacts.json').text =
+                JsonOutput.prettyPrint(JsonOutput.toJson(records)).replaceAll('(?m)[ \t]+$', '') + '\n'
+            def out = new File(gradle.rootProject.projectDir, 'tools/android-dependencies.json')
+            out.text = JsonOutput.prettyPrint(JsonOutput.toJson(coordinates)) + '\n'
+            println "Exported ${coordinates.size()} Android artifact and metadata coordinates"
+        }
+    }
+}

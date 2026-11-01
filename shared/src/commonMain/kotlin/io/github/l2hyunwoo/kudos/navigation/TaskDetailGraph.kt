@@ -17,19 +17,21 @@ context(appGraph: AppGraph)
 fun NavGraphBuilder.taskDetailGraph(navController: NavHostController) {
     // `this` (the composable lambda receiver) is the AnimatedContentScope for the TaskDetail route.
     composable<TaskDetail> { backStackEntry ->
-        val args = backStackEntry.toRoute<TaskDetail>()
-        CompositionLocalProvider(LocalNavAnimatedContentScope provides this) {
-            with(rememberTaskDetailContextRetained()) {
-                TaskDetailEntryPoint(
-                    id = args.id,
-                    taskId = args.taskId,
-                    title = args.title,
-                    description = args.description,
-                    status = TaskStatus.valueOf(args.status),
-                    priority = TaskPriority.valueOf(args.priority),
-                    dueDate = args.dueDate,
-                    onNavigateBack = { navController.navigateUp() },
-                )
+        RetainedEntryContent {
+            val args = backStackEntry.toRoute<TaskDetail>()
+            CompositionLocalProvider(LocalNavAnimatedContentScope provides this) {
+                with(rememberTaskDetailContextRetained()) {
+                    TaskDetailEntryPoint(
+                        id = args.id,
+                        taskId = args.taskId,
+                        title = args.title,
+                        description = args.description,
+                        status = TaskStatus.valueOf(args.status),
+                        priority = TaskPriority.valueOf(args.priority),
+                        dueDate = args.dueDate,
+                        onNavigateBack = { navController.navigateUp() },
+                    )
+                }
             }
         }
     }

@@ -1,11 +1,11 @@
 package io.github.l2hyunwoo.tasks
 
 import androidx.compose.runtime.Composable
-import io.github.takahirom.rin.rememberRetained
+import androidx.compose.runtime.retain.retain
 
 @Composable
 context(factory: TasksContext.Factory)
 fun rememberTasksContextRetained() =
-    rememberRetained {
+    retain {
         factory.createTasksContext()
     }

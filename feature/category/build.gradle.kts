@@ -14,7 +14,7 @@ kotlin {
             implementation(libs.material3)
             implementation(libs.soil.query)
             implementation(libs.soil.query.compose)
-            implementation(libs.rin)
+            implementation(libs.androidx.compose.runtime.retain)
         }
 
         commonTest {

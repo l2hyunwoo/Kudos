@@ -1,0 +1,48 @@
+load("@rules_android//rules:rules.bzl", "android_binary")
+load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
+
+kt_android_library(
+    name = "app_code",
+    srcs = glob(["src/main/kotlin/**/*.kt"]),
+    custom_package = "io.github.l2hyunwoo.kudos",
+    manifest = "//tools:AndroidManifest.xml",
+    plugins = ["//tools:compose_compiler", "//tools:metro_compiler"],
+    deps = [
+        "//shared",
+        "@maven//:androidx_activity_activity_compose",
+        "@maven//:androidx_compose_runtime_runtime_android",
+        "@maven//:dev_zacsweers_metro_runtime_jvm",
+    ],
+)
+
+android_binary(
+    name = "app",
+    custom_package = "io.github.l2hyunwoo.kudos",
+    manifest = "src/main/AndroidManifest.xml",
+    manifest_values = {
+        "applicationId": "io.github.l2hyunwoo.kudos",
+        "minSdkVersion": "24",
+        "targetSdkVersion": "36",
+        "versionCode": "1",
+        "versionName": "1.0.0",
+    },
+    resource_files = glob(["src/main/res/**"]),
+    deps = [":app_code"],
+)
+
+android_binary(
+    name = "app_release",
+    proguard_specs = ["proguard-android-optimize.pro", "proguard-rules.pro"],
+    shrink_resources = 1,
+    custom_package = "io.github.l2hyunwoo.kudos",
+    manifest = "src/main/AndroidManifest.xml",
+    manifest_values = {
+        "applicationId": "io.github.l2hyunwoo.kudos",
+        "minSdkVersion": "24",
+        "targetSdkVersion": "36",
+        "versionCode": "1",
+        "versionName": "1.0.0",
+    },
+    resource_files = glob(["src/main/res/**"]),
+    deps = [":app_code"],
+)

@@ -1,0 +1,15 @@
+load("//tools:kudos.bzl", "kudos_library")
+
+kudos_library(
+    name = "design",
+    custom_package = "io.github.l2hyunwoo.kudos.core.designsystem",
+    compose = True,
+    deps = [
+        "@maven//:io_coil_kt_coil3_coil_compose_android",
+        "@maven//:io_coil_kt_coil3_coil_network_ktor3_android",
+        "@maven//:io_ktor_ktor_client_okhttp_jvm",
+    ],
+    exports = [
+        "@maven//:com_github_skydoves_cloudy_android",
+    ],
+)
