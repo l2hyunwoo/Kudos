@@ -22,12 +22,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Android and resource parity
+          - name: Android Bazel
             os: ubuntu-24.04
-            tasks: lintKotlin :androidApp:assembleDebug
-          - name: iOS retain tests and framework
+            tasks: ""
+          - name: iOS, lint and resource parity
             os: macos-15
-            tasks: :shared:iosSimulatorArm64Test :shared:linkDebugFrameworkIosSimulatorArm64
+            tasks: lintKotlin :shared:iosSimulatorArm64Test :shared:linkDebugFrameworkIosSimulatorArm64
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -47,13 +47,30 @@ jobs:
           packages: 'platform-tools cmdline-tools;23.0'
           log-accepted-android-sdk-licenses: false
       - name: Install Android SDK 37.0
-        run: '"$ANDROID_HOME/cmdline-tools/23.0/bin/sdkmanager" "platforms;android-37.0"'
+        run: '"$ANDROID_HOME/cmdline-tools/23.0/bin/sdkmanager" "platforms;android-37.0" "build-tools;37.0.0"'
+      - name: Install Android NDK
+        if: runner.os == 'Linux'
+        run: '"$ANDROID_HOME/cmdline-tools/23.0/bin/sdkmanager" "ndk;27.1.12297006"'
+      - uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
+        if: runner.os == 'Linux'
+        with:
+          bazelisk-cache: true
+          repository-cache: true
+          disk-cache: true
+          cache-save: ${{ github.event_name == 'push' }}
       - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+        if: runner.os == 'macOS'
       - name: Prepare build configuration without service credentials
         run: touch local.properties
       - name: Check dependency declarations
         run: python3 tools/check_versions.py
-      - name: Build and test
+      - name: Build and test Android with Bazel
+        if: runner.os == 'Linux'
+        run: |
+          bazel build //androidApp:app //androidApp:app_release --jobs=2 --repo_env=ANDROID_HOME="$ANDROID_HOME" --repo_env=ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.1.12297006"
+          bazel test //feature/tasks:all --jobs=2 --repo_env=ANDROID_HOME="$ANDROID_HOME" --repo_env=ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.1.12297006"
+      - name: Build and test iOS, and lint Kotlin
+        if: runner.os == 'macOS'
         env:
           GRADLE_TASKS: ${{ matrix.tasks }}
         shell: bash
@@ -65,5 +82,5 @@ jobs:
             -Pkotlin.daemon.jvmargs=-Xmx1g \
             --stacktrace
       - name: Compare Compose resources with Gradle outputs
-        if: runner.os == 'Linux'
+        if: runner.os == 'macOS'
         run: python3 tools/compose_resources/check_parity.py
