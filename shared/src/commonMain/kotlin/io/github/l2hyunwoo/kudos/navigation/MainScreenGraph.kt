@@ -20,45 +20,47 @@ fun NavGraphBuilder.mainScreenGraph(
 ) {
     // `this` (the composable lambda receiver) is the AnimatedContentScope for the Main destination.
     composable<Main> {
-        CompositionLocalProvider(LocalNavAnimatedContentScope provides this) {
-            MainScreen(
-                tasksContextFactory = appGraph,
-                categoryContextFactory = appGraph,
-                darkTheme = darkTheme,
-                onToggleTheme = onToggleTheme,
-                onNavigateToTaskDetail = { task ->
-                    navController.navigate(
-                        TaskDetail(
-                            id = task.id,
-                            taskId = task.taskId,
-                            title = task.title,
-                            description = task.description,
-                            status = task.status.name,
-                            priority = task.priority.name,
-                            dueDate = task.dueDate,
-                        ),
-                    )
-                },
-                onNavigateToProjectDetail = {
-                    projectId,
-                    categoryId,
-                    title,
-                    description,
-                    categoryColor,
-                    categoryPrefix,
-                    ->
-                    navController.navigate(
-                        ProjectDetail(
-                            projectId = projectId,
-                            categoryId = categoryId,
-                            title = title,
-                            description = description,
-                            categoryColor = categoryColor,
-                            categoryPrefix = categoryPrefix,
-                        ),
-                    )
-                },
-            )
+        RetainedEntryContent {
+            CompositionLocalProvider(LocalNavAnimatedContentScope provides this) {
+                MainScreen(
+                    tasksContextFactory = appGraph,
+                    categoryContextFactory = appGraph,
+                    darkTheme = darkTheme,
+                    onToggleTheme = onToggleTheme,
+                    onNavigateToTaskDetail = { task ->
+                        navController.navigate(
+                            TaskDetail(
+                                id = task.id,
+                                taskId = task.taskId,
+                                title = task.title,
+                                description = task.description,
+                                status = task.status.name,
+                                priority = task.priority.name,
+                                dueDate = task.dueDate,
+                            ),
+                        )
+                    },
+                    onNavigateToProjectDetail = {
+                        projectId,
+                        categoryId,
+                        title,
+                        description,
+                        categoryColor,
+                        categoryPrefix,
+                        ->
+                        navController.navigate(
+                            ProjectDetail(
+                                projectId = projectId,
+                                categoryId = categoryId,
+                                title = title,
+                                description = description,
+                                categoryColor = categoryColor,
+                                categoryPrefix = categoryPrefix,
+                            ),
+                        )
+                    },
+                )
+            }
         }
     }
 }

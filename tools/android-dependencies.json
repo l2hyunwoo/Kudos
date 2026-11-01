@@ -167,8 +167,6 @@
     "io.coil-kt.coil3:coil-network-ktor3-android:aar:3.5.0",
     "io.coil-kt.coil3:coil-network-ktor3:3.5.0",
     "io.coil-kt.coil3:coil:3.5.0",
-    "io.github.takahirom.rin:rin-android:aar:0.4.0",
-    "io.github.takahirom.rin:rin:0.4.0",
     "io.ktor:ktor-client-content-negotiation-jvm:jar:3.5.0",
     "io.ktor:ktor-client-content-negotiation:3.5.0",
     "io.ktor:ktor-client-core-jvm:jar:3.5.0",

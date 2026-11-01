@@ -12,12 +12,14 @@ import io.github.l2hyunwoo.tasks.rememberTasksContextRetained
 context(appGraph: AppGraph)
 fun NavGraphBuilder.taskListGraph(navController: NavHostController) {
     composable<TaskList> {
-        with(rememberTasksContextRetained()) {
-            TaskListEntryPoint(
-                onNavigateToCategories = {
-                    navController.navigate(CategoryList)
-                },
-            )
+        RetainedEntryContent {
+            with(rememberTasksContextRetained()) {
+                TaskListEntryPoint(
+                    onNavigateToCategories = {
+                        navController.navigate(CategoryList)
+                    },
+                )
+            }
         }
     }
 }

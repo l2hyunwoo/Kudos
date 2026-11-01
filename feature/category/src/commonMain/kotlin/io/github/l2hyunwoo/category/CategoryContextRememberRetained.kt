@@ -1,11 +1,11 @@
 package io.github.l2hyunwoo.category
 
 import androidx.compose.runtime.Composable
-import io.github.takahirom.rin.rememberRetained
+import androidx.compose.runtime.retain.retain
 
 @Composable
 context(factory: CategoryContext.Factory)
 fun rememberCategoryContextRetained() =
-    rememberRetained {
+    retain {
         factory.createCategoryContext()
     }

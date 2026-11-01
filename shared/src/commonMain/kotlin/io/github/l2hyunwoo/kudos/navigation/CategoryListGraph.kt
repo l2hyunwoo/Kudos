@@ -12,28 +12,30 @@ import io.github.l2hyunwoo.kudos.core.common.navigation.ProjectDetail
 context(appGraph: AppGraph)
 fun NavGraphBuilder.categoryListGraph(navController: NavHostController) {
     composable<CategoryList> {
-        with(rememberCategoryContextRetained()) {
-            CategoryListEntryPoint(
-                onNavigateToProjectDetail = {
-                    projectId,
-                    categoryId,
-                    title,
-                    description,
-                    categoryColor,
-                    categoryPrefix,
-                    ->
-                    navController.navigate(
-                        ProjectDetail(
-                            projectId = projectId,
-                            categoryId = categoryId,
-                            title = title,
-                            description = description,
-                            categoryColor = categoryColor,
-                            categoryPrefix = categoryPrefix,
-                        ),
-                    )
-                },
-            )
+        RetainedEntryContent {
+            with(rememberCategoryContextRetained()) {
+                CategoryListEntryPoint(
+                    onNavigateToProjectDetail = {
+                        projectId,
+                        categoryId,
+                        title,
+                        description,
+                        categoryColor,
+                        categoryPrefix,
+                        ->
+                        navController.navigate(
+                            ProjectDetail(
+                                projectId = projectId,
+                                categoryId = categoryId,
+                                title = title,
+                                description = description,
+                                categoryColor = categoryColor,
+                                categoryPrefix = categoryPrefix,
+                            ),
+                        )
+                    },
+                )
+            }
         }
     }
 }

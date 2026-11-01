@@ -64,6 +64,7 @@ kotlin {
             api(projects.feature.tasks)
 
             implementation(libs.compose.runtime)
+            implementation(libs.androidx.compose.runtime.retain)
             implementation(libs.compose.foundation)
             implementation(libs.material3)
             implementation(libs.compose.ui)
