@@ -1,0 +1,11 @@
+load("//tools:kudos.bzl", "kudos_library")
+
+kudos_library(
+    name = "common",
+    compose = True,
+    custom_package = "io.github.l2hyunwoo.kudos.core.common",
+    deps = [
+        "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
+        "@maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
+    ],
+)
