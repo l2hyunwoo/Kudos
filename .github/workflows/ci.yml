@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Android and resource parity
+            os: ubuntu-24.04
+            tasks: lintKotlin :androidApp:assembleDebug
+          - name: iOS retain tests and framework
+            os: macos-15
+            tasks: :shared:iosSimulatorArm64Test :shared:linkDebugFrameworkIosSimulatorArm64
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '23'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
+      - name: Install compile SDK
+        run: sdkmanager 'platforms;android-37'
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+      - name: Prepare build configuration without service credentials
+        run: touch local.properties
+      - name: Check dependency declarations
+        run: python3 tools/check_versions.py
+      - name: Build and test
+        env:
+          GRADLE_TASKS: ${{ matrix.tasks }}
+        shell: bash
+        run: |
+          read -r -a tasks <<< "$GRADLE_TASKS"
+          ./gradlew "${tasks[@]}" \
+            --no-daemon --no-configuration-cache --max-workers=2 \
+            '-Dorg.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8' \
+            -Pkotlin.daemon.jvmargs=-Xmx1g \
+            --stacktrace
+      - name: Compare Compose resources with Gradle outputs
+        if: runner.os == 'Linux'
+        run: python3 tools/compose_resources/check_parity.py
