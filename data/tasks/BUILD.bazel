@@ -1,0 +1,14 @@
+load("//tools:kudos.bzl", "kudos_library")
+
+kudos_library(
+    name = "tasks",
+    custom_package = "io.github.l2hyunwoo.data.tasks",
+    ktor = True,
+    deps = [
+        "//core/common",
+        "//core/datastore",
+        "//core/network",
+        "@maven//:com_soil_kt_soil_query_core_android",
+        "@maven//:androidx_datastore_datastore_preferences_android",
+    ],
+)

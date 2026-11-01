@@ -302,3 +302,6 @@ program.kexe.dSYM/
 # Bazel
 /bazel-*
 /user.bazelrc
+
+# Python build helpers
+__pycache__/

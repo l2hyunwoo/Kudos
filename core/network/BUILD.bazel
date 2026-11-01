@@ -1,0 +1,12 @@
+load("//tools:kudos.bzl", "kudos_library")
+
+kudos_library(
+    name = "network",
+    custom_package = "io.github.l2hyunwoo.kudos.core.network",
+    ktor = True,
+    extra_srcs = ["@local_config//:buildconfig"],
+    deps = [
+        "//core/common",
+        "@maven//:com_squareup_okhttp3_logging_interceptor",
+    ],
+)

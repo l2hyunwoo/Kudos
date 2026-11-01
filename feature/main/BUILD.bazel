@@ -1,0 +1,18 @@
+load("//tools:kudos.bzl", "kudos_library")
+
+kudos_library(
+    name = "main",
+    custom_package = "io.github.l2hyunwoo.main",
+    feature = True,
+    serialization = False,
+    deps = [
+        "//data/categories",
+        "//data/tasks",
+        "//feature/tasks",
+        "//feature/category",
+        "@maven//:org_jetbrains_kotlinx_kotlinx_collections_immutable_jvm",
+        "@maven//:org_jetbrains_kotlinx_kotlinx_datetime_jvm",
+        "@maven//:com_soil_kt_soil_query_core_android",
+        "@maven//:com_soil_kt_soil_query_compose_android",
+    ],
+)

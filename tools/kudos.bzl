@@ -38,7 +38,7 @@ _FEATURE_DEPS = [
 
 def _compose_resources(name, package):
     """Runs the Res generator. Outputs are known from the source glob, so no tree artifacts."""
-    srcs = native.glob(["src/commonMain/composeResources/**"])
+    srcs = native.glob(["src/commonMain/composeResources/**"], allow_empty = True)
     if not srcs:
         return None, []
     root = "src/commonMain/composeResources/"
@@ -65,6 +65,7 @@ def kudos_library(
         custom_package,
         deps = [],
         exports = [],
+        extra_srcs = [],
         compose = False,
         feature = False,
         ktor = False,
@@ -77,6 +78,7 @@ def kudos_library(
       custom_package: Gradle `android { namespace }`.
       deps: module and maven deps (Gradle commonMain/androidMain `implementation`).
       exports: Gradle `api` deps.
+      extra_srcs: Generated Kotlin sources.
       compose: kudos.compose.multiplatform (Compose compiler + CMP deps).
       feature: kudos.feature (implies compose, adds core:common/design/soil + navigation).
       ktor: kudos.ktor (serialization + ktor + Ktorfit KSP).
@@ -85,7 +87,7 @@ def kudos_library(
     """
     compose = compose or feature
     plugins = ["//tools:metro_compiler"]
-    all_deps = list(deps) + ["@maven//:dev_zacsweers_metro_runtime_jvm"]
+    all_deps = list(deps) + list(exports) + ["@maven//:dev_zacsweers_metro_runtime_jvm"]
     if serialization or ktor:
         plugins.append("//tools:serialization_compiler")
     if compose:
@@ -99,13 +101,13 @@ def kudos_library(
 
     pkg = "kudos." + native.package_name().replace("/", ".") + ".generated.resources"
     res_srcjar, assets = _compose_resources(name, pkg)
-    srcs = native.glob(["src/commonMain/kotlin/**/*.kt", "src/androidMain/kotlin/**/*.kt"])
+    srcs = native.glob(["src/commonMain/kotlin/**/*.kt", "src/androidMain/kotlin/**/*.kt"], allow_empty = True)
     if res_srcjar:
         srcs.append(res_srcjar)
 
     kt_android_library(
         name = name,
-        srcs = srcs,
+        srcs = srcs + extra_srcs,
         custom_package = custom_package,
         manifest = "//tools:AndroidManifest.xml",
         assets = assets,
