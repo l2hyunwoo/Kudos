@@ -7,10 +7,18 @@ import tomllib
 root = Path(__file__).resolve().parents[1]
 module = (root / 'MODULE.bazel').read_text()
 coordinates = re.findall(r'"([^"\s]+:[^"\s]+:[^"\s]+)"', module)
-versions = {':'.join(c.split(':')[:2]): c.split(':')[-1] for c in coordinates}
 exported = json.loads((root / 'tools/android-dependencies.json').read_text())
-for coordinate in exported:
-    assert coordinate in coordinates, f'MODULE.bazel differs from Android export: {coordinate}'
+artifacts = json.loads((root / 'tools/android-artifacts.json').read_text())
+actual = {a['coordinate'] for a in artifacts}
+assert len(actual) == len(artifacts), 'Duplicate Android artifacts'
+assert actual == {c for c in exported if len(c.split(':')) == 4}, 'Android artifact export differs'
+for artifact in artifacts:
+    assert re.fullmatch(r'[0-9a-f]{64}', artifact['sha256']), artifact['coordinate']
+    assert artifact['url'].startswith('https://'), artifact['coordinate']
+    assert set(artifact['dependencies']) <= actual, artifact['coordinate']
+    assert artifact['coordinate'] not in artifact['dependencies'], artifact['coordinate']
+coordinates += exported
+versions = {':'.join(c.split(':')[:2]): c.split(':')[-1] for c in coordinates}
 catalog = tomllib.loads((root / 'gradle/libs.versions.toml').read_text())
 checked = set()
 for alias, library in catalog['libraries'].items():
@@ -27,7 +35,7 @@ for alias, library in catalog['libraries'].items():
 for compiler in ['kotlin', 'ksp']:
     expected = catalog['versions'][compiler]
     tag = 'kotlinc_version' if compiler == 'kotlin' else 'ksp_version'
-    assert re.search(r'\.' + tag + r'\(\s*version = "' + re.escape(expected) + '"', module), compiler
+    assert re.search(r'\.' + tag + r'\([^)]*version = "' + re.escape(expected) + '"', module), compiler
 assert versions['dev.zacsweers.metro:compiler'] == catalog['versions']['metro']
 assert versions['org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable'] == catalog['versions']['kotlin']
 assert versions['org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable'] == catalog['versions']['kotlin']

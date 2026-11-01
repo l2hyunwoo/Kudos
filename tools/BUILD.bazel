@@ -29,7 +29,7 @@ kt_compiler_plugin(
     id = "androidx.compose.compiler.plugins.kotlin",
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],
-    deps = ["@maven//:org_jetbrains_kotlin_kotlin_compose_compiler_plugin_embeddable"],
+    deps = ["@maven_tools//:org_jetbrains_kotlin_kotlin_compose_compiler_plugin_embeddable"],
 )
 
 kt_compiler_plugin(
@@ -37,14 +37,16 @@ kt_compiler_plugin(
     id = "dev.zacsweers.metro.compiler",
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],
-    deps = ["@maven//:dev_zacsweers_metro_compiler"],
+    deps = ["@maven_tools//:dev_zacsweers_metro_compiler"],
 )
 
 kt_ksp_plugin(
     name = "ktorfit_ksp",
+    # Common and Android sources compile together in one Bazel target.
+    options = {"Ktorfit_MultiplatformWithSingleTarget": "true"},
     processor_class = "de.jensklingenberg.ktorfit.KtorfitProcessorProvider",
     visibility = ["//visibility:public"],
-    deps = ["@maven//:de_jensklingenberg_ktorfit_ktorfit_ksp"],
+    deps = ["@maven_tools//:de_jensklingenberg_ktorfit_ktorfit_ksp"],
 )
 
 py_binary(
@@ -59,5 +61,5 @@ kt_compiler_plugin(
     id = "org.jetbrains.kotlinx.serialization",
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],
-    deps = ["@maven//:org_jetbrains_kotlin_kotlin_serialization_compiler_plugin_embeddable"],
+    deps = ["@maven_tools//:org_jetbrains_kotlin_kotlin_serialization_compiler_plugin_embeddable"],
 )
